@@ -1,0 +1,39 @@
+✅ Data Integrity Verified.
+📈 Total Valid Records: 57 (Noise removed: 1)
+
+############################################################
+           CYCLONENET OFFICIAL VALIDATION SUMMARY
+############################################################
+METRIC                    | VALUE      | INTERPRETATION
+------------------------------------------------------------
+Area Under ROC (AUC)      | 0.9094    | High Predictive Power
+F1-Score                  | 0.8254    | Harmonized Accuracy
+Precision (PPV)           | 0.7027    | 1 - False Alarm Ratio
+Recall (Sensitivity)      | 1.0000    | No Missed Events
+Brier Score               | 0.1315    | Reliability/Calibration
+------------------------------------------------------------
+Mean Tracking Error       | 26.03 km  | Center Displacement
+Median Tracking Error     | 27.80 km  | Robust Median Error
+############################################################
+
+📊 DETAILED PERFORMANCE PER STORM (NHC BENCHMARK):
+            MAE (km)  Avg_Conf  RI_Hits
+event_name
+WILMA          0.000     0.884        1
+IDALIA         0.000     0.905        1
+KATRINA       13.280     0.724        4
+DORIAN        18.645     0.659        2
+MILTON        18.965     0.846        2
+ISAAC         24.313     0.348       11
+HARVEY        25.190     0.746        1
+BERYL         27.165     0.792        2
+IVAN          27.360     0.743        1
+ANDREW        27.800     0.846        1
+MICHAEL       31.200     0.859        2
+JOAQUIN       37.700     0.828        1
+IAN           37.765     0.812        2
+SANDY         38.130     0.771        1
+MARIA         38.630     0.656        1
+FRANCES       38.660     0.917        1
+ETA           38.700     0.844        1
+LEE           68.745     0.677        2
