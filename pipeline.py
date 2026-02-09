@@ -132,12 +132,14 @@ def main() -> int:
                 best_guess = critical_points[0]
                 output_root = PATHS["output_figures"].parent
 
+                env_threshold = float(os.getenv("RI_THRESHOLD", "0.6"))
+
                 error_km = generate_validation_csv(
                     event_data=event,
                     predicted_coords=best_guess,
                     weight=best_guess['intensity_weight'],
                     output_path=output_root,
-                    ri_threshold=0.5
+                    ri_threshold=env_threshold
                 )
 
                 logger.info(

@@ -44,8 +44,8 @@ PATHS = {
 PARAMS = {
     'ri_threshold_knots': 30,
     'ri_window_hours': 24,
-    'storm_name': 'ANDREW',
-    'year': '1992',
+    'storm_name': 'MILTON',
+    'year': '2024',
     'lead_time_hours': 6,
     'T': 5, 'H': 40, 'W': 40, 'C': 4,
 }

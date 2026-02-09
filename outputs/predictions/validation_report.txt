@@ -1,0 +1,38 @@
+#################################################################
+              CYCLONENET OFFICIAL SCIENTIFIC REPORT              
+#################################################################
+METRIC                    | VALUE      | INTERPRETATION
+-----------------------------------------------------------------
+ROC-AUC Score             | 0.9736     | Discriminative Power
+Brier Score               | 0.1169     | Calibration Quality
+F1-Score                  | 0.7869     | Harmonic Performance
+Precision (PPV)           | 0.6857     | False Alarm Resistance
+Recall (Sensitivity)      | 0.9231     | Event Detection Rate
+Overall Accuracy          | 0.7759     | Global Success Rate
+-----------------------------------------------------------------
+Mean Tracking Error       | 25.79 km  | Center Displacement
+Median Tracking Error     | 27.80 km  | Robust Displacement
+#################################################################
+
+📊 STORM-LEVEL PERFORMANCE (NHC BENCHMARK):
+            MAE(km)  AvgConf  Hits  Actual_RI
+event_name                                   
+BERYL         0.000    0.518     0          2
+LAURA         0.000    0.744     1          1
+IRMA         13.900    0.706     2          2
+KATRINA      13.900    0.951     2          2
+MICHAEL      24.860    0.858     2          2
+ANDREW       25.090    0.734     1          1
+MILTON       25.830    0.887     1          1
+IDA          26.115    0.901     2          2
+SANDY        26.120    0.884     1          1
+IDALIA       27.800    0.812     1          1
+ISAAC        27.800    0.322    11          0
+HARVEY       27.800    0.912     1          1
+MARIA        27.800    0.757     1          1
+MITCH        27.800    0.757     2          2
+HUGO         27.800    0.732     1          1
+WILMA        27.800    0.675     1          1
+IAN          32.580    0.889     2          2
+HELENE       36.960    0.818     1          1
+DORIAN       37.375    0.799     2          2

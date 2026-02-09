@@ -9,14 +9,32 @@ Commercial use is strictly prohibited without prior authorization.
 Copyright (c) 2026 Estefano Senhor Ferreira
 """
 
+import os
+import sys
+import io
+from pathlib import Path
 import pandas as pd
 import numpy as np
-import io
-import os
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
 from sklearn.metrics import (
     roc_auc_score, f1_score, precision_score,
-    recall_score, brier_score_loss
+    recall_score, brier_score_loss, accuracy_score
 )
+
+# --- 1. BOOTSTRAP: Environment Setup ---
+current_file = Path(__file__).resolve()
+PROJECT_ROOT = current_file.parent.parent
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+try:
+    from src.utils.config import PATHS
+except ModuleNotFoundError:
+    print(f"Error: Could not find 'src' folder in: {PROJECT_ROOT}")
+    sys.exit(1)
 
 
 def heal_csv_data(file_path):
@@ -36,9 +54,8 @@ def heal_csv_data(file_path):
         clean_lines.append(headers)
         for line in f:
             parts = line.strip().split(',')
-            # Check for merged lines (e.g., 37 or 38 columns instead of 19)
             if len(parts) > expected_cols:
-                # Recover both observations from the merged line
+                # Recover multiple observations from a single corrupted line
                 clean_lines.append(",".join(parts[:expected_cols]) + "\n")
                 clean_lines.append(",".join(parts[expected_cols:]) + "\n")
             else:
@@ -47,81 +64,111 @@ def heal_csv_data(file_path):
     return io.StringIO("".join(clean_lines))
 
 
-# 1. Path Configuration
-base_path = os.path.dirname(os.path.abspath(__file__))
-# Points to the specific scientific log generated
-raw_csv = os.path.join(base_path, '..', 'outputs',
-                       'cyclonenet_scientific_2026-02-08.csv')
+# --- 2. Path Configuration ---
+prediction_path = PATHS['output_predictions']
+raw_csv = os.path.join(prediction_path, 'cyclonenet_scientific.csv')
+report_txt = os.path.join(prediction_path, 'validation_report.txt')
 
-# 2. Robust Data Processing & Sanitization
+# --- 3. Data Loading & Sanitization ---
 try:
-    # Heal the data in memory
     virtual_file = heal_csv_data(raw_csv)
     df = pd.read_csv(virtual_file)
 
-    # Cast critical columns to numeric, coercing noise/headers into NaN
+    # Cast metrics to numeric, handling potential noise
     numeric_cols = ['is_RI_actual', 'confidence_weight',
                     'prediction_binary', 'error_km']
     for col in numeric_cols:
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
-    # Drop any corrupted rows that resulted in NaN values during casting
     initial_count = len(df)
     df = df.dropna(
         subset=['is_RI_actual', 'confidence_weight', 'prediction_binary'])
-
-    # Strict Binary Validation: Ensure target is strictly [0, 1] for Scikit-Learn
     df = df[df['is_RI_actual'].isin([0, 1])].copy()
 
     final_count = len(df)
-    print(f"✅ Data Integrity Verified.")
-    print(
-        f"📈 Total Valid Records: {final_count} (Noise removed: {initial_count - final_count})\n")
+    print(f"✅ Data Integrity Verified. Records: {final_count}")
 
 except Exception as e:
-    print(f"❌ Critical Failure during data sanitization: {e}")
-    exit()
+    print(f"❌ Critical Failure during sanitization: {e}")
+    sys.exit(1)
 
-# 3. Scientific Metric Calculation
-# ROC-AUC: Measures the model's ability to rank high-risk events correctly
+# --- 4. Metric Calculations ---
 auc = roc_auc_score(df['is_RI_actual'], df['confidence_weight'])
-
-# F1, Precision, Recall: Binary classification performance
 f1 = f1_score(df['is_RI_actual'], df['prediction_binary'])
-precision = precision_score(df['is_RI_actual'], df['prediction_binary'])
-recall = recall_score(df['is_RI_actual'], df['prediction_binary'])
-
-# Brier Score: Measures the calibration of predicted probabilities (lower is better)
+prec = precision_score(df['is_RI_actual'], df['prediction_binary'])
+rec = recall_score(df['is_RI_actual'], df['prediction_binary'])
+acc = accuracy_score(df['is_RI_actual'], df['prediction_binary'])
 brier = brier_score_loss(df['is_RI_actual'], df['confidence_weight'])
 
-# 4. Final Scientific Report (International Research Standard)
-print("#" * 60)
-print(f"{'CYCLONENET OFFICIAL VALIDATION SUMMARY':^60}")
-print("#" * 60)
-print(f"{'METRIC':<25} | {'VALUE':<10} | {'INTERPRETATION'}")
-print("-" * 60)
-print(f"{'Area Under ROC (AUC)':<25} | {auc:.4f}    | High Predictive Power")
-print(f"{'F1-Score':<25} | {f1:.4f}    | Harmonized Accuracy")
-print(f"{'Precision (PPV)':<25} | {precision:.4f}    | 1 - False Alarm Ratio")
-print(f"{'Recall (Sensitivity)':<25} | {recall:.4f}    | No Missed Events")
-print(f"{'Brier Score':<25} | {brier:.4f}    | Reliability/Calibration")
-print("-" * 60)
-print(
+# --- 5. Report Generation ---
+report_content = []
+report_content.append("#" * 65)
+report_content.append(f"{'CYCLONENET OFFICIAL SCIENTIFIC REPORT':^65}")
+report_content.append("#" * 65)
+report_content.append(f"{'METRIC':<25} | {'VALUE':<10} | {'INTERPRETATION'}")
+report_content.append("-" * 65)
+report_content.append(
+    f"{'ROC-AUC Score':<25} | {auc:.4f}     | Discriminative Power")
+report_content.append(
+    f"{'Brier Score':<25} | {brier:.4f}     | Calibration Quality")
+report_content.append(
+    f"{'F1-Score':<25} | {f1:.4f}     | Harmonic Performance")
+report_content.append(
+    f"{'Precision (PPV)':<25} | {prec:.4f}     | False Alarm Resistance")
+report_content.append(
+    f"{'Recall (Sensitivity)':<25} | {rec:.4f}     | Event Detection Rate")
+report_content.append(
+    f"{'Overall Accuracy':<25} | {acc:.4f}     | Global Success Rate")
+report_content.append("-" * 65)
+report_content.append(
     f"{'Mean Tracking Error':<25} | {df['error_km'].mean():.2f} km  | Center Displacement")
-print(
-    f"{'Median Tracking Error':<25} | {df['error_km'].median():.2f} km  | Robust Median Error")
-print("#" * 60 + "\n")
+report_content.append(
+    f"{'Median Tracking Error':<25} | {df['error_km'].median():.2f} km  | Robust Displacement")
+report_content.append("#" * 65 + "\n")
 
-# 5. Granular Event Breakdown
-print("📊 DETAILED PERFORMANCE PER STORM (NHC BENCHMARK):")
+# Event Breakdown
+report_content.append("📊 STORM-LEVEL PERFORMANCE (NHC BENCHMARK):")
 storm_report = df.groupby('event_name').agg({
     'error_km': 'mean',
     'confidence_weight': 'mean',
-    'prediction_binary': 'sum'
+    'prediction_binary': 'sum',
+    'is_RI_actual': 'sum'
 }).rename(columns={
-    'error_km': 'MAE (km)',
-    'confidence_weight': 'Avg_Conf',
-    'prediction_binary': 'RI_Hits'
+    'error_km': 'MAE(km)',
+    'confidence_weight': 'AvgConf',
+    'prediction_binary': 'Hits',
+    'is_RI_actual': 'Actual_RI'
 })
 
-print(storm_report.round(3).sort_values(by='MAE (km)'))
+report_content.append(storm_report.round(
+    3).sort_values(by='MAE(km)').to_string())
+
+# --- 6. Execution & File Output ---
+final_output = "\n".join(report_content)
+print(final_output)
+
+with open(report_txt, 'w', encoding='utf-8') as f:
+    f.write(final_output)
+
+print(f"\n💾 Scientific report saved to: {report_txt}")
+
+# 1. Calculate the Confusion Matrix
+tn, fp, fn, tp = confusion_matrix(
+    df['is_RI_actual'], df['prediction_binary']).ravel()
+cm = [[tn, fp], [fn, tp]]
+
+# 2. Setup the Visualization
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=['No RI', 'RI (Predicted)'],
+            yticklabels=['No RI', 'RI (Actual)'])
+
+plt.title(f'CycloneNet Confusion Matrix\n(AUC: {auc:.4f} | F1: {f1:.4f})')
+plt.ylabel('Ground Truth (NHC)')
+plt.xlabel('Model Prediction')
+
+# 3. Save the visualization
+chart_path = os.path.join(prediction_path, 'confusion_matrix.png')
+plt.savefig(chart_path, dpi=300, bbox_inches='tight')
+print(f"📈 Confusion Matrix chart saved to: {chart_path}")
+plt.show()

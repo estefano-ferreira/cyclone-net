@@ -25,12 +25,14 @@ logger = logging.getLogger(__name__)
 
 
 def download_hurdat2(output_path: Path, force_download: bool = False) -> None:
+    url = os.getenv(
+        "HURDAT2_URL", "https://www.nhc.noaa.gov/data/hurdat/hurdat2-1851-2024-040425.txt")
     if output_path.exists() and not force_download:
         logger.info(f"HURDAT2 already exists in {output_path}")
         return
-    url = "https://www.nhc.noaa.gov/data/hurdat/hurdat2-1851-2024-040425.txt"
+
     try:
-        logger.info(f"Downloading HURDAT2 of {url}")
+        logger.info(f"Downloading HURDAT2 from {url}")
         response = requests.get(url, timeout=30)
         response.raise_for_status()
         output_path.parent.mkdir(parents=True, exist_ok=True)
