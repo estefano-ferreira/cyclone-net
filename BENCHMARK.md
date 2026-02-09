@@ -66,6 +66,6 @@ The **24 True Positives** confirm the model's reliability in historical reconstr
 
 ## 📂 Evidence & Traceability (Audit Logs)
 
-- [Raw Scientific Log](https://www.google.com/search?q=./outputs/predictions/cyclonenet_scientific.csv)
-- [Validation Report](https://www.google.com/search?q=./outputs/predictions/validation_report.txt)
-- [Visual Evidence](https://www.google.com/search?q=./outputs/predictions/confusion_matrix.png)
+- [Raw Scientific Log](./outputs/predictions/cyclonenet_scientific.csv)
+- [Validation Report](./outputs/predictions/validation_report.txt)
+- [Visual Evidence](./outputs/predictions/confusion_matrix.png)
