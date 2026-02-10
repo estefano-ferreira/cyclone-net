@@ -200,8 +200,14 @@ Before running the pipeline, create a `.env` file in the root directory:
 The system is designed for end-to-end execution. Once configured, the **Unified Evaluator** will autonomously manage data ingestion, execute the "Data Healing" heuristics, and generate the forensic audit logs:
 
 ```bash
-# Execute the Unified Evaluator from the project root
-python evaluate_metrics.py
+# Execute the complete end-to-end pipeline
+python pipeline.py
+
+```
+
+```bash
+# Execute the Unified Evaluator to generate metrics
+python notebooks/evaluate_metrics.py
 
 ```
 
