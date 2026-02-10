@@ -1,36 +1,50 @@
-# 🌪️ CycloneNet — Forensic Engineering for Atmospheric Disaster Analysis
+### 🌪️ **CycloneNet — A Forensic Engineering Framework for Atmospheric Analysis**
 
-**CycloneNet** is a specialized Atmospheric Auditing Framework designed to pinpoint the thermodynamic fuel sources of tropical cyclones. Unlike traditional predictive models, CycloneNet is a **Safety Engineering System** optimized for retrospective precision and a **High-Sensitivity Design Mandate**, establishing a high standard for the forensic analysis of extreme weather events.
+**CycloneNet** is a specialized software framework designed for the **forensic audit of tropical cyclones**. Its core purpose is to automate the retrospective analysis of historical storms, pinpointing oceanic and atmospheric conditions associated with periods of rapid intensification (RI).
 
-### 👨‍💻 Developer's Vision
+Unlike predictive forecasting models, CycloneNet is engineered as a **high-sensitivity diagnostic tool**, prioritizing a complete audit trail and reproducible analysis to establish a reliable foundation for research and operational post-analysis.
 
-> "As a **Software Engineer** with over a decade of experience building robust, mission-critical systems for financial institutions—primarily using C# .NET—I’ve always been driven by a personal curiosity: What is the actual source of energy that makes a hurricane so powerful?
-> I am not a physicist or a mathematician, and I don’t claim to be an AI theorist. My expertise lies in code and system architecture. I developed this framework by applying the same architectural rigor I use in the financial sector to atmospheric data, motivated by a real desire to identify and visualize the energy nodes that fuel these storms.
-> To reach my goal of locating where a hurricane is feeding in real-time, I first had to master the past. CycloneNet uses a Forensic Engineering approach, auditing 18 of history’s most destructive hurricanes to ensure that our detection logic is flawless before it ever processes a live storm.
-> I believe that by mapping these energy nodes with precision in historical data, we create a reliable, battle-tested foundation for real-time life-saving actions. This project is my contribution to that goal: a bridge between the lessons of the past and the resilience of future software engineering."
+### 👨‍💻 **Developer's Vision**
+
+> "As a **Software Engineer** with extensive experience in building mission-critical systems, I've long been driven by a practical question: Can we systematically trace the energy sources of past hurricanes with the same rigor we apply to software systems?
+>
+> My expertise is in architecture and code, not in atmospheric physics. This project is an application of robust software engineering principles to complex geospatial data. I built CycloneNet to create a transparent, automated pipeline that converts raw climate data into actionable forensic insights.
+>
+> By meticulously auditing historical storms, we build a verifiable foundation. This isn't about replacing physics-based models; it's about creating a new, complementary tool for analysis—a bridge between data engineering and atmospheric science."
 > — **Estefano Senhor Ferreira**
 
 ---
 
-### 🛡️ The Forensic Edge (New Standards)
+### 🛡️ **The Forensic Engineering Approach**
 
-CycloneNet defines a new category in atmospheric studies by prioritizing **Safety-Critical Engineering over pure Statistics**:
+CycloneNet approaches cyclone analysis from a **software forensics perspective**, establishing key principles:
 
-- **Forensic Diagnostic Precision:** Optimized for retrospective accuracy, providing an auditable trail of how and where a storm fed during its intensification.
-- **High-Sensitivity Mandate (Safety-First):** Engineered with a zero-miss philosophy. In disaster analysis, overlooking a signature is a failure. CycloneNet is tuned to identify potential thermodynamic triggers, ensuring high detection depth.
-- **Thermodynamic Hotspot Auditing:** Generates verifiable geospatial evidence, mapping "Thermodynamic Singularities" with a mean tracking error of only **25.79 km** (sub-pixel precision relative to ERA5).
-- **Automated Data Ingestion:** A resilient pipeline integrated with the **Copernicus CDS API**, ensuring that forensic audits are backed by high-quality, standardized atmospheric tensors.
+- **Auditability & Reproducibility:** Every analysis generates an immutable log, ensuring full traceability from raw data to final conclusions.
+- **High-Sensitivity Design:** The system is tuned to maximize detection recall, operating on the principle that in forensic review, missing a potential event is a greater failure than a false alert.
+- **Automated Data Pipeline:** Provides a robust, integrated workflow from data acquisition to report generation, minimizing manual effort and error.
+- **Geospatial Precision:** Delivers specific geographic coordinates ("Target Locks") for analysis, with accuracy intrinsically linked to the resolution of the source data.
 
 ---
 
-### 💎 The Engineering Edge (Core Innovations)
+### ⚙️ **Core Architecture & Transparency**
 
-Unlike purely statistical predictors, CycloneNet introduces critical software engineering innovations:
+CycloneNet's strength lies in its integrated architecture. We believe in full transparency regarding its current implementation:
 
-- **Automated ERA5 Pipeline:** Fully integrated with the **Copernicus CDS API**. The system autonomously handles data acquisition based on storm parameters.
-- **Adaptive Data Healing:** A proprietary pipeline that automatically repairs telemetry gaps (NaNs) in ERA5 tensors using pattern recognition heuristics, ensuring data integrity even in noisy historical datasets.
-- **Physics-Gated Neural Attention:** Our **Spatio-Temporal Attention (STA)** module is constrained by thermodynamic thresholds, preventing "black-box" hallucinations and focusing exclusively on energy-relevant regions.
-- **Safety-Oriented Reliability:** Optimized for **High Recall**. In disaster management, a missed event is a catastrophic failure. CycloneNet is engineered with a fail-safe bias to capture the maximum number of potential RI signals for expert review.
+**🟢 Data Engineering Pipeline (Core Innovation)**
+This is the mature and robust foundation of the project:
+
+- **Automated Data Ingestion:** Seamless integration with the **Copernicus Climate Data Store (CDS) API** and NOAA HURDAT2 for acquiring authoritative input data.
+- **Data Processing & Healing:** Handles raw NetCDF/GRIB data, performing spatial extraction, normalization, and gap-filling to create consistent analysis-ready tensors.
+- **Forensic Audit Trail:** Automatically logs all steps, outputs geospatial visualizations, and generates the primary `cyclonenet_scientific.csv` dataset for independent verification.
+
+**🟡 Hybrid Analysis System (Operational Prototype)**
+The analytical engine is a purpose-built hybrid system:
+
+- **A Hybrid Model:** Combines initial pattern processing with a transparent, **rules-based expert system** (see `metrics_handler.py`). This "safety-gating" layer applies fundamental physical thresholds (e.g., pressure, wind) to validate outputs, which is the primary driver of the high recall rate.
+- **Current State of the ML Component:** The included neural network model (`physics_model.py`) serves as a **functional prototype and architectural placeholder**. It demonstrates the integration pathway and input/output specifications. We openly acknowledge that this component represents a significant **opportunity for future development** to increase analytical autonomy and complexity.
+
+**Key Technical Output: The "Target Lock"**
+The framework's geographic precision is a direct and transparent product of the input data's resolution (ERA5 at 0.25°) and deterministic post-processing (`core.py`). The reported ~27.8 km mean error provides a realistic and verifiable performance baseline.
 
 ---
 
@@ -68,9 +82,12 @@ The architecture of **CycloneNet** follows a modular design inspired by enterpri
 ```text
 cyclonenet/
 │
-├── evaluate_metrics.py       # Main orchestration hub (Unified Evaluator)
 ├── requirements.txt          # System dependencies
 ├── .env                      # Environment & threshold configuration
+├── pipeline.py               # Execute the complete forensic pipeline
+│
+├── notebooks/                # Persistent Audit Trail
+│   └── evaluate_metrics.py   # Main orchestration hub (Unified Evaluator)
 │
 ├── data/
 │   └── raw/                  # Immutable Source Data
@@ -78,16 +95,16 @@ cyclonenet/
 │       └── era5/             # Atmospheric Tensors (GRIB/NetCDF) from Copernicus CDS
 │
 ├── src/                      # Source Code
-│   ├── models/               # Intelligence & AI Logic
-│   │   ├── core.py           # Neural Architecture (LSTM + Attention)
-│   │   ├── physics_model.py  # Physics-Gated Logic (Thermodynamic constraints)
-│   │   └── train.py          # Entry point for diagnostic evaluations
+│   ├── models/               # ANALYTICAL ENGINE (Prototype State)
+│   │   ├── physics_model.py  # Core neural network prototype
+│   │   ├── core.py           # Forecast logic & coordinate translation
+│   │   └── train.py          # Model training utilities
 │   │
 │   ├── processor/            # Data Engineering Backbone
 │   │   ├── downloaders.py    # Copernicus CDS API autonomous integration
 │   │   ├── makers.py         # Raw data to structured Tensor Cube conversion
-│   │   ├── physics_model.py  # Physics-Gated Logic (Thermodynamic Constraints)
-│   │   └── processors.py     # Adaptive Data Healing (Telemetry repair)
+│   │   ├── metrics_handler.py# Confidence calibration & expert system rules
+│   │   └── processors.py     # Data parsing & healing logic
 │   │
 │   ├── utils/                # System Utilities
 │   │   └── config.py         # Centralized environment & global params
@@ -104,35 +121,22 @@ cyclonenet/
 
 ---
 
-### 🔍 Module Descriptions
+### 🧭 **Development Roadmap & Call for Collaboration**
 
-- **Orchestration (`evaluate_metrics.py`)**: The primary execution hub that runs the unified evaluator, processes data healing, and calculates scientific metrics.
-- **Intelligence Layer (`src/models/`)**: Contains the **Physics-Gated Neural Attention** logic designed to constrain AI within thermodynamic boundaries.
-- **Data Factory (`src/processor/`)**: Manages the end-to-end lifecycle of atmospheric data, from autonomous ingestion to the repair of telemetry gaps (NaNs).
-- **Audit Trail (`outputs/`)**: A dedicated directory for immutable evidence. This is the core of our **Forensic Engineering** standard, ensuring every diagnostic run is traceable and verifiable.
+**Phase 1: Foundational Framework (Complete)**
+A robust, reproducible forensic data pipeline with a hybrid analysis system. ✅
 
----
+**Phase 2: Model Evolution & Research (Active)**
+This is our current focus and we invite community collaboration:
 
-## 🗺️ Strategic Roadmap
+- **Architecture Advancement:** Replacing the prototype model with more sophisticated architectures (e.g., deeper CNNs, Transformers) for improved pattern learning.
+- **Physics-Guided ML:** Research into integrating physical constraints during training, moving towards a true _Physics-Informed Neural Network_.
+- **Enhanced Explainability:** Implementing XAI techniques to make the system's "hotspot" detection more interpretable.
 
-### **Phase 1: Forensic Foundation (1992–2024) [Completed]**
+**Phase 3: Operational Integration (Future)**
+Exploring real-time data stream integration and expanded basin analysis.
 
-- **Achievement:** High-Sensitivity Design Mandate via Spatio-Temporal Attention.
-- **Control:** Implementation of **Adaptive Data Healing** to handle historical ERA5 gaps.
-
-### **Phase 2: Operational Stress Test (2025-2026) [In Progress]**
-
-- **Blind Testing:** Validated against the April 2025 HURDAT2 release (including Hurricane Milton/Beryl).
-- **Next Step:** Running against the 2025 preliminary season to verify AUC stability.
-- **Confusion Matrix Audit:** Exporting raw FP/FN counts for academic transparency.
-- **Model Maturity:** Achieved 0.9736 ROC-AUC, significantly reducing atmospheric noise while maintaining a safe detection margin (0.92 Recall).
-
-### **Phase 3: Real-Time Energy Monitoring & Global Expansion [Future]**
-
-- **Live Stream Integration:** Transition from ERA5 reanalysis to **HRES (High-Resolution)** and **IFS (Integrated Forecasting System)** live feeds for real-time diagnostic auditing.
-- **Dynamic Energy Mapping:** Implementation of a live dashboard to visualize "Thermodynamic Feeding Nodes" as they develop in the Atlantic basin.
-- **Causal Physics Nodes:** Moving beyond correlation to identify the specific causal triggers of RI using real-time atmospheric tensors.
-- **Global Resilience:** Testing the architecture in the Pacific (Typhoon) and Indian Ocean basins to ensure a globally robust monitoring system.
+**We actively encourage contributions**, especially from those interested in the machine learning, atmospheric science, or data engineering challenges outlined in Phase 2. Let's evolve this forensic pipeline together.
 
 ---
 
@@ -200,13 +204,17 @@ Before running the pipeline, create a `.env` file in the root directory:
 The system is designed for end-to-end execution. Once configured, the **Unified Evaluator** will autonomously manage data ingestion, execute the "Data Healing" heuristics, and generate the forensic audit logs:
 
 ```bash
-# Execute the complete end-to-end pipeline
+# 1. Execute the complete forensic pipeline
+# This runs data download, processing, model inference, and generates the primary CSV log.
+
 python pipeline.py
 
 ```
 
 ```bash
-# Execute the Unified Evaluator to generate metrics
+# 2. (Optional) Generate the final validation report and plots
+# Run this after `pipeline.py` to compile metrics and create the summary report.
+
 python notebooks/evaluate_metrics.py
 
 ```
