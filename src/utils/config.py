@@ -1,76 +1,64 @@
-"""
-CycloneNet: Physics-Guided Framework for Targeted RI Detection.
----------------------------------------------------------------
-Software Engineer: Estefano Senhor Ferreira
-License: Creative Commons Attribution-NonCommercial 4.0 (CC BY-NC 4.0)
+"""Configuration loader (single source of truth)."""
 
-This work is licensed under CC BY-NC 4.0. 
-Commercial use is strictly prohibited without prior authorization.
-Copyright (c) 2026 Estefano Senhor Ferreira
-"""
+from __future__ import annotations
 
-import sys
-from pathlib import Path
-import logging
 import os
+from pathlib import Path
+from typing import Any, Dict
+
+import yaml
 from dotenv import load_dotenv
 
-load_dotenv()
+
+def cfg_get(cfg: Dict[str, Any], path: str, default: Any = None) -> Any:
+    cur: Any = cfg
+    for key in path.split("."):
+        if not isinstance(cur, dict) or key not in cur:
+            return default
+        cur = cur[key]
+    return cur
 
 
-def find_project_root():
-    current_file = Path(__file__).resolve()
-    for parent in current_file.parents:
-        if (parent / "src").exists() and (parent / "data").exists():
-            return parent
-    return Path.cwd()
+def load_config(config_name: str = "config.yaml") -> Dict[str, Any]:
+    here = Path(__file__).resolve()
+    project_root = None
+    config_path = None
+    for parent in [here.parent, *here.parents]:
+        candidate = parent / config_name
+        if candidate.exists():
+            project_root = parent
+            config_path = candidate
+            break
+    if project_root is None:
+        project_root = Path.cwd().resolve()
+        config_path = project_root / config_name
+        if not config_path.exists():
+            raise FileNotFoundError(f"Config not found: {config_path}")
+
+    with open(config_path, "r", encoding="utf-8") as f:
+        cfg: Dict[str, Any] = yaml.safe_load(f) or {}
+
+    load_dotenv()
+    cfg.setdefault("download", {}).setdefault("cds_api", {})
+    if not cfg["download"]["cds_api"].get("key"):
+        cfg["download"]["cds_api"]["key"] = os.getenv("CDSAPI_KEY", "")
+    if not cfg["download"]["cds_api"].get("url"):
+        cfg["download"]["cds_api"]["url"] = os.getenv(
+            "CDSAPI_URL", "https://cds.climate.copernicus.eu/api"
+        )
+
+    cfg.setdefault("paths", {})
+    for k, v in list(cfg["paths"].items()):
+        if v is None:
+            continue
+        p = Path(str(v))
+        if not p.is_absolute():
+            p = project_root / p
+        cfg["paths"][k] = p.resolve()
+
+    cfg["project_root"] = project_root
+    cfg["config_path"] = config_path.resolve()
+    return cfg
 
 
-PROJECT_ROOT = find_project_root()
-DATA_DIR = PROJECT_ROOT / "data"
-
-PATHS = {
-    'project_root': PROJECT_ROOT,
-    'raw_hurdat': DATA_DIR / 'raw' / 'hurdat2' / 'hurdat2.txt',
-    'raw_era5_dir': DATA_DIR / 'raw' / 'era5',
-    'interim_data': DATA_DIR / 'interim',
-    'processed_data': DATA_DIR / 'processed',
-    'processed_cubes': DATA_DIR / 'processed' / 'storm_cubes.npz',
-    'output_figures': PROJECT_ROOT / 'outputs' / 'figures',
-    'output_predictions': PROJECT_ROOT / 'outputs' / 'predictions',
-    'logs': PROJECT_ROOT / 'outputs' / 'logs',
-}
-
-PARAMS = {
-    'ri_threshold_knots': 30,
-    'ri_window_hours': 24,
-    'storm_name': 'MILTON',
-    'year': '2024',
-    'lead_time_hours': 6,
-    'T': 5, 'H': 40, 'W': 40, 'C': 4,
-}
-
-
-def validate_config():
-    """Ensures the physical existence of the output folders."""
-    for key in ['output_figures', 'output_predictions', 'logs', 'interim_data', 'processed_data']:
-        PATHS[key].mkdir(parents=True, exist_ok=True)
-    return True
-
-
-def setup_logging():
-    """Configure the logging system for scientific monitoring."""
-    log_file = PATHS['logs'] / 'pipeline.log'
-
-    # Create the log folder if it doesn't exist
-    PATHS['logs'].mkdir(parents=True, exist_ok=True)
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(log_file, encoding='utf-8'),
-            logging.StreamHandler(sys.stdout)
-        ]
-    )
-    logging.info("Anomaly monitoring system initiated.")
+CONFIG = load_config()
