@@ -1,0 +1,126 @@
+paths:
+  raw_data: ./data/raw
+  interim_data: ./data/interim
+  processed_data: ./data/processed
+  daily_data: ./data/raw/daily
+  event_list: ./data/event_list.csv
+  splits_file: ./data/interim/splits.json
+  normalization_stats: ./data/interim/normalization_stats.json
+  checkpoints: ./models/checkpoints
+  logs: ./outputs/logs
+  figures: ./outputs/figures
+  results: ./outputs/results
+
+download:
+  cds_api:
+    url: https://cds.climate.copernicus.eu/api
+    key: ""
+  dataset: reanalysis-era5-single-levels
+  variables:
+    - sea_surface_temperature
+    - mean_sea_level_pressure
+    - 10m_u_component_of_wind
+    - 10m_v_component_of_wind
+  years: [1980, 2024]
+  months: [6, 7, 8, 9, 10, 11]
+  days: ALL
+  times: ["00:00", "06:00", "12:00", "18:00"]
+  grid: [0.25, 0.25]
+  download_format: netcdf
+  time_granularity: monthly
+  split_after_download: false
+  spatial_subset: [60, -140, 0, -20]
+  max_workers: 8
+
+storm_filter:
+  min_wind_knots: 64
+  region: [60, -140, 0, -20]
+  require_point_in_region: true
+
+ri_labeling:
+  mode: event_window
+  delta_v_kt: 30.0
+  window_hours: 24
+  time_step_hours: 6
+  sid_col: sid
+  wind_col: wind_knots
+
+preprocess:
+  window_size_deg: 10.0
+  target_shape: [40, 40]
+  max_workers: 4
+  additional_raw_dirs:
+    - ./data/era5
+    - ./data/raw/era5
+
+splits:
+  method: sid
+  seed: 42
+  train: 0.70
+  val: 0.15
+  test: 0.15
+  persist: true
+
+model:
+  type: ri_only
+  input_channels: 4
+  sta:
+    enabled: true
+    num_heads: 4
+    attn_dropout: 0.0
+    proj_dropout: 0.0
+    spatial_gating: true
+  temporal_depth: 5
+  height: 40
+  width: 40
+  dropout: 0.3
+  backbone:
+    base_filters: 32
+
+training:
+  learning_rate: 0.0005
+  weight_decay: 0.0001
+  batch_size: 64
+  epochs: 200
+  early_stopping_patience: 15
+  loss: focal
+  focal_gamma: 2.0
+  focal_alpha: 0.25
+  label_smoothing: 0.03
+  scheduler:
+    type: reduce_on_plateau
+    reduce_on_plateau:
+      mode: max
+      factor: 0.5
+      patience: 5
+  gradient_clip_norm: 1.0
+  gradient_accumulation_steps: 2
+  device: auto
+  seed: 42
+
+thresholding:
+  enabled: true
+  policy: precision_at_recall
+  min_recall: 0.90
+  grid_steps: 200
+  selection_metric: pr_auc
+  fallback_threshold: 0.6
+
+calibration:
+  enabled: true
+  method: platt
+  fit_split: val
+  max_iter: 200
+  lr: 0.01
+
+evaluation:
+  apply_calibration: true
+  apply_saved_threshold: true
+  ig_steps: 100
+  saliency_aggregation: max
+  dx_meters: 27830.0
+  spatial_error:
+    only_positive: true
+
+logging:
+  level: INFO
