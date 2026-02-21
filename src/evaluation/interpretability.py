@@ -1,4 +1,12 @@
-"""Interpretability utilities (integrated gradients)."""
+"""
+CycloneNet V2.1 – Interpretability utilities (integrated gradients).
+
+This module provides functions for model interpretability, including
+integrated gradients to generate saliency maps.
+
+Author: Estefano Senhor Ferreira
+License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
+"""
 
 import torch
 
@@ -9,7 +17,18 @@ def integrated_gradients(
     baseline: torch.Tensor = None,
     steps: int = 50
 ) -> torch.Tensor:
-    """Compute integrated gradients for the given input and model."""
+    """
+    Compute integrated gradients for the given input and model.
+
+    Args:
+        model: PyTorch model that returns a scalar logit.
+        input_tensor: (1, C, T, H, W) tensor with requires_grad=True.
+        baseline: (optional) baseline tensor. If None, zeros are used.
+        steps: number of interpolation steps.
+
+    Returns:
+        ig: (1, C, T, H, W) integrated gradients tensor.
+    """
     if baseline is None:
         baseline = torch.zeros_like(input_tensor)
 

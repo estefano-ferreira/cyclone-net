@@ -1,4 +1,12 @@
-"""IBTrACS download and basic parsing."""
+"""
+CycloneNet V2.1 – IBTrACS downloader.
+
+This module handles downloading the official IBTrACS dataset from NOAA.
+The downloaded file is stored in the raw data directory and remains unmodified.
+
+Author: Estefano Senhor Ferreira
+License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
+"""
 
 import logging
 import requests

@@ -1,4 +1,17 @@
-"""Spatio-Temporal Attention blocks."""
+"""Spatio-Temporal Attention blocks (paper-aligned).
+
+Design goal:
+  Provide an explicit spatio-temporal attention mechanism over (T,H,W) features,
+  while staying lightweight and reproducible.
+
+Implementation:
+  - Temporal self-attention at each spatial location (H*W sequences of length T).
+  - Optional spatial gating per timestep (learned attention map over HxW).
+
+Input/Output:
+  x: (B, C, T, H, W)
+  returns: (B, C, T, H, W)
+"""
 
 from __future__ import annotations
 
