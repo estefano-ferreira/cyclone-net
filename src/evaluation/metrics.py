@@ -1,4 +1,14 @@
-"""Evaluation metrics utilities (MissionEvaluator)."""
+"""
+CycloneNet V2.1 — Evaluation metrics utilities (MissionEvaluator).
+
+This provides the missing MissionEvaluator class referenced by evaluate.py.
+
+Design:
+  - Computes standard binary classification metrics.
+  - Optionally computes spatial error (km) when pred/true coordinates exist.
+  - Writes a per-sample CSV and a summary JSON (audit trail).
+  - Also generates reliability diagram if requested.
+"""
 
 from __future__ import annotations
 
@@ -43,11 +53,24 @@ class MissionEvaluator:
 
     def _safe_float(self, x) -> Optional[float]:
         try:
-            return float(x) if x is not None else None
+            if x is None:
+                return None
+            return float(x)
         except Exception:
             return None
 
-    def finalize(self, prefix: str = "evaluation", plot_reliability: bool = True) -> MissionSummary:
+    def finalize(self, prefix: str = "evaluation", plot_reliability: bool = True, threshold: float = 0.5) -> MissionSummary:
+        """
+        Finalize the evaluation, compute metrics and save artifacts.
+
+        Args:
+            prefix: Prefix for output files.
+            plot_reliability: Whether to generate reliability diagram.
+            threshold: Decision threshold for binary classification metrics (precision, recall, f1).
+
+        Returns:
+            MissionSummary object.
+        """
         if not self.rows:
             raise RuntimeError("No rows added to evaluator.")
 
@@ -55,7 +78,7 @@ class MissionEvaluator:
                             for r in self.rows], dtype=np.int32)
         y_score = np.asarray([float(r.get("y_score", 0.0))
                              for r in self.rows], dtype=np.float32)
-        y_pred = (y_score >= 0.5).astype(np.int32)
+        y_pred = (y_score >= threshold).astype(np.int32)
 
         roc_auc = float(roc_auc_score(y_true, y_score)) if len(
             np.unique(y_true)) >= 2 else 0.0
@@ -66,6 +89,7 @@ class MissionEvaluator:
         f1 = float(f1_score(y_true, y_pred, zero_division=0))
         brier = float(brier_score_loss(y_true, y_score))
 
+        # Spatial errors if coordinates exist
         errs = []
         for r in self.rows:
             pl = self._safe_float(r.get("pred_lat"))
@@ -87,6 +111,7 @@ class MissionEvaluator:
             spatial_error_km_median=float(np.median(errs)) if errs else None,
         )
 
+        # Write artifacts
         csv_path = self.output_dir / f"{prefix}_samples.csv"
         keys = sorted({k for r in self.rows for k in r.keys()})
         with open(csv_path, "w", newline="", encoding="utf-8") as f:
@@ -101,14 +126,18 @@ class MissionEvaluator:
 
         if plot_reliability:
             self._plot_reliability(
-                y_true, y_score, self.output_dir / f"{prefix}_reliability.png")
+                y_true, y_score, self.output_dir / f"{prefix}_reliability.png"
+            )
+
         return summary
 
     def _plot_reliability(self, y_true, y_prob, save_path):
+        """Generate and save reliability diagram."""
         try:
             import matplotlib.pyplot as plt
         except ImportError:
             return
+
         n_bins = 10
         bin_edges = np.linspace(0, 1, n_bins + 1)
         bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2

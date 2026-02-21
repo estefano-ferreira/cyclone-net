@@ -1,4 +1,12 @@
-"""RI labeling strategies aligned with forensic diagnostics."""
+"""
+CycloneNet V2.1 – Rapid Intensification (RI) labeling strategies.
+
+This module provides functions to add RI labels to storm track data,
+supporting both future‑window (start‑only) and event‑window (full interval) modes.
+
+Author: Estefano Senhor Ferreira
+License: CC BY-NC 4.0
+"""
 
 from typing import Literal, Optional
 import numpy as np

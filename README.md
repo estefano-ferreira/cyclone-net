@@ -59,19 +59,24 @@ Key features:
 
 ---
 
-## 📊 Current Status & Validation
+## 📊 Final Test‑Set Performance
 
-> **Note:** The metrics below are based on **validation‑set performance** during training. Final test‑set results will be published after a complete evaluation run. All numbers are derived from a pipeline that strictly adheres to the scientific principles outlined above.
+The model was evaluated on a held‑out test set of 3,674 samples (15% of all storms, never seen during training or validation). The threshold was selected to maximise recall (≥90%) on the validation set and then applied unchanged to the test set.
 
-| Metric                     | Validation Value (approx.) | Interpretation                                   |
-| -------------------------- | -------------------------- | ------------------------------------------------ |
-| **PR‑AUC**                 | 0.53                       | Balanced precision‑recall for the minority class |
-| **Recall**                 | 0.91                       | High sensitivity – most RI events are captured   |
-| **Precision**              | 0.41                       | Acceptable given the recall target               |
-| **Spatial error (median)** | ~18 km                     | Sub‑grid accuracy, well within ERA5 resolution   |
-| **AUC**                    | 0.83                       | Good overall discriminative power                |
+| Metric                     | Test Value  | Interpretation                                     |
+| -------------------------- | ----------- | -------------------------------------------------- |
+| **ROC‑AUC**                | 0.776       | Good overall discriminative power.                 |
+| **PR‑AUC**                 | 0.478       | Balanced precision‑recall for the minority class.  |
+| **Recall (Sensitivity)**   | **0.902**   | **High sensitivity** – captures >90% of RI events. |
+| **Precision**              | 0.380       | Acceptable given the recall target.                |
+| **F1‑score**               | 0.535       | Harmonic mean of precision and recall.             |
+| **Brier score**            | 0.153       | Well‑calibrated probabilistic outputs.             |
+| **Spatial error (mean)**   | 53.5 km     | Influenced by a few large errors.                  |
+| **Spatial error (median)** | **18.1 km** | **Sub‑grid accuracy**, within ERA5 resolution.     |
 
-A detailed validation report, including per‑storm breakdown and confusion matrix, will be added to `BENCHMARK.md` after final evaluation.
+The median spatial error of **18.1 km** confirms that the model can locate the thermodynamic “fuel source” with sub‑pixel precision (ERA5 grid spacing is ~28 km). The high recall of **90.2%** satisfies the forensic mandate of capturing nearly all intensification events, even at the cost of a moderate number of false positives.
+
+A detailed per‑storm breakdown and the precision‑recall curve are available in [`BENCHMARK.md`](./BENCHMARK.md).
 
 ---
 

@@ -1,4 +1,12 @@
-"""CycloneNet RI-only model with explicit Spatio-Temporal Attention."""
+"""
+CycloneNet V2.1 – RI‑only model with spatio‑temporal attention.
+
+This module defines the core neural network architecture: a 3D CNN with
+an optional spatio‑temporal attention block, followed by a classification head.
+
+Author: Estefano Senhor Ferreira
+License: CC BY-NC 4.0
+"""
 
 from __future__ import annotations
 

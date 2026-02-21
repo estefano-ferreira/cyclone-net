@@ -1,126 +1,295 @@
+# CycloneNet V2.1 – Scientific Configuration Template
+# =====================================================
+# This configuration file defines all parameters for the CycloneNet pipeline.
+# It follows international standards for scientific reproducibility:
+#   - All paths are relative to the project root (config loader resolves them).
+#   - Every hyperparameter is explicitly set; no hidden defaults.
+#   - Secrets (CDS API key) are provided via environment variables for security.
+#
+# Author: Estefano Senhor Ferreira
+# License: CC BY-NC 4.0
+# =====================================================
+
+# ------------------------------------------------------------------------------
+# Paths
+# ------------------------------------------------------------------------------
+# All directories are created automatically if they do not exist.
 paths:
+  # Raw data directory: stores original downloaded NetCDF files (ERA5 monthly)
   raw_data: ./data/raw
+
+  # Intermediate data directory: stores extracted cubes, metadata, grids
   interim_data: ./data/interim
+
+  # Processed data directory (legacy, not actively used)
   processed_data: ./data/processed
+
+  # Daily data directory (optional; used if you split monthly files, but not recommended)
   daily_data: ./data/raw/daily
+
+  # Event list CSV generated from IBTrACS (with RI labels)
   event_list: ./data/event_list.csv
+
+  # JSON file containing train/val/test splits by storm ID (SID)
   splits_file: ./data/interim/splits.json
+
+  # JSON file with per‑channel mean and std computed on training split only
   normalization_stats: ./data/interim/normalization_stats.json
+
+  # Directory where model checkpoints and artifacts are saved
   checkpoints: ./models/checkpoints
+
+  # Log directory for pipeline execution logs
   logs: ./outputs/logs
+
+  # Directory for generated figures (maps, curves)
   figures: ./outputs/figures
+
+  # Directory for evaluation results (CSV, JSON summaries)
   results: ./outputs/results
 
+# ------------------------------------------------------------------------------
+# Data Download (ERA5 from Copernicus CDS)
+# ------------------------------------------------------------------------------
 download:
   cds_api:
+    # CDS API endpoint – keep default, override via env if needed
     url: https://cds.climate.copernicus.eu/api
+    # API key – DO NOT commit; set environment variable CDSAPI_KEY instead.
+    # The config loader will read from env if this field is empty.
     key: ""
+
+  # ERA5 dataset name (single levels, reanalysis)
   dataset: reanalysis-era5-single-levels
+
+  # Variables to download (order must match model.input_channels)
   variables:
-    - sea_surface_temperature
-    - mean_sea_level_pressure
-    - 10m_u_component_of_wind
-    - 10m_v_component_of_wind
+    - sea_surface_temperature # SST
+    - mean_sea_level_pressure # MSLP
+    - 10m_u_component_of_wind # U10
+    - 10m_v_component_of_wind # V10
+
+  # Time range (inclusive) – adjust as needed
   years: [1980, 2024]
-  months: [6, 7, 8, 9, 10, 11]
-  days: ALL
-  times: ["00:00", "06:00", "12:00", "18:00"]
+  months: [6, 7, 8, 9, 10, 11] # Atlantic hurricane season
+  days: ALL # all days in each month
+  times: ["00:00", "06:00", "12:00", "18:00"] # synoptic hours
+
+  # Spatial resolution (ERA5 native is 0.25°)
   grid: [0.25, 0.25]
+
+  # Output format (netcdf recommended)
   download_format: netcdf
+
+  # Download strategy: monthly batches (recommended to avoid many small files)
   time_granularity: monthly
-  split_after_download: false
+  split_after_download: false # do not split into daily files – keep monthly
+
+  # Spatial subset [north, west, south, east] – here Atlantic basin
   spatial_subset: [60, -140, 0, -20]
+
+  # Parallel download workers (adjust based on your network/API limits)
   max_workers: 8
 
+# ------------------------------------------------------------------------------
+# Storm Filtering (based on IBTrACS)
+# ------------------------------------------------------------------------------
 storm_filter:
+  # Minimum wind speed (knots) for a storm to be considered (hurricane strength)
   min_wind_knots: 64
+
+  # Bounding box [north, west, south, east] – Atlantic basin
   region: [60, -140, 0, -20]
+
+  # If true, the qualifying point must lie inside the region
   require_point_in_region: true
 
+# ------------------------------------------------------------------------------
+# Rapid Intensification (RI) Labeling
+# ------------------------------------------------------------------------------
 ri_labeling:
+  # Labeling mode:
+  #   - event_window: all states within any 24h window with ΔV ≥ delta_v_kt are positive.
+  #   - future_window: only the start of such windows is positive.
   mode: event_window
+
+  # Wind increase threshold (knots) over the window
   delta_v_kt: 30.0
+
+  # Window duration (hours)
   window_hours: 24
+
+  # Time step between track points (typically 6 hours for IBTrACS)
   time_step_hours: 6
+
+  # Column names in the event DataFrame
   sid_col: sid
   wind_col: wind_knots
 
+# ------------------------------------------------------------------------------
+# Preprocessing (Cube Extraction)
+# ------------------------------------------------------------------------------
 preprocess:
+  # Spatial window size in degrees (10° yields roughly 40 grid points at 0.25°)
   window_size_deg: 10.0
+
+  # Target cube shape [height, width] in pixels
   target_shape: [40, 40]
+
+  # Number of parallel workers for cube extraction
   max_workers: 4
+
+  # Additional directories to search for monthly ERA5 files
+  # (useful if you store data in multiple locations)
   additional_raw_dirs:
     - ./data/era5
     - ./data/raw/era5
 
+# ------------------------------------------------------------------------------
+# Data Splitting (by Storm ID)
+# ------------------------------------------------------------------------------
 splits:
+  # Splitting method: 'sid' (storm identifier) or 'storm_name'
   method: sid
+
+  # Random seed for reproducibility
   seed: 42
+
+  # Ratios for train/validation/test (must sum to 1.0)
   train: 0.70
   val: 0.15
   test: 0.15
+
+  # Whether to persist the split to a JSON file
   persist: true
 
+# ------------------------------------------------------------------------------
+# Model Architecture
+# ------------------------------------------------------------------------------
 model:
+  # Model type (only 'ri_only' is implemented)
   type: ri_only
+
+  # Number of input channels (must match downloaded variables)
   input_channels: 4
+
+  # Spatio‑Temporal Attention block
   sta:
-    enabled: true
-    num_heads: 4
-    attn_dropout: 0.0
-    proj_dropout: 0.0
-    spatial_gating: true
+    enabled: true # enable attention
+    num_heads: 4 # number of attention heads
+    attn_dropout: 0.0 # dropout inside attention
+    proj_dropout: 0.0 # dropout on output projection
+    spatial_gating: true # learn spatial gating per timestep
+
+  # Temporal depth (number of timesteps in each cube)
   temporal_depth: 5
+
+  # Spatial dimensions (height, width)
   height: 40
   width: 40
-  dropout: 0.3
-  backbone:
-    base_filters: 32
 
+  # Global dropout rate (applied after pooling)
+  dropout: 0.3
+
+  # Backbone parameters
+  backbone:
+    base_filters: 32 # base number of filters in 3D convolutions
+
+# ------------------------------------------------------------------------------
+# Training Hyperparameters
+# ------------------------------------------------------------------------------
 training:
+  # Optimizer settings (AdamW)
   learning_rate: 0.0005
   weight_decay: 0.0001
+
+  # Batch size (adjust based on GPU memory)
   batch_size: 64
+
+  # Maximum number of epochs
   epochs: 200
+
+  # Early stopping patience (epochs without improvement on selection metric)
   early_stopping_patience: 15
+
+  # Loss function: 'focal' or 'bce'
   loss: focal
-  focal_gamma: 2.0
-  focal_alpha: 0.25
-  label_smoothing: 0.03
+  focal_gamma: 2.0 # focusing parameter
+  focal_alpha: 0.25 # class balancing factor
+  label_smoothing: 0.03 # smooths one‑hot targets
+
+  # Learning rate scheduler
   scheduler:
-    type: reduce_on_plateau
+    type: reduce_on_plateau # or 'onecycle'
     reduce_on_plateau:
-      mode: max
-      factor: 0.5
-      patience: 5
+      mode: max # monitor max of selection metric
+      factor: 0.5 # reduce LR by factor
+      patience: 5 # epochs to wait before reduction
+
+  # Gradient clipping
   gradient_clip_norm: 1.0
+
+  # Gradient accumulation steps (simulates larger batch)
   gradient_accumulation_steps: 2
+
+  # Device: 'auto' (cuda if available, else cpu), 'cuda', or 'cpu'
   device: auto
+
+  # Random seed for reproducibility
   seed: 42
 
+# ------------------------------------------------------------------------------
+# Threshold Selection (on Validation Set)
+# ------------------------------------------------------------------------------
 thresholding:
   enabled: true
+
+  # Policy: 'precision_at_recall' (select threshold achieving min_recall)
   policy: precision_at_recall
   min_recall: 0.90
-  grid_steps: 200
-  selection_metric: pr_auc
-  fallback_threshold: 0.6
 
+  # Number of threshold grid steps for scanning
+  grid_steps: 200
+
+  # Metric used to select the best model checkpoint during training
+  selection_metric: pr_auc
+
+  # Fallback threshold if artifacts are missing (low value ensures high recall)
+  fallback_threshold: 0.2
+
+# ------------------------------------------------------------------------------
+# Probability Calibration (Platt Scaling)
+# ------------------------------------------------------------------------------
 calibration:
   enabled: true
-  method: platt
-  fit_split: val
-  max_iter: 200
-  lr: 0.01
+  method: platt # only platt implemented
+  fit_split: val # fit on validation set
+  max_iter: 200 # max iterations for logistic regression
+  lr: 0.01 # learning rate (not used by sklearn, kept for info)
 
+# ------------------------------------------------------------------------------
+# Evaluation (on Test Set)
+# ------------------------------------------------------------------------------
 evaluation:
+  # Whether to apply saved calibration and threshold during evaluation
   apply_calibration: true
   apply_saved_threshold: true
-  ig_steps: 100
-  saliency_aggregation: max
-  dx_meters: 27830.0
-  spatial_error:
-    only_positive: true
 
+  # Number of steps for integrated gradients
+  ig_steps: 100
+
+  # Aggregation method for saliency maps over time: 'max' or 'mean'
+  saliency_aggregation: max
+
+  # Approximate grid spacing in meters (used as fallback for spatial error)
+  dx_meters: 27830.0
+
+  # Spatial error options
+  spatial_error:
+    only_positive: true # compute error only on positive (RI) samples
+
+# ------------------------------------------------------------------------------
+# Logging Level
+# ------------------------------------------------------------------------------
 logging:
-  level: INFO
+  level: INFO # DEBUG, INFO, WARNING, ERROR
