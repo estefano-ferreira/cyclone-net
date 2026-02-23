@@ -1,141 +1,76 @@
-### 🌪️ **CycloneNet — A Forensic Engineering Framework for Atmospheric Analysis**
+## CycloneNet – Test‑Set Validation Report
 
-**CycloneNet** is an open‑source software framework designed for the **forensic audit of tropical cyclones**. It provides an automated, reproducible pipeline that ingests historical meteorological data (ERA5 reanalysis, IBTrACS) and produces geospatially localized diagnostic maps of thermodynamic conditions associated with rapid intensification (RI).
-
-Unlike operational forecasting models, CycloneNet is built as a **high‑recall diagnostic tool** with a strong emphasis on **auditability, transparency, and reproducibility**. It is the result of applying robust software engineering principles to complex geospatial data, creating a verifiable foundation for retrospective storm analysis.
-
-### 👨‍💻 **Developer's Vision**
-
-> "As a **Software Engineer** with extensive experience in building mission-critical systems, I've long been driven by a practical question: Can we systematically trace the energy sources of past hurricanes with the same rigor we apply to software systems?
->
-> My expertise is in architecture and code, not in atmospheric physics. This project is an application of robust software engineering principles to complex geospatial data. I built CycloneNet to create a transparent, automated pipeline that converts raw climate data into actionable forensic insights.
->
-> By meticulously auditing historical storms, we build a verifiable foundation. This isn't about replacing physics-based models; it's about creating a new, complementary tool for analysis—a bridge between data engineering and atmospheric science."
-> — **Estefano Senhor Ferreira**
+This document presents the final diagnostic performance of the CycloneNet framework on the **test set**, which comprises storms not seen during training or validation. The metrics below are computed using the threshold that maximises recall (≥90%) on the validation set (**threshold = 0.0666**) and then applied unchanged to the test set. All results are derived from the same pipeline used during development, ensuring full reproducibility.
 
 ---
 
-## 🔍 Philosophy & Design Goals
+### 📊 Global Test‑Set Metrics
 
-- **Forensic Traceability**  
-  Every step – from data download to final heatmap – is logged and versioned. All intermediate artifacts (cubes, metadata, grids) are stored in a structured format, enabling independent verification and replay of any analysis.
+| Metric            | Value     | Interpretation                                           |
+| ----------------- | --------- | -------------------------------------------------------- |
+| **ROC‑AUC**       | 0.8329    | Good overall discriminative power                        |
+| **PR‑AUC**        | 0.3470    | Balanced precision‑recall on the minority class          |
+| **Recall**        | **0.905** | **High sensitivity** – captures >90% of actual RI events |
+| **Precision**     | 0.187     | Acceptable given the recall target                       |
+| **F1‑score**      | 0.310     | Harmonic mean of precision and recall                    |
+| **Brier score**   | 0.0741    | Well‑calibrated probabilistic outputs                    |
+| **Spatial error** | N/A       | TCHP data not available for this evaluation              |
 
-- **Reproducible Science**  
-  The pipeline is entirely configuration‑driven (`config.yaml`). Splits by storm identifier (SID) prevent data leakage, and normalization statistics are computed exclusively on the training set. A complete audit trail allows exact reconstruction of any experiment.
-
-- **High‑Sensitivity Detection**  
-  The system is tuned to maximise recall (true positive rate) – a deliberate trade‑off to ensure that no potential intensification signature is missed in historical records. This safety‑first bias is documented and can be adjusted via the configuration.
-
-- **Geospatial Attribution**  
-  Using integrated gradients and soft‑argmax, the model produces continuous coordinates of the most influential region within a 40×40 km window. The resulting “target lock” can be compared directly to the storm centre or to a physically derived energy proxy.
-
----
-
-## 🧱 Architecture Overview
-
-The framework is organised into several modular stages, each with a clear responsibility:
-
-```text
-cyclone-net/
-├── config.yaml                 # Single source of truth for all parameters
-├── run.py                      # Pipeline orchestrator (prepare, download, preprocess, train, evaluate)
-├── src/
-│   ├── downloaders/            # ERA5 (monthly) and IBTrACS downloaders – original NetCDF files are never modified
-│   ├── processors/              # IBTrACS parsing, RI labeling, scientific preprocessing (cube extraction)
-│   ├── data/                    # PyTorch Dataset, normalisation, splits
-│   ├── models/                   # CycloneNetRIOnly with spatio‑temporal attention
-│   ├── training/                 # Config‑driven trainer with thresholding & calibration
-│   ├── evaluation/               # MissionEvaluator, integrated gradients, final reporting
-│   └── utils/                    # Configuration loader, I/O helpers, geometry, splits
-└── outputs/                      # Figures, logs, evaluation results
-```
-
-Key features:
-
-- **Immutable Raw Data** – ERA5 monthly files are downloaded once and never altered; all derived products (cubes, grids) are stored separately.
-- **Storm‑Level Splits** – Data are split by SID to guarantee that no storm appears in more than one set (train/val/test).
-- **Physical Unit Checks** – SST and MSLP are normalised to Kelvin and Pascal; unrealistic values cause event rejection, eliminating synthetic fallbacks.
-- **Self‑Contained Metadata** – Each event’s JSON now contains the full list of timestamps and centre coordinates, enabling validation independent of the original event list.
+> **Note:** Spatial error could not be computed because external TCHP (Tropical Cyclone Heat Potential) data were not used in this benchmark. The model does produce predicted coordinates (`pred_lat`, `pred_lon`) which are saved in the predictions CSV, but without an independent ground truth (such as TCHP maxima) we cannot quantify the localisation accuracy. Future releases will integrate TCHP data to validate the model’s geospatial attribution.
 
 ---
 
-## 📊 Final Test‑Set Performance
+### 🔍 Comparison with Validation Performance
 
-The model was evaluated on a held‑out test set of 3,674 samples (15% of all storms, never seen during training or validation). The threshold was selected to maximise recall (≥90%) on the validation set and then applied unchanged to the test set.
-
-| Metric                     | Test Value  | Interpretation                                     |
-| -------------------------- | ----------- | -------------------------------------------------- |
-| **ROC‑AUC**                | 0.776       | Good overall discriminative power.                 |
-| **PR‑AUC**                 | 0.478       | Balanced precision‑recall for the minority class.  |
-| **Recall (Sensitivity)**   | **0.902**   | **High sensitivity** – captures >90% of RI events. |
-| **Precision**              | 0.380       | Acceptable given the recall target.                |
-| **F1‑score**               | 0.535       | Harmonic mean of precision and recall.             |
-| **Brier score**            | 0.153       | Well‑calibrated probabilistic outputs.             |
-| **Spatial error (mean)**   | 53.5 km     | Influenced by a few large errors.                  |
-| **Spatial error (median)** | **18.1 km** | **Sub‑grid accuracy**, within ERA5 resolution.     |
-
-The median spatial error of **18.1 km** confirms that the model can locate the thermodynamic “fuel source” with sub‑pixel precision (ERA5 grid spacing is ~28 km). The high recall of **90.2%** satisfies the forensic mandate of capturing nearly all intensification events, even at the cost of a moderate number of false positives.
-
-A detailed per‑storm breakdown and the precision‑recall curve are available in [`BENCHMARK.md`](./BENCHMARK.md).
+During training, the best validation epoch achieved recall of 90.5% and PR‑AUC of 0.350, using a threshold of 0.0666. The test‑set results are very close, confirming that the model generalises well and does not suffer from severe overfitting. The threshold remained unchanged at 0.0666, demonstrating that the operating point is stable across different data splits.
 
 ---
 
-## ⚠️ Important Distinctions
+### 🌪️ Per‑Storm Analysis (Test Set)
 
-- **Diagnostic, not predictive** – The framework is validated on historical data (hindcast) and has not been tested for real‑time forecasting.
-- **Engineering‑first** – The primary contribution is a robust, auditable data pipeline; the neural network is a proof‑of‑concept that demonstrates the integration path.
-- **Deliberate bias** – High recall is achieved by accepting a moderate number of false positives (e.g., the Isaac case). This trade‑off is configurable and fully documented.
+A detailed per‑sample breakdown is available in [`outputs/results/test_predictions.csv`](./outputs/results/test_predictions.csv). This file contains, for each event:
 
----
+- `event_id`: unique identifier (e.g., `era5_2005_08_27_0600`)
+- `y_true`: ground truth RI label (0 or 1)
+- `y_score`: model probability (after sigmoid)
+- `pred_lat`, `pred_lon`: predicted coordinates of the thermodynamic hotspot (when available)
 
-## 🚀 Getting Started
+Below we highlight a few illustrative cases from the test set that reflect the model’s forensic behaviour:
 
-1. **Clone the repository**
+| Event                  | y_true | y_score | Notes                                                                                                                                                                                   |
+| ---------------------- | ------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `era5_2005_08_27_0600` | 1      | 0.951   | True positive with very high confidence (Hurricane Katrina).                                                                                                                            |
+| `era5_2018_10_10_1200` | 1      | 0.858   | True positive (Hurricane Michael).                                                                                                                                                      |
+| `era5_2012_08_27_1200` | 0      | 0.322   | False positive (Hurricane Isaac) – the model detected thermodynamic patterns similar to RI, but no actual intensification occurred. This exemplifies the intentional safety‑first bias. |
+| `era5_2017_09_20_0000` | 0      | 0.033   | True negative with low score, correctly classified.                                                                                                                                     |
 
-   ```bash
-   git clone https://github.com/estefano-ferreira/cyclone-net.git
-   cd cyclone-net
-   ```
-
-2. **Set up environment and dependencies**
-
-   ```bash
-   python -m venv venv
-   source venv/bin/activate   # or venv\Scripts\activate on Windows
-   pip install -r requirements.txt
-   ```
-
-3. **Configure access to Copernicus CDS**  
-   Create a `.cdsapirc` file in your home directory with your API credentials (see [CDS documentation](https://cds.climate.copernicus.eu/api-how-to)).
-
-4. **Run the full pipeline**
-
-   ```bash
-   # Download IBTrACS and prepare event list
-   python run.py prepare
-
-   # Download missing ERA5 monthly files
-   python run.py download-era5
-
-   # Extract scientific cubes (40×40×5×4)
-   python run.py preprocess
-
-   # Compute normalisation statistics on training split
-   python run.py normalize
-
-   # Train the model
-   python run.py train --epochs 200
-
-   # Evaluate on test set
-   python run.py evaluate
-   ```
-
-Results will appear in `outputs/`.
+These examples illustrate the trade‑off: high recall comes at the cost of false positives in cases where environmental conditions resemble RI precursors.
 
 ---
 
-## 📜 License
+### 📈 Precision‑Recall Curve
 
-This project is licensed under the **Creative Commons Attribution‑NonCommercial 4.0 International (CC BY‑NC 4.0)**. Commercial use requires explicit written permission from the author.
+The precision‑recall curve on the test set (not shown here) has an area under the curve (PR‑AUC) of **0.347**. At the chosen threshold of 0.0666, recall reaches 90.5% while precision is 18.7%. This operating point is deliberately chosen to prioritise sensitivity, in accordance with the forensic audit mandate.
 
-© 2026 Estefano Senhor Ferreira
+---
+
+### 📂 Audit Trail
+
+All artefacts for this evaluation are stored in `outputs/results/`:
+
+- `test_predictions.csv` – per‑sample predictions, probabilities, and spatial coordinates.
+- `test_metrics.json` – aggregated metrics (including those above).
+- `train_history.json` – training and validation loss curves.
+
+The original model checkpoint and training artefacts are in `models/checkpoints/`.
+
+---
+
+### ⚠️ Important Considerations
+
+- **Diagnostic, not predictive:** These results are based on hindcast evaluation. The framework has not been tested for real‑time forecasting.
+- **Deliberate bias:** The high recall is achieved by accepting a moderate number of false positives, in line with the safety‑first forensic philosophy.
+- **Spatial validation pending:** Localisation accuracy has not yet been quantified due to the absence of external validation data (TCHP). This is a priority for future releases.
+- **Reproducibility:** All steps are fully config‑driven and logged; the exact experiment can be replayed using the provided code and configuration.
+
+_Last updated: 2026‑02‑23_
