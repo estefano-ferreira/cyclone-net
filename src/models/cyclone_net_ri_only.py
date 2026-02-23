@@ -1,7 +1,6 @@
 """
 CycloneNet: Physics-guided model architecture with FuelMap and optional forward physics model.
 Now includes energy‑balance forward model using FuelMap‑weighted heat flux.
-All comments in English.
 """
 
 from __future__ import annotations

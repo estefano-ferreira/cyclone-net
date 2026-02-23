@@ -1,7 +1,6 @@
 """
 Validation of CycloneNet's predicted energy source location against
 Tropical Cyclone Heat Potential (TCHP) data.
-All comments in English.
 """
 
 import json

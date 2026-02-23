@@ -1,7 +1,6 @@
 """
 Physics-guided loss functions for CycloneNet.
 Enforces thermodynamic consistency and alignment with heat fluxes.
-All comments in English.
 """
 
 import torch
