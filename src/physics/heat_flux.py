@@ -1,7 +1,6 @@
 """
 CycloneNet: Heat flux calculations (latent + sensible) from ERA5 fields.
 Based on bulk aerodynamic formulas (COARE 3.0 simplified).
-All comments and variable names in English.
 """
 
 import numpy as np

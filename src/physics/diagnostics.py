@@ -1,7 +1,6 @@
 """
 CycloneNet: Diagnostic variable computations from base ERA5 fields.
 Now includes heat flux calculations.
-All comments in English.
 """
 
 from __future__ import annotations
