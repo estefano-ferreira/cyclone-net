@@ -1,64 +1,37 @@
-"""Configuration loader (single source of truth)."""
-
 from __future__ import annotations
-
-import os
+import yaml
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict
 
-import yaml
-from dotenv import load_dotenv
+
+def load_config(path: str | Path) -> Dict[str, Any]:
+    path = Path(path)
+    with path.open("r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
 
 
-def cfg_get(cfg: Dict[str, Any], path: str, default: Any = None) -> Any:
+def ensure_dirs(cfg: Dict[str, Any]) -> None:
+    for k in ["raw_data", "interim_data", "processed_data", "results_dir", "logs_dir"]:
+        p = Path(cfg["paths"][k])
+        p.mkdir(parents=True, exist_ok=True)
+
+
+def cfg_get(cfg: Dict[str, Any], key_path: str, default: Any = None) -> Any:
     cur: Any = cfg
-    for key in path.split("."):
-        if not isinstance(cur, dict) or key not in cur:
+    for part in key_path.split("."):
+        if not isinstance(cur, dict) or part not in cur:
             return default
-        cur = cur[key]
+        cur = cur[part]
     return cur
 
 
-def load_config(config_name: str = "config.yaml") -> Dict[str, Any]:
-    here = Path(__file__).resolve()
-    project_root = None
-    config_path = None
-    for parent in [here.parent, *here.parents]:
-        candidate = parent / config_name
-        if candidate.exists():
-            project_root = parent
-            config_path = candidate
-            break
-    if project_root is None:
-        project_root = Path.cwd().resolve()
-        config_path = project_root / config_name
-        if not config_path.exists():
-            raise FileNotFoundError(f"Config not found: {config_path}")
-
-    with open(config_path, "r", encoding="utf-8") as f:
-        cfg: Dict[str, Any] = yaml.safe_load(f) or {}
-
-    load_dotenv()
-    cfg.setdefault("download", {}).setdefault("cds_api", {})
-    if not cfg["download"]["cds_api"].get("key"):
-        cfg["download"]["cds_api"]["key"] = os.getenv("CDSAPI_KEY", "")
-    if not cfg["download"]["cds_api"].get("url"):
-        cfg["download"]["cds_api"]["url"] = os.getenv(
-            "CDSAPI_URL", "https://cds.climate.copernicus.eu/api"
-        )
-
-    cfg.setdefault("paths", {})
-    for k, v in list(cfg["paths"].items()):
-        if v is None:
-            continue
-        p = Path(str(v))
-        if not p.is_absolute():
-            p = project_root / p
-        cfg["paths"][k] = p.resolve()
-
-    cfg["project_root"] = project_root
-    cfg["config_path"] = config_path.resolve()
-    return cfg
-
-
-CONFIG = load_config()
+# ---------------------------------------------------------------------
+# Backward-compatible global config
+# Many modules import CONFIG; keep it available to avoid import cascades.
+# ---------------------------------------------------------------------
+try:
+    CONFIG = load_config("config.yaml")
+except Exception:
+    # Do not crash on import; CLI commands may call load_config later.
+    CONFIG = {}

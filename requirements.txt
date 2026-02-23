@@ -31,3 +31,5 @@ cartopy>=0.20.0          # optional, used for storm track plots
 # Deep learning framework
 torch>=1.10.0             # PyTorch with CUDA support recommended
 # torchvision not required, but can be installed if needed
+
+pip install geopy netCDF4 scipy
