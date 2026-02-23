@@ -33,6 +33,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
+from sklearn.metrics import roc_auc_score
 
 from src.utils.config import cfg_get
 
@@ -166,12 +167,12 @@ def _build_model(cfg: Dict[str, Any]) -> torch.nn.Module:
     dropout = float(cfg_get(cfg, "model.dropout", 0.10))
     use_sta = bool(cfg_get(cfg, "model.use_sta", True))
 
-    def _pick_model_class(mod, prefer_keywords: List[str]) -> type[nn.Module]:
+    def _pick_model_class(mod, prefer_keywords: list[str]) -> type[nn.Module]:
         """
         Pick the best candidate class from a module by scanning nn.Module subclasses.
         prefer_keywords: ordered keywords to prefer in the class name.
         """
-        candidates: List[type[nn.Module]] = []
+        candidates: list[type[nn.Module]] = []
         for name in dir(mod):
             obj = getattr(mod, name, None)
             if isinstance(obj, type) and issubclass(obj, nn.Module) and obj is not nn.Module:
@@ -293,12 +294,29 @@ def _load_loss_weights(cfg: Dict[str, Any]) -> LossWeights:
         lambda_ri=float(cfg_get(cfg, "training.lambda_ri", 1.0)),
         lambda_dv12=float(cfg_get(cfg, "training.lambda_dv12", 0.4)),
         lambda_dv24=float(cfg_get(cfg, "training.lambda_dv24", 0.6)),
-        # reuse existing key if you used it
         lambda_prior=float(cfg_get(cfg, "training.lambda_heat", 0.2)),
         lambda_eq=float(cfg_get(cfg, "training.lambda_phys_consistency", 0.1)),
         lambda_tv=float(cfg_get(cfg, "training.lambda_fuelmap_tv", 0.001)),
         lambda_l1=float(cfg_get(cfg, "training.lambda_fuelmap_l1", 0.0008)),
     )
+
+
+# -----------------------------------------------------------------------------
+# AUC computation on validation set
+# -----------------------------------------------------------------------------
+def compute_val_auc(model: torch.nn.Module, val_loader: DataLoader, device: torch.device) -> float:
+    """Compute ROC-AUC on validation set using raw logits."""
+    model.eval()
+    all_scores, all_labels = [], []
+    with torch.no_grad():
+        for batch in val_loader:
+            x = batch["x"].to(device)
+            y = batch["y"].cpu().numpy()
+            out = model(x)
+            scores = torch.sigmoid(out["ri_logit"]).cpu().numpy()
+            all_scores.extend(scores)
+            all_labels.extend(y)
+    return roc_auc_score(all_labels, all_scores)
 
 
 # -----------------------------------------------------------------------------
@@ -489,125 +507,78 @@ def train(cfg: Dict[str, Any]) -> Dict[str, float]:
     out_dir.mkdir(parents=True, exist_ok=True)
     ckpt_dir.mkdir(parents=True, exist_ok=True)
 
-    best_val = float("inf")
-    best_path = ckpt_dir / "best_model.pt"
+    best_val_loss = float("inf")
+    best_val_auc = -1.0
+    best_loss_path = ckpt_dir / "best_model.pt"
+    best_auc_path = ckpt_dir / "best_auc_model.pt"
     history = []
 
     logger.info(f"Device: {device}")
     logger.info(
         f"Train batches: {len(train_loader)} | Val batches: {len(val_loader)}")
-    logger.info(f"Checkpoint: {best_path}")
+    logger.info(f"Loss weights: {w}")
+
+    # Log model architecture to verify STA
+    logger.info(f"Model class: {model.__class__.__name__}")
+    if hasattr(model, 'use_sta'):
+        logger.info(f"use_sta = {model.use_sta}")
 
     for ep in range(1, epochs + 1):
         tr = _train_one_epoch(cfg, model, train_loader,
                               optim, device, w, epoch=ep, epochs=epochs)
         va = _eval_one_epoch(cfg, model, val_loader, device, w)
 
-        row = {"epoch": ep, **{f"train_{k}": v for k,
-                               v in tr.items()}, **{f"val_{k}": v for k, v in va.items()}}
+        # Compute validation AUC
+        val_auc = compute_val_auc(model, val_loader, device)
+
+        row = {"epoch": ep, **{f"train_{k}": v for k, v in tr.items()},
+               **{f"val_{k}": v for k, v in va.items()}, "val_auc": val_auc}
         history.append(row)
 
         logger.info(f"[epoch {ep}/{epochs}] train_loss={tr['loss']:.6f} val_loss={va['loss']:.6f} "
-                    f"val_ri={va['loss_ri']:.6f} val_dv24={va['loss_dv24']:.6f}")
+                    f"val_ri={va['loss_ri']:.6f} val_dv24={va['loss_dv24']:.6f} val_auc={val_auc:.4f}")
 
-        if va["loss"] < best_val:
-            best_val = va["loss"]
+        # Save best model by validation loss (optional, can keep)
+        if va["loss"] < best_val_loss:
+            best_val_loss = va["loss"]
             torch.save(
                 {
                     "epoch": ep,
                     "model_state": model.state_dict(),
                     "optimizer_state": optim.state_dict(),
                     "cfg": cfg,
-                    "best_val_loss": best_val,
+                    "best_val_loss": best_val_loss,
                 },
-                best_path,
+                best_loss_path,
             )
+            logger.debug(
+                f"Best loss model updated at epoch {ep} (loss={best_val_loss:.4f})")
 
-    # Save training curve
+        # Save best model by validation AUC
+        if val_auc > best_val_auc:
+            best_val_auc = val_auc
+            torch.save(model.state_dict(), best_auc_path)
+            logger.info(
+                f"New best model by AUC (AUC={val_auc:.4f}) saved to {best_auc_path}")
+
+    # Save training history
     hist_path = out_dir / "train_history.json"
     hist_path.write_text(json.dumps(history, indent=2), encoding="utf-8")
 
-    return {"best_val_loss": float(best_val), "checkpoint": str(best_path), "history": str(hist_path)}
+    return {
+        "best_val_loss": float(best_val_loss),
+        "best_val_auc": float(best_val_auc),
+        "checkpoint_loss": str(best_loss_path),
+        "checkpoint_auc": str(best_auc_path),
+        "history": str(hist_path),
+    }
 
 
-# -----------------------------------------------------------------------------
-# Public entrypoints expected by run.py (config-driven)
-# -----------------------------------------------------------------------------
-def run_evaluate(cfg: Dict[str, Any]) -> None:
-    """
-    Config-driven evaluation entrypoint.
-
-    Builds the test DataLoader + model, loads the best checkpoint (if present),
-    then calls the internal evaluate(cfg, loader, model, interim_dir, out_csv, out_json).
-
-    Scientific note:
-    - External products (e.g., TCHP) are validation-only and NEVER used as inputs.
-    """
-    import torch
-    from torch.utils.data import DataLoader
-    from pathlib import Path
-
-    from src.utils.config import cfg_get
-    from src.data.dataset import PhysicsDataset
-    # robust, signature-safe model builder
-    from src.training.trainer import _build_model
-
-    # Device
-    dev = str(cfg_get(cfg, "training.device", "auto")).lower()
-    device = torch.device("cuda" if torch.cuda.is_available()
-                          and dev in ("auto", "cuda") else "cpu")
-
-    # Test loader
-    batch_size = int(cfg_get(cfg, "training.batch_size", 16))
-    num_workers = int(cfg_get(cfg, "repro.num_workers", 4))
-    ds_test = PhysicsDataset(cfg, split="test")
-    loader = DataLoader(
-        ds_test,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
-        drop_last=False,
-    )
-
-    # Model
-    model = _build_model(cfg).to(device)
-    model.eval()
-
-    # Load best checkpoint if available
-    ckpt_dir = Path(cfg_get(cfg, "paths.checkpoints_dir",
-                    "./models/checkpoints")).resolve()
-    best_path = ckpt_dir / "best_model.pt"
-    if best_path.exists():
-        ckpt = torch.load(best_path, map_location=device)
-        state = ckpt.get("model_state", ckpt)
-        model.load_state_dict(state, strict=False)
-
-    # Output paths
-    interim_dir = Path(cfg_get(cfg, "paths.interim_data",
-                       "./data/interim")).resolve()
-    results_dir = Path(cfg_get(cfg, "paths.results_dir",
-                       "./outputs/results")).resolve()
-    results_dir.mkdir(parents=True, exist_ok=True)
-
-    out_csv = results_dir / "test_predictions.csv"
-    out_json = results_dir / "test_metrics.json"
-
-    # Call internal evaluator
-    evaluate(cfg, loader, model, interim_dir, out_csv, out_json)
-
-
-def main(cfg: Optional[Dict[str, Any]] = None) -> None:
-    """
-    CLI-compatible entrypoint.
-    Supports both:
-      - python -m src.evaluation.evaluate
-      - run.py calling main(cfg)
-    """
+def main() -> None:
+    """CLI entrypoint for debugging."""
     from src.utils.config import load_config
-    if cfg is None:
-        cfg = load_config("config.yaml")
-    run_evaluate(cfg)
+    cfg = load_config("config.yaml")
+    train(cfg)
 
 
 if __name__ == "__main__":
