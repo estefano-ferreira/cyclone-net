@@ -1,243 +1,214 @@
-"""
-CycloneNet V2.1 — Scientific evaluation (paper-safe).
-
-This script loads the best model checkpoint and artifacts (threshold + calibration if available),
-evaluates classification metrics on the TEST split, computes spatial "hotspot" distance to the
-declared target (proxy), and produces a full audit trail: per-sample CSV and summary JSON.
-
-Author: Estefano Senhor Ferreira
-License: CC BY-NC 4.0
-"""
-
 from __future__ import annotations
+
+"""CycloneNet — evaluation (leakage-safe) with optional external validation hooks.
+
+- Computes standard classification metrics.
+- Extracts predicted fuel-source location from FuelMap if the model provides it.
+- If metadata provides external energy maximum (e.g., tchp_max_lat/lon), reports distance.
+
+External products MUST NOT be part of model inputs. They are validation-only.
+"""
 
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 import torch
-from geopy.distance import geodesic
-from tqdm import tqdm
+from torch.utils.data import DataLoader
 
-from src.utils.config import CONFIG, cfg_get
-from src.data.dataset import PhysicsDataset
-from src.models.cyclone_net_ri_only import CycloneNetRIOnly
-from src.evaluation.metrics import MissionEvaluator
-from src.evaluation.interpretability import integrated_gradients
-from src.utils.geometry_utils import soft_argmax, normalized_to_geographic
+from src.evaluation.metrics import roc_auc, pr_auc, brier, f1_precision_recall, select_threshold_for_recall
 
 logger = logging.getLogger(__name__)
 
 
-def _resolve_path(p: Any) -> Path:
-    return Path(str(p)).expanduser().resolve()
+def soft_argmax_2d(m: np.ndarray, temperature: float = 10.0) -> Tuple[float, float]:
+    H, W = m.shape
+    a = m.astype(np.float64) * float(temperature)
+    a = a - np.max(a)
+    w = np.exp(a)
+    w = w / (np.sum(w) + 1e-12)
+    ys = np.arange(H, dtype=np.float64)
+    xs = np.arange(W, dtype=np.float64)
+    y = float((w.sum(axis=1) * ys).sum())
+    x = float((w.sum(axis=0) * xs).sum())
+    return y, x
 
 
-def _load_json(p: Path) -> Dict[str, Any]:
-    return json.loads(p.read_text(encoding="utf-8"))
+def pixel_to_geo(y: float, x: float, lats: np.ndarray, lons: np.ndarray) -> Tuple[float, float]:
+    yi = int(np.clip(round(y), 0, lats.shape[0] - 1))
+    xi = int(np.clip(round(x), 0, lats.shape[1] - 1))
+    return float(lats[yi, xi]), float(lons[yi, xi])
 
 
-def _load_artifacts(checkpoints_dir: Path) -> Dict[str, Any]:
-    art = checkpoints_dir / "best_model_ri_artifacts.json"
-    if not art.exists():
-        logger.warning(
-            "Artifacts not found: %s (will use config fallbacks).", art)
-        return {}
-    try:
-        return _load_json(art)
-    except Exception as e:
-        logger.warning("Failed to read artifacts (%s): %s", art, e)
-        return {}
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    R = 6371.0
+    p1 = np.deg2rad(lat1)
+    p2 = np.deg2rad(lat2)
+    dphi = p2 - p1
+    dl = np.deg2rad(lon2 - lon1)
+    a = np.sin(dphi / 2) ** 2 + np.cos(p1) * np.cos(p2) * np.sin(dl / 2) ** 2
+    return float(2 * R * np.arcsin(np.sqrt(a)))
 
 
-def _predict_scores_and_coords(
-    model: torch.nn.Module,
-    loader: torch.utils.data.DataLoader,
-    device: torch.device,
-    interim_dir: Path,
-    calibration_params: Optional[Dict[str, float]] = None,
-) -> list[dict]:
-    """
-    Iterate over loader, collect predictions and coordinates.
+def _get_fuelmap(out: Dict[str, torch.Tensor]) -> Optional[torch.Tensor]:
+    if "fuelmap" in out:
+        return out["fuelmap"]
+    if "fuelmap_logits" in out:
+        return out["fuelmap_logits"]
+    return None
 
-    Args:
-        calibration_params: dict with 'a' and 'b' for Platt scaling (optional)
-    """
+
+def evaluate(cfg: Dict[str, Any], loader: DataLoader, model: torch.nn.Module, interim_dir: Path, out_csv: Path, out_json: Path) -> None:
+    device = next(model.parameters()).device
+    temperature = float(cfg.get("evaluation", {}).get("fuelmap_temperature", 10.0))
+    target_recall = float(cfg.get("training", {}).get("eval_target_recall", 0.90))
+
+    rows = []
+    scores_all = []
+    labels_all = []
+
     model.eval()
-    results = []
-    total_batches = len(loader)
+    with torch.no_grad():
+        for batch in loader:
+            eids = batch["event_id"]
+            x = batch["x"].to(device)
+            y = batch["y"].cpu().numpy().astype(int)
 
-    # Barra de progresso sobre os batches
-    pbar = tqdm(loader, desc="Evaluating", unit="batch", total=total_batches)
-    for batch in pbar:
-        # Inference without gradients to get logits
-        with torch.no_grad():
-            x = batch["input"].to(device, non_blocking=True)
-            logits = model(x)  # shape (B, 1)
-            logits_np = logits.detach().cpu().numpy().reshape(-1)
+            out = model(x, prior_map_t0=batch.get("prior_map_t0", None).to(device) if "prior_map_t0" in batch else None)
+            scores = torch.sigmoid(out["ri_logit"]).cpu().numpy()
+            fm_t = _get_fuelmap(out)
 
-        # Apply calibration if available
-        if calibration_params is not None:
-            a = calibration_params["a"]
-            b = calibration_params["b"]
-            calibrated_logits = a * logits_np + b
-            probs = 1.0 / (1.0 + np.exp(-calibrated_logits))
-        else:
-            probs = 1.0 / (1.0 + np.exp(-logits_np))
+            for i, eid in enumerate(eids):
+                row = {"event_id": str(eid), "y_true": int(y[i]), "y_score": float(scores[i])}
 
-        # Process each sample in batch with gradients for IG
-        for i in range(x.size(0)):
-            event_id = batch["event_id"][i]
-            y_true = batch["ri_label"][i].item()
-            true_lat = batch["true_lat"][i].item()
-            true_lon = batch["true_lon"][i].item()
-            storm_name = batch.get("storm_name", [""])[i]
-            timestamp = batch.get("timestamp", [""])[i]
+                if fm_t is not None:
+                    lats = np.load(Path(interim_dir) / f"{eid}_lats.npy")
+                    lons = np.load(Path(interim_dir) / f"{eid}_lons.npy")
+                    m = fm_t[i, 0].cpu().numpy()
+                    py, px = soft_argmax_2d(m, temperature=temperature)
+                    plat, plon = pixel_to_geo(py, px, lats, lons)
+                    row["pred_lat"] = plat
+                    row["pred_lon"] = plon
 
-            # Create tensor with requires_grad for this sample
-            sample_x = x[i:i+1].clone().detach().requires_grad_(True)
+                    meta_path = Path(interim_dir) / f"{eid}.json"
+                    if meta_path.exists():
+                        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+                        if "tchp_max_lat" in meta and "tchp_max_lon" in meta:
+                            tl = float(meta["tchp_max_lat"])
+                            tn = float(meta["tchp_max_lon"])
+                            row["tchp_max_lat"] = tl
+                            row["tchp_max_lon"] = tn
+                            row["tchp_dist_km"] = haversine_km(plat, plon, tl, tn)
 
-            # Integrated gradients
-            ig = integrated_gradients(
-                model,
-                sample_x,
-                steps=int(cfg_get(CONFIG, "evaluation.ig_steps", 100))
-            )
-            heat = ig.abs().sum(dim=1).squeeze(0)  # (T, H, W)
+                rows.append(row)
 
-            agg = str(
-                cfg_get(CONFIG, "evaluation.saliency_aggregation", "max")).lower()
-            if agg == "mean":
-                heat2d = heat.mean(dim=0).detach().cpu().numpy()
-            else:
-                heat2d = heat.max(dim=0)[0].detach().cpu().numpy()
+            scores_all.append(scores)
+            labels_all.append(y)
 
-            # Normalize to [0,1]
-            heat2d = heat2d - heat2d.min()
-            if heat2d.max() > 0:
-                heat2d = heat2d / (heat2d.max() + 1e-12)
+    scores_all = np.concatenate(scores_all, axis=0).astype(float)
+    labels_all = np.concatenate(labels_all, axis=0).astype(int)
 
-            # Soft-argmax
-            heat_t = torch.tensor(heat2d[None, None, ...], dtype=torch.float32)
-            y_norm, x_norm = soft_argmax(
-                heat_t,
-                temperature=float(
-                    cfg_get(CONFIG, "model.localizer.softargmax_temperature", 1.0))
-            )
-            y_norm = y_norm.item()
-            x_norm = x_norm.item()
+    thr = select_threshold_for_recall(scores_all, labels_all, target_recall=target_recall)
+    f1, p, r = f1_precision_recall(scores_all, labels_all, threshold=thr)
 
-            # Convert to geographic coordinates
-            lats_2d = np.load(interim_dir / f"{event_id}_lats.npy")
-            lons_2d = np.load(interim_dir / f"{event_id}_lons.npy")
-            pred_lat, pred_lon = normalized_to_geographic(
-                y_norm, x_norm, lats_2d, lons_2d)
+    summary = {
+        "roc_auc": roc_auc(scores_all, labels_all),
+        "pr_auc": pr_auc(scores_all, labels_all),
+        "brier": brier(scores_all, labels_all),
+        "threshold": float(thr),
+        "f1": float(f1),
+        "precision": float(p),
+        "recall": float(r),
+        "n": int(labels_all.size),
+        "positives": int((labels_all == 1).sum()),
+        "negatives": int((labels_all == 0).sum()),
+        "note": "External products (e.g., TCHP) are validation-only and never used as inputs.",
+    }
 
-            # Spatial error
-            error_km = geodesic((true_lat, true_lon), (pred_lat, pred_lon)).km
+    tchp_dists = [row.get("tchp_dist_km") for row in rows if "tchp_dist_km" in row]
+    if tchp_dists:
+        tchp_dists = np.array(tchp_dists, dtype=float)
+        summary["tchp_mean_dist_km"] = float(np.mean(tchp_dists))
+        summary["tchp_median_dist_km"] = float(np.median(tchp_dists))
+        summary["tchp_n"] = int(tchp_dists.size)
 
-            results.append({
-                "event_id": event_id,
-                "y_true": int(y_true),
-                "y_score": float(probs[i]),
-                "pred_lat": pred_lat,
-                "pred_lon": pred_lon,
-                "true_lat": true_lat,
-                "true_lon": true_lon,
-                "error_km": error_km,
-                "storm_name": storm_name,
-                "timestamp": timestamp,
-            })
+    out_csv.parent.mkdir(parents=True, exist_ok=True)
+    import pandas as pd
+    pd.DataFrame(rows).to_csv(out_csv, index=False)
+    out_json.parent.mkdir(parents=True, exist_ok=True)
+    out_json.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
-        # Atualiza a barra com info adicional (opcional)
-        pbar.set_postfix({"batch_size": x.size(0)})
+    logger.info(f"Saved: {out_csv}")
+    logger.info(f"Saved: {out_json}")
 
-    pbar.close()
-    return results
+# -----------------------------------------------------------------------------
+# Public entrypoints expected by run.py (config-driven)
+# -----------------------------------------------------------------------------
+def run_evaluate(cfg: Dict[str, Any]) -> None:
+    """
+    Config-driven evaluation entrypoint.
 
+    Builds the test DataLoader + model, loads the best checkpoint (if present),
+    then calls the internal:
+        evaluate(cfg, loader, model, interim_dir, out_csv, out_json)
 
-def main(checkpoint: Optional[str] = None) -> None:
-    checkpoints_dir = _resolve_path(
-        cfg_get(CONFIG, "paths.checkpoints", "./models/checkpoints"))
-    interim_dir = _resolve_path(
-        cfg_get(CONFIG, "paths.interim_data", "./data/interim"))
-    results_dir = _resolve_path(
-        cfg_get(CONFIG, "paths.results", "./outputs/results"))
+    Scientific note:
+    - External products (e.g., TCHP/OHC) are validation-only and MUST NOT be used as inputs.
+    """
+    from src.utils.config import cfg_get
+    from src.data.dataset import PhysicsDataset
+    from src.training.trainer import _build_model  # robust, signature-safe model builder
+
+    dev = str(cfg_get(cfg, "training.device", "auto")).lower()
+    device = torch.device("cuda" if torch.cuda.is_available() and dev in ("auto", "cuda") else "cpu")
+
+    batch_size = int(cfg_get(cfg, "training.batch_size", 16))
+    num_workers = int(cfg_get(cfg, "repro.num_workers", 4))
+
+    ds_test = PhysicsDataset(cfg, split="test")
+    loader = DataLoader(
+        ds_test,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=torch.cuda.is_available(),
+        drop_last=False,
+    )
+
+    model = _build_model(cfg).to(device)
+    model.eval()
+
+    ckpt_dir = Path(cfg_get(cfg, "paths.checkpoints_dir", "./models/checkpoints")).resolve()
+    best_path = ckpt_dir / "best_model.pt"
+    if best_path.exists():
+        ckpt = torch.load(best_path, map_location=device)
+        state = ckpt.get("model_state", ckpt)
+        model.load_state_dict(state, strict=False)
+
+    interim_dir = Path(cfg_get(cfg, "paths.interim_data", "./data/interim")).resolve()
+    results_dir = Path(cfg_get(cfg, "paths.results_dir", "./outputs/results")).resolve()
     results_dir.mkdir(parents=True, exist_ok=True)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    out_csv = results_dir / "test_predictions.csv"
+    out_json = results_dir / "test_metrics.json"
 
-    model = CycloneNetRIOnly(CONFIG).to(device)
-    if checkpoint is None:
-        checkpoint = checkpoints_dir / "best_model_ri.pt"
-    else:
-        checkpoint = Path(checkpoint)
-    if not checkpoint.exists():
-        raise FileNotFoundError(f"Checkpoint not found: {checkpoint}")
-    model.load_state_dict(torch.load(checkpoint, map_location=device))
+    evaluate(cfg, loader, model, interim_dir, out_csv, out_json)
 
-    # Load artifacts
-    artifacts = _load_artifacts(checkpoints_dir)
-    logger.info(f"Artifacts loaded. Keys: {list(artifacts.keys())}")
 
-    # Extract threshold from val_artifacts.thresholding.selected_threshold
-    try:
-        threshold = artifacts["val_artifacts"]["thresholding"]["selected_threshold"]
-        logger.info(f"Using threshold from artifacts: {threshold:.4f}")
-    except (KeyError, TypeError) as e:
-        threshold = float(
-            cfg_get(CONFIG, "thresholding.fallback_threshold", 0.5))
-        logger.warning(
-            f"Could not read threshold from artifacts: {e}. Using fallback: {threshold}")
-
-    # Extract calibration parameters from val_artifacts.calibration
-    calibration_params = None
-    try:
-        cal = artifacts["val_artifacts"]["calibration"]
-        if cal.get("enabled"):
-            calibration_params = {"a": cal["a"], "b": cal["b"]}
-            logger.info(
-                f"Calibration enabled: a={calibration_params['a']:.4f}, b={calibration_params['b']:.4f}")
-        else:
-            logger.info("Calibration is disabled in artifacts.")
-    except (KeyError, TypeError):
-        logger.info("No calibration parameters found in artifacts.")
-
-    # Build test loader
-    batch_size = int(cfg_get(CONFIG, "training.batch_size", 64))
-    test_ds = PhysicsDataset(split="test", balance_ri=False, augment=False)
-    test_loader = torch.utils.data.DataLoader(
-        test_ds, batch_size=batch_size, shuffle=False, num_workers=0
-    )
-
-    logger.info(f"Test samples: {len(test_ds)}")
-
-    results = _predict_scores_and_coords(
-        model, test_loader, device, interim_dir,
-        calibration_params=calibration_params
-    )
-
-    # Optional: check score distribution
-    scores = [r["y_score"] for r in results]
-    logger.info(
-        f"Score stats - min: {min(scores):.4f}, max: {max(scores):.4f}, mean: {np.mean(scores):.4f}")
-
-    evaluator = MissionEvaluator(results_dir)
-    for r in results:
-        evaluator.add(r)
-
-    # Pass the threshold to finalize for binarization metrics
-    summary = evaluator.finalize(prefix="test_set", threshold=threshold)
-
-    logger.info("Evaluation complete.")
-    logger.info(
-        f"ROC-AUC: {summary.roc_auc:.4f}, PR-AUC: {summary.pr_auc:.4f}")
-    logger.info(
-        f"Spatial error (km) - mean: {summary.spatial_error_km_mean:.2f}, median: {summary.spatial_error_km_median:.2f}")
+def main(cfg: Optional[Dict[str, Any]] = None) -> None:
+    """
+    CLI-compatible entrypoint.
+    Supports both:
+      - python -m src.evaluation.evaluate
+      - run.py calling main(cfg)
+    """
+    from src.utils.config import load_config
+    if cfg is None:
+        cfg = load_config("config.yaml")
+    run_evaluate(cfg)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=cfg_get(CONFIG, "logging.level", "INFO"))
     main()

@@ -1,0 +1,13 @@
+{
+  "roc_auc": 0.8318420284934075,
+  "pr_auc": 0.3183424308378661,
+  "brier": 0.07467574792360623,
+  "threshold": 0.0759422555565834,
+  "f1": 0.32653061224489793,
+  "precision": 0.19896373056994818,
+  "recall": 0.909952606635071,
+  "n": 2193,
+  "positives": 211,
+  "negatives": 1982,
+  "note": "External products (e.g., TCHP) are validation-only and never used as inputs."
+}
