@@ -319,10 +319,11 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
     Otherwise, the dataset becomes non-auditable and profile selection breaks.
 
     This implementation:
-    - keeps your temporal + geospatial guards
+    - keeps temporal + geospatial guards
     - builds cube (H,W,T,C)
     - builds channels list in the exact same order as data stacking
-    - saves supervised physical prior map P (fuel potential) when possible
+    - saves a physically-based prior map (total heat flux) when t2m/d2m are available,
+      otherwise falls back to the heuristic fuel potential.
     """
     window_size_px = int(cfg_get(cfg, "data.window_size_px", 40))
     offsets_hours = list(
@@ -385,11 +386,17 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
     lons_win: np.ndarray | None = None
     qc_flags_last: Dict[str, Any] = {}
 
-    # store per-time diagnostics volumes for fuel potential (needs sst_anom, wind, div, optional gradp)
+    # Storage for physical prior: total heat flux (latent + sensible)
+    total_heat_vol: List[np.ndarray] = []
+
+    # Storage for old heuristic (fallback)
     sst_anom_vol: List[np.ndarray] = []
     wind_vol: List[np.ndarray] = []
     div_vol: List[np.ndarray] = []
     gradp_vol: List[np.ndarray] = []
+
+    # Variables to store center indices (used for t2m/d2m extraction)
+    center_i, center_j = None, None
 
     for oh in offsets_hours:
         dt = dt0 + timedelta(hours=int(oh))
@@ -419,6 +426,17 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
         u10_raw = ensure_2d(ds_t[u10_name].values)
         v10_raw = ensure_2d(ds_t[v10_name].values)
 
+        # Try to load 2m temperature and dewpoint (required for heat flux)
+        try:
+            t2m_raw = ensure_2d(ds_t["t2m"].values)
+            d2m_raw = ensure_2d(ds_t["d2m"].values)
+            have_t2m = True
+        except (KeyError, ValueError):
+            logger.warning(f"t2m/d2m not found for {nc_path}, heat flux prior will be unavailable")
+            have_t2m = False
+            t2m_raw = None
+            d2m_raw = None
+
         lat_name = "latitude" if "latitude" in ds_t.coords else (
             "lat" if "lat" in ds_t.coords else None)
         lon_name = "longitude" if "longitude" in ds_t.coords else (
@@ -435,7 +453,6 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
             raise ValueError("Expected 1D lat/lon coordinates in ERA5")
 
         i = nearest_index(lats1, lat0)
-
         lons_min = float(np.nanmin(lons1))
         lons_max = float(np.nanmax(lons1))
         if lons_min >= 0.0 and lons_max > 180.0:
@@ -443,6 +460,10 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
         else:
             lon_val = ((lon0 + 180.0) % 360.0) - 180.0
         j = nearest_index(lons1, lon_val)
+
+        # Store center indices for later use (they are the same for all offsets)
+        if center_i is None:
+            center_i, center_j = i, j
 
         if lats_win is None or lons_win is None:
             lon_grid, lat_grid = np.meshgrid(lons1, lats1)
@@ -481,16 +502,38 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
 
         base = {"sst": sst, "msl": msl, "u10": u10, "v10": v10}
 
-        # extra list is in EXACT SAME ORDER as diag_channels
+        # Compute diagnostics (vorticity, divergence, etc.)
         extra = compute_diagnostics(base, lats_win, lons_win, diag_channels)
 
-        # Build cube timestep (H,W,C) in EXACT SAME ORDER as channels list will be built later
+        # Build cube timestep (H,W,C)
         cube_t = np.stack([sst, msl, u10, v10] + extra,
                           axis=-1).astype(np.float32)
         cubes_t.append(cube_t)
 
-        # Capture the needed diagnostics for fuel potential (by channel name)
-        # Build a name->array map aligned with diag_channels order
+        # If t2m/d2m are available, compute total heat flux for this timestep
+        if have_t2m and t2m_raw is not None and d2m_raw is not None:
+            t2m = extract_window_by_index(t2m_raw, i, j, window_size_px).astype(np.float32)
+            d2m = extract_window_by_index(d2m_raw, i, j, window_size_px).astype(np.float32)
+
+            # Import heat flux function (lazy import to avoid circular dependencies)
+            from src.physics.heat_flux import compute_heat_fluxes
+            heat_fluxes = compute_heat_fluxes(
+                sst=sst,
+                u10=u10,
+                v10=v10,
+                msl=msl,
+                t2m=t2m,
+                d2m=d2m,
+                Ce=float(cfg_get(cfg, "physics.heat_flux.Ce", 1.2e-3)),
+                Ch=float(cfg_get(cfg, "physics.heat_flux.Ch", 1.2e-3))
+            )
+            total_heat = heat_fluxes["total_heat_flux"]  # (H, W)
+            total_heat_vol.append(total_heat)
+        else:
+            # If heat flux not available, we will fall back to heuristic later
+            total_heat_vol.append(None)
+
+        # Capture diagnostics for old heuristic fallback
         extras_by_name: Dict[str, np.ndarray] = {}
         for k, d in enumerate(diag_channels):
             cname = diag_to_channel[d]
@@ -520,12 +563,12 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
 
     cube = np.stack(cubes_t, axis=2).astype(np.float32)  # (H,W,T,C)
 
-    # Channel list (base + diagnostics) — MUST MATCH cube stacking
+    # Channel list (base + diagnostics)
     base_channels = ["sst_K", "mslp_Pa", "u10_mps", "v10_mps"]
     derived_channels = [diag_to_channel[d] for d in diag_channels]
     all_channels = base_channels + derived_channels
 
-    # Units: include only what can exist (safe superset)
+    # Units
     units = {
         "sst_K": "K",
         "mslp_Pa": "Pa",
@@ -550,35 +593,50 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
 
     out_dir.mkdir(parents=True, exist_ok=True)
     np.save(out_dir / f"{event_id}.npy", cube)
-    np.save(out_dir / f"{event_id}_lats.npy",
-            lats_win.astype(np.float32))  # type: ignore[arg-type]
-    np.save(out_dir / f"{event_id}_lons.npy",
-            lons_win.astype(np.float32))  # type: ignore[arg-type]
+    np.save(out_dir / f"{event_id}_lats.npy", lats_win.astype(np.float32))
+    np.save(out_dir / f"{event_id}_lons.npy", lons_win.astype(np.float32))
 
-    # Save supervised physical prior map (fuel potential), if inputs available
+    # Save physical prior map
     fuel_saved = False
-    if len(sst_anom_vol) == T and len(wind_vol) == T and len(div_vol) == T:
-        sst_anom_arr = np.stack(sst_anom_vol, axis=2).astype(np.float32)
-        wind_arr = np.stack(wind_vol, axis=2).astype(np.float32)
-        div_arr = np.stack(div_vol, axis=2).astype(np.float32)
-        grad_arr = np.stack(gradp_vol, axis=2).astype(
-            np.float32) if len(gradp_vol) == T else None
-
-        P = build_fuel_potential(
-            sst_anom_K=sst_anom_arr,
-            wind_mps=wind_arr,
-            divergence_1ps=div_arr,
-            grad_mslp_Pa_per_m=grad_arr,
-            cfg=FuelPotentialConfig(
-                w_conv=float(
-                    cfg_get(cfg, "physics_guided.fuel_potential.w_conv", 1.0)),
-                w_gradp=float(
-                    cfg_get(cfg, "physics_guided.fuel_potential.w_gradp", 0.0)),
-            ),
-        )
-        np.save(out_dir / f"{event_id}_fuel_potential.npy",
-                P.astype(np.float32))
+    # Priority: use total heat flux if available for all timesteps
+    if all(v is not None for v in total_heat_vol):
+        # Stack and normalize each timestep to [0,1]
+        heat_arr = np.stack(total_heat_vol, axis=2).astype(np.float32)  # (H,W,T)
+        heat_norm = np.zeros_like(heat_arr, dtype=np.float32)
+        for t in range(T):
+            slab = heat_arr[:, :, t]
+            slab_min = float(np.nanmin(slab))
+            slab_max = float(np.nanmax(slab))
+            if slab_max - slab_min > 1e-6:
+                heat_norm[:, :, t] = (slab - slab_min) / (slab_max - slab_min)
+        np.save(out_dir / f"{event_id}_fuel_potential.npy", heat_norm)
         fuel_saved = True
+        logger.debug(f"Saved total heat flux prior for {event_id}")
+    else:
+        # Fallback to old heuristic if heat flux unavailable
+        if len(sst_anom_vol) == T and len(wind_vol) == T and len(div_vol) == T:
+            sst_anom_arr = np.stack(sst_anom_vol, axis=2).astype(np.float32)
+            wind_arr = np.stack(wind_vol, axis=2).astype(np.float32)
+            div_arr = np.stack(div_vol, axis=2).astype(np.float32)
+            grad_arr = np.stack(gradp_vol, axis=2).astype(
+                np.float32) if len(gradp_vol) == T else None
+
+            from src.physics.fuel_potential import build_fuel_potential, FuelPotentialConfig
+            P = build_fuel_potential(
+                sst_anom_K=sst_anom_arr,
+                wind_mps=wind_arr,
+                divergence_1ps=div_arr,
+                grad_mslp_Pa_per_m=grad_arr,
+                cfg=FuelPotentialConfig(
+                    w_conv=float(
+                        cfg_get(cfg, "physics_guided.fuel_potential.w_conv", 1.0)),
+                    w_gradp=float(
+                        cfg_get(cfg, "physics_guided.fuel_potential.w_gradp", 0.0)),
+                ),
+            )
+            np.save(out_dir / f"{event_id}_fuel_potential.npy", P.astype(np.float32))
+            fuel_saved = True
+            logger.debug(f"Saved heuristic fuel potential for {event_id} (heat flux unavailable)")
 
     meta = EventMeta(
         event_id=event_id,
@@ -610,7 +668,6 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
         json.dump(asdict(meta), f, indent=2)
 
     return True
-
 
 def run_preprocess(cfg: Dict[str, Any]) -> None:
     raw_dir = Path(cfg["paths"]["raw_data"])

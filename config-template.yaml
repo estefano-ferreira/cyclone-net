@@ -34,13 +34,15 @@ sanity:
 download:
   cds_api: # Copernicus Climate Data Store API credentials
     url: https://cds.climate.copernicus.eu/api
-    key: # Replace with your personal API key
+    key: 
   dataset: reanalysis-era5-single-levels # ERA5 dataset name
   variables: # Variables to download
     - sea_surface_temperature
     - mean_sea_level_pressure
     - 10m_u_component_of_wind
     - 10m_v_component_of_wind
+    - 2m_temperature
+    - 2m_dewpoint_temperature
   years: [1980, 2024] # Inclusive range of years
   months: [6, 7, 8, 9, 10, 11] # Atlantic hurricane season months
   days: ALL # Download all days
@@ -54,9 +56,13 @@ download:
 
   # TCHP (Tropical Cyclone Heat Potential) external data – for validation only, not model input
   tchp:
-    enabled: false # Enable to download TCHP data (requires additional setup)
+    enabled: true # Enable to download TCHP data (requires additional setup)
     source: auto # 'noaa', 'aoml', 'copernicus', or 'auto' (year‑based)
     years: [1980, 2024] # Years to download (can be auto‑detected from event list)
+    lat_min: 0.0
+    lat_max: 60.0
+    lon_min: -100.0
+    lon_max: -10.0
     variables: # Variables requested from source
       - Tropical_Cyclone_Heat_Potential
       - D26
@@ -160,6 +166,9 @@ training:
   lambda_ri: 5.0 # Weight for RI classification loss (increased importance)
   lambda_dv12: 0.2 # Weight for 12‑h intensity change regression (reduced)
   lambda_dv24: 0.2 # Weight for 24‑h intensity change regression (reduced)
+  use_prior_loss: true      # enable/disable prior alignment loss
+  use_consistency_loss: true # enable/disable equation consistency loss
+  use_tv_l1: true            # enable/disable TV + L1 regularization
 
 # ----------------------------------------------------------------------
 # Reproducibility: Determinism and parallel workers

@@ -10,10 +10,13 @@ and optionally validates against external TCHP data.
 Key features:
 - Loads the best model checkpoint based on validation AUC (if available) or loss.
 - Uses the same robust model builder as training.
-- Computes ROC‑AUC, PR‑AUC, Brier score, and precision/recall at target recall.
+- Loads the threshold saved during training (from best_threshold.json) and uses it.
+- Computes ROC‑AUC, PR‑AUC, Brier score, and precision/recall at that threshold.
 - Extracts predicted energy source locations via soft‑argmax on FuelMap.
 - If TCHP maxima are present in metadata, calculates spatial error.
 - Optionally applies Platt calibration to improve probability estimates.
+- Generates calibration report (reliability diagram data, ECE, MCE).
+- Optionally computes advanced spatial metrics (overlap, rank correlation) when full TCHP maps are available.
 
 All external products (e.g., TCHP) are used for validation only and never as inputs.
 """
@@ -26,7 +29,9 @@ from typing import Any, Dict, Optional, Tuple
 import numpy as np
 import pandas as pd
 import torch
+import xarray as xr
 from torch.utils.data import DataLoader
+from scipy.interpolate import griddata
 
 from src.data.dataset import PhysicsDataset
 from src.evaluation.metrics import (
@@ -34,11 +39,18 @@ from src.evaluation.metrics import (
     pr_auc,
     brier,
     f1_precision_recall,
-    select_threshold_for_recall,
 )
-from src.training.trainer import _build_model  # reuse the robust model builder
+from src.evaluation.spatial_metrics import compute_spatial_metrics
+from src.training.trainer import _build_model
 from src.utils.calibration import fit_platt_scaler, PlattScaler
 from src.utils.config import cfg_get, load_config
+from src.utils.tchp_utils import get_tchp_file_path
+
+from src.evaluation.calibration_metrics import (
+    compute_reliability,
+    compute_ece,
+    compute_mce,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +115,75 @@ def _get_fuelmap(out: Dict[str, torch.Tensor]) -> Optional[torch.Tensor]:
     return None
 
 
+def load_tchp_map_for_event(
+    meta: Dict[str, Any],
+    tchp_dir: Path,
+    window_deg: float = 5.0
+) -> Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
+    """
+    Load the full TCHP map for a given event from the corresponding NetCDF file.
+
+    Args:
+        meta: Event metadata (must contain 'timestamp', 'center_lat', 'center_lon').
+        tchp_dir: Directory containing TCHP files.
+        window_deg: Half-width of the spatial window in degrees.
+
+    Returns:
+        (tchp_values, lats, lons) or None if file not found or region empty.
+    """
+    timestamp = pd.to_datetime(meta.get("timestamp"))
+    lat = meta.get("center_lat")
+    lon = meta.get("center_lon")
+    if timestamp is None or lat is None or lon is None:
+        return None
+
+    year = timestamp.year
+    if year >= 2022:
+        src = "noaa"
+    elif year >= 1993:
+        src = "aoml"
+    else:
+        return None
+
+    tchp_file = get_tchp_file_path(tchp_dir, year, src)
+    if not tchp_file.exists():
+        return None
+
+    try:
+        ds = xr.open_dataset(tchp_file)
+        ds_t = ds.sel(time=timestamp, method="nearest")
+        lon_min, lon_max = lon - window_deg, lon + window_deg
+        lat_min, lat_max = lat - window_deg, lat + window_deg
+
+        if "lon" in ds_t.coords and ds_t.lon.min() >= 0 and lon_min < 0:
+            lon_min += 360
+            lon_max += 360
+
+        ds_region = ds_t.sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
+        if ds_region.sizes["lat"] == 0 or ds_region.sizes["lon"] == 0:
+            ds.close()
+            return None
+
+        var_names = ["tchp", "Tropical_Cyclone_Heat_Potential", "TCHP"]
+        tchp_var = None
+        for v in var_names:
+            if v in ds_region:
+                tchp_var = v
+                break
+        if tchp_var is None:
+            ds.close()
+            return None
+
+        tchp = ds_region[tchp_var].values
+        lats = ds_region["lat"].values
+        lons = ds_region["lon"].values
+        ds.close()
+        return tchp, lats, lons
+    except Exception as e:
+        logger.warning(f"Error loading TCHP map for event {meta.get('event_id', 'unknown')}: {e}")
+        return None
+
+
 def evaluate(
     cfg: Dict[str, Any],
     loader: DataLoader,
@@ -110,8 +191,12 @@ def evaluate(
     interim_dir: Path,
     out_csv: Path,
     out_json: Path,
+    threshold: float = 0.5,
     calibrate: bool = False,
     cal_loader: Optional[DataLoader] = None,
+    calibration_report: bool = True,
+    full_spatial_metrics: bool = False,
+    tchp_dir: Optional[Path] = None,
 ) -> None:
     """
     Core evaluation routine.
@@ -123,18 +208,21 @@ def evaluate(
         interim_dir: directory containing per-event metadata and grids.
         out_csv: path to save detailed predictions CSV.
         out_json: path to save summary metrics JSON.
+        threshold: fixed threshold for binary classification (from training).
         calibrate: if True, perform Platt calibration using cal_loader.
         cal_loader: DataLoader for calibration (usually validation set).
+        calibration_report: if True, generate reliability diagram data and ECE/MCE.
+        full_spatial_metrics: if True, compute advanced spatial metrics (overlap, rank correlation)
+                              by loading the full TCHP map for each event.
+        tchp_dir: directory containing TCHP files (required if full_spatial_metrics=True).
     """
     device = next(model.parameters()).device
-    temperature = float(cfg.get("evaluation", {}).get(
-        "fuelmap_temperature", 10.0))
-    target_recall = float(cfg_get(cfg, "training.eval_target_recall", 0.90))
+    temperature = float(cfg.get("evaluation", {}).get("fuelmap_temperature", 10.0))
 
     model.eval()
     rows = []
-    all_logits = []   # raw logits (before sigmoid) for potential calibration
-    all_scores = []   # probabilities after sigmoid
+    all_logits = []
+    all_scores = []
     all_labels = []
 
     with torch.no_grad():
@@ -143,13 +231,12 @@ def evaluate(
             x = batch["x"].to(device)
             y = batch["y"].cpu().numpy().astype(int)
 
-            # Pass optional prior_map_t0 if available (model may use it)
             prior = batch.get("prior_map_t0", None)
             if prior is not None:
                 prior = prior.to(device)
             out = model(x, prior_map_t0=prior)
 
-            logits = out["ri_logit"].cpu().numpy()          # raw logits
+            logits = out["ri_logit"].cpu().numpy()
             scores = torch.sigmoid(out["ri_logit"]).cpu().numpy()
             all_logits.extend(logits)
             all_scores.extend(scores)
@@ -179,15 +266,32 @@ def evaluate(
                         # Optional TCHP ground truth from metadata
                         meta_path = interim_dir / f"{eid}.json"
                         if meta_path.exists():
-                            meta = json.loads(
-                                meta_path.read_text(encoding="utf-8"))
+                            meta = json.loads(meta_path.read_text(encoding="utf-8"))
                             if "tchp_max_lat" in meta and "tchp_max_lon" in meta:
                                 tl = float(meta["tchp_max_lat"])
                                 tn = float(meta["tchp_max_lon"])
                                 row["tchp_max_lat"] = tl
                                 row["tchp_max_lon"] = tn
-                                row["tchp_dist_km"] = haversine_km(
-                                    plat, plon, tl, tn)
+                                row["tchp_dist_km"] = haversine_km(plat, plon, tl, tn)
+
+                                # Advanced spatial metrics if requested and TCHP map available
+                                if full_spatial_metrics and tchp_dir is not None:
+                                    tchp_data = load_tchp_map_for_event(meta, tchp_dir, window_deg=5.0)
+                                    if tchp_data is not None:
+                                        tchp_map, lats_tchp, lons_tchp = tchp_data
+                                        # Interpolate TCHP onto FuelMap grid
+                                        lon_grid_tchp, lat_grid_tchp = np.meshgrid(lons_tchp, lats_tchp)
+                                        points_tchp = np.column_stack((lon_grid_tchp.ravel(), lat_grid_tchp.ravel()))
+                                        values_tchp = tchp_map.ravel()
+                                        # FuelMap grid (lats, lons are 2D)
+                                        tchp_on_fm = griddata(points_tchp, values_tchp, (lons, lats), method='linear')
+                                        if np.any(np.isfinite(tchp_on_fm)):
+                                            spatial_metrics = compute_spatial_metrics(
+                                                plat, plon, tl, tn,
+                                                m, tchp_on_fm
+                                            )
+                                            for key, val in spatial_metrics.items():
+                                                row[f"tchp_{key}"] = val
 
                 rows.append(row)
 
@@ -199,7 +303,6 @@ def evaluate(
     # Optional Platt calibration
     if calibrate and cal_loader is not None:
         logger.info("Fitting Platt scaler on calibration set...")
-        # Collect logits and labels from calibration loader
         cal_logits, cal_labels = [], []
         model.eval()
         with torch.no_grad():
@@ -218,17 +321,14 @@ def evaluate(
     else:
         scores_for_metrics = all_scores
 
-    # Compute metrics with threshold optimized for target recall
-    thr = select_threshold_for_recall(
-        scores_for_metrics, all_labels, target_recall=target_recall)
-    f1, p, r = f1_precision_recall(
-        scores_for_metrics, all_labels, threshold=thr)
+    # Compute metrics using the fixed threshold
+    f1, p, r = f1_precision_recall(scores_for_metrics, all_labels, threshold=threshold)
 
     summary = {
         "roc_auc": roc_auc(scores_for_metrics, all_labels),
         "pr_auc": pr_auc(scores_for_metrics, all_labels),
         "brier": brier(scores_for_metrics, all_labels),
-        "threshold": float(thr),
+        "threshold": float(threshold),
         "f1": float(f1),
         "precision": float(p),
         "recall": float(r),
@@ -238,14 +338,37 @@ def evaluate(
         "note": "External products (e.g., TCHP) are validation-only and never used as inputs.",
     }
 
-    # Add TCHP statistics if any rows contain distance
+    # Add TCHP distance statistics
     tchp_dists = [row["tchp_dist_km"] for row in rows if "tchp_dist_km" in row]
     if tchp_dists:
         tchp_dists = np.array(tchp_dists, dtype=float)
         summary["tchp_mean_dist_km"] = float(np.mean(tchp_dists))
         summary["tchp_median_dist_km"] = float(np.median(tchp_dists))
         summary["tchp_std_dist_km"] = float(np.std(tchp_dists))
+        summary["tchp_min_dist_km"] = float(np.min(tchp_dists))
+        summary["tchp_max_dist_km"] = float(np.max(tchp_dists))
         summary["tchp_n"] = int(tchp_dists.size)
+
+    # Add advanced spatial metrics if available
+    for metric in ["peak_distance_km", "top10_overlap", "rank_correlation"]:
+        values = [row[f"tchp_{metric}"] for row in rows if f"tchp_{metric}" in row]
+        if values:
+            values = np.array(values, dtype=float)
+            summary[f"tchp_{metric}_mean"] = float(np.mean(values))
+            summary[f"tchp_{metric}_median"] = float(np.median(values))
+            summary[f"tchp_{metric}_std"] = float(np.std(values))
+
+    # Calibration report
+    if calibration_report:
+        cal_data = compute_reliability(all_labels, scores_for_metrics, n_bins=10)
+        cal_data["ece"] = compute_ece(all_labels, scores_for_metrics, n_bins=10)
+        cal_data["mce"] = compute_mce(all_labels, scores_for_metrics, n_bins=10)
+        cal_path = out_json.parent / "calibration_data.json"
+        with open(cal_path, "w", encoding="utf-8") as f:
+            json.dump(cal_data, f, indent=2)
+        logger.info(f"Calibration data saved to {cal_path}")
+        summary["ece"] = cal_data["ece"]
+        summary["mce"] = cal_data["mce"]
 
     # Save outputs
     out_csv.parent.mkdir(parents=True, exist_ok=True)
@@ -257,7 +380,13 @@ def evaluate(
     logger.info(f"Saved metrics to: {out_json}")
 
 
-def run_evaluate(cfg: Dict[str, Any], split: str = "test", calibrate: bool = False) -> None:
+def run_evaluate(
+    cfg: Dict[str, Any],
+    split: str = "test",
+    calibrate: bool = False,
+    calibration_report: bool = True,
+    full_spatial_metrics: bool = False,
+) -> None:
     """
     Config-driven evaluation entrypoint.
 
@@ -265,6 +394,8 @@ def run_evaluate(cfg: Dict[str, Any], split: str = "test", calibrate: bool = Fal
         cfg: configuration dictionary.
         split: which dataset split to evaluate ("test" or "val").
         calibrate: whether to apply Platt calibration using validation set.
+        calibration_report: whether to generate calibration report.
+        full_spatial_metrics: whether to compute advanced spatial metrics (requires TCHP maps).
     """
     device = torch.device(
         "cuda"
@@ -275,7 +406,6 @@ def run_evaluate(cfg: Dict[str, Any], split: str = "test", calibrate: bool = Fal
     batch_size = int(cfg_get(cfg, "training.batch_size", 16))
     num_workers = int(cfg_get(cfg, "repro.num_workers", 4))
 
-    # Build dataset and loader for the requested split
     ds = PhysicsDataset(cfg, split=split)
     loader = DataLoader(
         ds,
@@ -286,12 +416,9 @@ def run_evaluate(cfg: Dict[str, Any], split: str = "test", calibrate: bool = Fal
         drop_last=False,
     )
 
-    # Build model (same architecture as training)
     model = _build_model(cfg).to(device)
 
-    # Determine checkpoint path: prefer AUC-based if exists, else best loss
-    ckpt_dir = Path(cfg_get(cfg, "paths.checkpoints_dir",
-                    "./models/checkpoints")).resolve()
+    ckpt_dir = Path(cfg_get(cfg, "paths.checkpoints_dir", "./models/checkpoints")).resolve()
     best_auc_path = ckpt_dir / "best_auc_model.pt"
     best_loss_path = ckpt_dir / "best_model.pt"
 
@@ -301,28 +428,33 @@ def run_evaluate(cfg: Dict[str, Any], split: str = "test", calibrate: bool = Fal
         logger.info(f"Loaded model from {best_auc_path} (AUC-based)")
     elif best_loss_path.exists():
         checkpoint = torch.load(best_loss_path, map_location=device)
-        # Checkpoint may contain full dict or just state_dict
         if isinstance(checkpoint, dict) and "model_state" in checkpoint:
             model.load_state_dict(checkpoint["model_state"], strict=False)
         else:
             model.load_state_dict(checkpoint, strict=False)
         logger.info(f"Loaded model from {best_loss_path} (loss-based)")
     else:
-        logger.warning(
-            "No checkpoint found; using randomly initialized model.")
+        logger.warning("No checkpoint found; using randomly initialized model.")
 
     model.eval()
 
-    interim_dir = Path(cfg_get(cfg, "paths.interim_data",
-                       "./data/interim")).resolve()
-    results_dir = Path(cfg_get(cfg, "paths.results_dir",
-                       "./outputs/results")).resolve()
+    threshold_path = ckpt_dir / "best_threshold.json"
+    threshold = 0.5
+    if threshold_path.exists():
+        with open(threshold_path, "r") as f:
+            thr_data = json.load(f)
+        threshold = thr_data["threshold"]
+        logger.info(f"Loaded threshold {threshold:.4f} from {threshold_path}")
+    else:
+        logger.warning("No threshold file found; using default 0.5")
+
+    interim_dir = Path(cfg_get(cfg, "paths.interim_data", "./data/interim")).resolve()
+    results_dir = Path(cfg_get(cfg, "paths.results_dir", "./outputs/results")).resolve()
     results_dir.mkdir(parents=True, exist_ok=True)
 
     out_csv = results_dir / f"{split}_predictions.csv"
     out_json = results_dir / f"{split}_metrics.json"
 
-    # If calibration requested, also load validation loader
     cal_loader = None
     if calibrate:
         ds_val = PhysicsDataset(cfg, split="val")
@@ -335,6 +467,8 @@ def run_evaluate(cfg: Dict[str, Any], split: str = "test", calibrate: bool = Fal
             drop_last=False,
         )
 
+    tchp_dir = Path(cfg_get(cfg, "paths.tchp_dir", "./data/external/tchp")).resolve() if full_spatial_metrics else None
+
     evaluate(
         cfg,
         loader,
@@ -342,8 +476,12 @@ def run_evaluate(cfg: Dict[str, Any], split: str = "test", calibrate: bool = Fal
         interim_dir,
         out_csv,
         out_json,
+        threshold=threshold,
         calibrate=calibrate,
         cal_loader=cal_loader,
+        calibration_report=calibration_report,
+        full_spatial_metrics=full_spatial_metrics,
+        tchp_dir=tchp_dir,
     )
 
 
@@ -352,21 +490,27 @@ def main(cfg: Optional[Dict[str, Any]] = None) -> None:
     CLI-compatible entrypoint.
 
     Usage:
-        python -m src.evaluation.evaluate [--split test] [--calibrate]
+        python -m src.evaluation.evaluate [--split test] [--calibrate] [--no-calibration-report] [--full-spatial]
     """
     import argparse
 
     parser = argparse.ArgumentParser(description="CycloneNet evaluation")
-    parser.add_argument("--split", default="test",
-                        choices=["test", "val"], help="Split to evaluate")
-    parser.add_argument("--calibrate", action="store_true",
-                        help="Apply Platt calibration using validation set")
+    parser.add_argument("--split", default="test", choices=["test", "val"], help="Split to evaluate")
+    parser.add_argument("--calibrate", action="store_true", help="Apply Platt calibration using validation set")
+    parser.add_argument("--no-calibration-report", action="store_true", help="Disable generation of calibration report")
+    parser.add_argument("--full-spatial", action="store_true", help="Compute advanced spatial metrics (requires TCHP maps)")
     args = parser.parse_args()
 
     if cfg is None:
         cfg = load_config("config.yaml")
 
-    run_evaluate(cfg, split=args.split, calibrate=args.calibrate)
+    run_evaluate(
+        cfg,
+        split=args.split,
+        calibrate=args.calibrate,
+        calibration_report=not args.no_calibration_report,
+        full_spatial_metrics=args.full_spatial,
+    )
 
 
 if __name__ == "__main__":

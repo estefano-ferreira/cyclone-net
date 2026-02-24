@@ -46,3 +46,6 @@ torch>=1.10.0                 # PyTorch (CUDA support recommended for training)
 # Additional utilities (if needed)
 # ------------------------------
 # ftplib is part of the standard library, no installation required
+
+
+matplotlib>=3.5.0

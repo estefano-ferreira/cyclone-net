@@ -4,10 +4,13 @@ from pathlib import Path
 import pandas as pd
 
 from src.processors.ri_labeling import label_ri, add_wind_deltas
+from src.downloaders.ibtracs import download_ibtracs
+from src.utils.config import cfg_get
 
 logger = logging.getLogger(__name__)
 
-def build_event_list(ibtracs_csv: Path, out_csv: Path, basin_filter: str | None = None, min_wind_kt: float | None = None, ri_threshold_kt_24h: float = 30.0) -> None:
+def build_event_list(ibtracs_csv: Path, out_csv: Path, basin_filter: str | None = None,
+                     min_wind_kt: float | None = None, ri_threshold_kt_24h: float = 30.0) -> None:
     """Build an event list from IBTrACS best-track file.
 
     Output schema (minimum):
@@ -68,3 +71,23 @@ def build_event_list(ibtracs_csv: Path, out_csv: Path, basin_filter: str | None 
     out_csv.parent.mkdir(parents=True, exist_ok=True)
     out.to_csv(out_csv, index=False)
     logger.info(f"Wrote event list: {out_csv} rows={len(out)}")
+
+def run_prepare(cfg: dict, force: bool = False) -> None:
+    """Entrypoint for prepare command."""
+    # 1. Ensure IBTrACS is downloaded
+    ibtracs_path = download_ibtracs(cfg, force_download=force)
+    
+    # 2. Build event list
+    out_csv = Path(cfg_get(cfg, "paths.event_list", "./data/event_list_augmented.csv"))
+    basin_filter = cfg_get(cfg, "data.basin", None)          # opcional: filtro por bacia
+    min_wind_kt = cfg_get(cfg, "data.min_wind_kt", None)     # opcional: vento mínimo
+    ri_threshold = float(cfg_get(cfg, "labels.ri_threshold_kt_24h", 30.0))
+    
+    build_event_list(
+        ibtracs_csv=ibtracs_path,
+        out_csv=out_csv,
+        basin_filter=basin_filter,
+        min_wind_kt=min_wind_kt,
+        ri_threshold_kt_24h=ri_threshold
+    )
+    logger.info(f"Event list saved to {out_csv}")

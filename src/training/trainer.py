@@ -26,6 +26,7 @@ This trainer assumes the dataset returns keys consistent with PhysicsDataset:
 import json
 import logging
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
@@ -36,6 +37,8 @@ from torch.utils.data import DataLoader
 from sklearn.metrics import roc_auc_score
 
 from src.utils.config import cfg_get
+from src.utils.git import get_git_revision_short_hash
+from src.evaluation.metrics import select_threshold_for_recall
 
 try:
     from tqdm import tqdm
@@ -560,6 +563,43 @@ def train(cfg: Dict[str, Any]) -> Dict[str, float]:
             torch.save(model.state_dict(), best_auc_path)
             logger.info(
                 f"New best model by AUC (AUC={val_auc:.4f}) saved to {best_auc_path}")
+
+    # --- After training, select best threshold on validation set ---
+    logger.info("Selecting best threshold on validation set...")
+    model.eval()
+    val_scores = []
+    val_labels = []
+    with torch.no_grad():
+        for batch in val_loader:
+            x = batch["x"].to(device)
+            y = batch["y"].cpu().numpy()
+            out = model(x)
+            scores = torch.sigmoid(out["ri_logit"]).cpu().numpy()
+            val_scores.extend(scores)
+            val_labels.extend(y)
+    val_scores = np.array(val_scores, dtype=float)
+    val_labels = np.array(val_labels, dtype=int)
+
+    target_recall = float(cfg_get(cfg, "training.eval_target_recall", 0.90))
+    best_threshold = select_threshold_for_recall(val_scores, val_labels, target_recall)
+
+    threshold_info = {
+        "threshold": float(best_threshold),
+        "selected_on": "val",
+        "criterion": f"recall>={target_recall}",
+        "seed": int(cfg_get(cfg, "splits.seed", 1337)),
+        "git_commit": get_git_revision_short_hash(),
+        "timestamp": datetime.now().isoformat(),
+    }
+    threshold_path = ckpt_dir / "best_threshold.json"
+    with open(threshold_path, "w", encoding="utf-8") as f:
+        json.dump(threshold_info, f, indent=2)
+    logger.info(f"Best threshold {best_threshold:.4f} saved to {threshold_path}")
+
+    # Also save a copy to results dir for easy access
+    results_threshold = out_dir / "best_threshold.json"
+    with open(results_threshold, "w", encoding="utf-8") as f:
+        json.dump(threshold_info, f, indent=2)
 
     # Save training history
     hist_path = out_dir / "train_history.json"
