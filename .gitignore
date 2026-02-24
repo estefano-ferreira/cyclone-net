@@ -1,7 +1,7 @@
-# Dados
-data
+data/*.csv
 data/raw/
 data/interim/
+data/normalized/
 data/processed/
 
 # Ambiente Python
