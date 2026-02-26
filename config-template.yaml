@@ -34,7 +34,7 @@ sanity:
 download:
   cds_api: # Copernicus Climate Data Store API credentials
     url: https://cds.climate.copernicus.eu/api
-    key: 
+    key:
   dataset: reanalysis-era5-single-levels # ERA5 dataset name
   variables: # Variables to download
     - sea_surface_temperature
@@ -166,9 +166,9 @@ training:
   lambda_ri: 5.0 # Weight for RI classification loss (increased importance)
   lambda_dv12: 0.2 # Weight for 12‑h intensity change regression (reduced)
   lambda_dv24: 0.2 # Weight for 24‑h intensity change regression (reduced)
-  use_prior_loss: true      # enable/disable prior alignment loss
+  use_prior_loss: true # enable/disable prior alignment loss
   use_consistency_loss: true # enable/disable equation consistency loss
-  use_tv_l1: true            # enable/disable TV + L1 regularization
+  use_tv_l1: true # enable/disable TV + L1 regularization
 
 # ----------------------------------------------------------------------
 # Reproducibility: Determinism and parallel workers

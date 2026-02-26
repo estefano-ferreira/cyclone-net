@@ -1,5 +1,7 @@
 from __future__ import annotations
 import numpy as np
+from sklearn.metrics import average_precision_score
+
 
 def roc_auc(scores: np.ndarray, labels: np.ndarray) -> float:
     # Mann-Whitney U statistic approach
@@ -20,15 +22,8 @@ def roc_auc(scores: np.ndarray, labels: np.ndarray) -> float:
     return float(auc)
 
 def pr_auc(scores: np.ndarray, labels: np.ndarray) -> float:
-    order = np.argsort(-scores)
-    y = labels[order].astype(int)
-    tp = np.cumsum(y == 1)
-    fp = np.cumsum(y == 0)
-    precision = tp / np.maximum(1, tp + fp)
-    recall = tp / max(1, tp[-1])
-    recall = np.concatenate([[0.0], recall])
-    precision = np.concatenate([[precision[0] if precision.size else 0.0], precision])
-    return float(np.trapz(precision, recall))
+    return float(average_precision_score(labels, scores))
+
 
 def brier(scores: np.ndarray, labels: np.ndarray) -> float:
     scores = scores.astype(float)

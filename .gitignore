@@ -3,6 +3,7 @@ data/raw/
 data/interim/
 data/normalized/
 data/processed/
+data/external
 
 # Ambiente Python
 __pycache__/

@@ -77,7 +77,14 @@ def equation_consistency_loss(
     lambda_vort: float = 1.0,
     lambda_div: float = 1.0,
 ) -> torch.Tensor:
-    """Enforce vort/div channels to match derivatives derived from u/v."""
+    """
+    Enforce vort/div channels to match derivatives derived from u/v.
+
+    Note: The accuracy of finite differences depends on the grid spacing (dx, dy).
+    The current implementation uses central differences with padding, which is
+    acceptable for the 0.25° ERA5 grid. For other resolutions, the loss scale may
+    need adjustment.
+    """
     vort_uv, div_uv = vort_div_from_uv(u, v, dx=dx, dy=dy)
     loss_vort = F.mse_loss(vort_channel, vort_uv)
     loss_div = F.mse_loss(div_channel, div_uv)
