@@ -1,22 +1,79 @@
-"""
-CycloneNet V2.1 – IBTrACS processor.
+from __future__ import annotations
 
-This module handles building the event list from IBTrACS data.
-The downloaded file is stored in the raw data directory and remains unmodified.
+"""
+CycloneNet V2.1 — IBTrACS event-list processor.
+
+This module builds the scientific event list used by the preprocessing stage.
+It reads the original IBTrACS CSV in read-only mode, standardizes key columns,
+computes rapid-intensification targets, and writes a clean event table.
+
+Scientific intent
+-----------------
+The event list provides storm-center position and best-track intensity metadata
+at 6-hourly cadence. It is intentionally limited to information required for
+hindcast sample extraction and target generation.
+
+Output schema
+-------------
+Minimum required output columns:
+- sid
+- storm_name
+- name                      (legacy alias)
+- basin
+- timestamp                 (ISO-like pandas datetime column serialized to CSV)
+- datetime                  (legacy string format: YYYYmmdd HHMM)
+- lat
+- lon
+- wind_kt
+- pressure_mb
+- ri_label
+- dv12_kt
+- dv24_kt
+
+Scientific notes
+----------------
+- Rapid Intensification (RI) follows the classic threshold:
+  ΔV24 >= 30 kt
+- The expected cadence is 6 hours: 00, 06, 12, 18 UTC
+- Future-target rows lacking dv12/dv24 are removed
+- This step does NOT modify ERA5 or any spatial fields
 """
 
 import logging
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 import pandas as pd
-from tqdm import tqdm
 
 from src.downloaders.ibtracs import download_ibtracs
-from src.processors.ri_labeling import label_ri, add_wind_deltas
+from src.processors.ri_labeling import add_wind_deltas, label_ri
 from src.utils.config import cfg_get
 
 logger = logging.getLogger(__name__)
+
+
+def _resolve_column(df: pd.DataFrame, candidates: list[str]) -> Optional[str]:
+    """Return the first matching column name from a list of candidates."""
+    for name in candidates:
+        if name in df.columns:
+            return name
+    return None
+
+
+def _standardize_longitude(lon: pd.Series) -> pd.Series:
+    """Normalize longitude to the [-180, 180) convention.
+
+    This keeps the event list consistent with downstream geospatial handling.
+    """
+    lon = pd.to_numeric(lon, errors="coerce")
+    return ((lon + 180.0) % 360.0) - 180.0
+
+
+def _clean_text_column(series: pd.Series, default: str = "") -> pd.Series:
+    """Convert a text-like column to a safe string series."""
+    out = series.astype(str).fillna(default)
+    out = out.replace({"nan": default, "None": default, "<NA>": default})
+    return out
 
 
 def build_event_list(
@@ -27,128 +84,190 @@ def build_event_list(
     year_range: Optional[Tuple[int, int]] = None,
     ri_threshold_kt_24h: float = 30.0,
 ) -> None:
-    """
-    Build an event list from IBTrACS best-track file.
+    """Build the CycloneNet event list from IBTrACS.
 
-    Output schema (minimum):
-      sid, name, basin, datetime (YYYYmmdd HHMM), lat, lon, wind_kt, pressure_mb,
-      ri_label, dv12_kt, dv24_kt
+    Parameters
+    ----------
+    ibtracs_csv
+        Path to the downloaded IBTrACS CSV file.
+    out_csv
+        Destination path for the standardized event list.
+    basin_filter
+        Optional substring filter for basin names/codes.
+    min_wind_kt
+        Optional minimum best-track wind threshold in knots.
+    year_range
+        Optional inclusive year range (start_year, end_year).
+    ri_threshold_kt_24h
+        RI threshold in knots over 24 hours.
 
-    Notes:
-      - Designed for 6-hour cadence (00/06/12/18Z).
-      - This step DOES NOT touch any ERA5 NetCDF files.
+    Raises
+    ------
+    ValueError
+        If required IBTrACS columns cannot be resolved.
     """
+    ibtracs_csv = Path(ibtracs_csv)
+    out_csv = Path(out_csv)
+
+    logger.info("Reading IBTrACS file: %s", ibtracs_csv)
     df = pd.read_csv(ibtracs_csv, low_memory=False)
 
-    # Heuristic column mapping (IBTrACS varies)
-    col_sid = "SID" if "SID" in df.columns else "sid"
-    col_name = (
-        "NAME"
-        if "NAME" in df.columns
-        else ("name" if "name" in df.columns else None)
-    )
-    col_basin = (
-        "BASIN"
-        if "BASIN" in df.columns
-        else ("basin" if "basin" in df.columns else None)
-    )
-    col_time = (
-        "ISO_TIME"
-        if "ISO_TIME" in df.columns
-        else ("time" if "time" in df.columns else None)
-    )
-    col_lat = "LAT" if "LAT" in df.columns else "lat"
-    col_lon = "LON" if "LON" in df.columns else "lon"
-    col_wind = (
-        "USA_WIND"
-        if "USA_WIND" in df.columns
-        else ("wind" if "wind" in df.columns else None)
-    )
-    col_pres = (
-        "USA_PRES"
-        if "USA_PRES" in df.columns
-        else ("pressure" if "pressure" in df.columns else None)
-    )
+    # ------------------------------------------------------------------
+    # Resolve source columns (IBTrACS naming can vary across releases)
+    # ------------------------------------------------------------------
+    col_sid = _resolve_column(df, ["SID", "sid"])
+    col_name = _resolve_column(df, ["NAME", "name"])
+    col_basin = _resolve_column(df, ["BASIN", "basin"])
+    col_time = _resolve_column(df, ["ISO_TIME", "time"])
+    col_lat = _resolve_column(df, ["LAT", "lat"])
+    col_lon = _resolve_column(df, ["LON", "lon"])
+    col_wind = _resolve_column(df, ["USA_WIND", "wind", "WIND"])
+    col_pres = _resolve_column(df, ["USA_PRES", "pressure", "PRES"])
 
-    if col_time is None or col_wind is None:
+    required_map = {
+        "sid": col_sid,
+        "time": col_time,
+        "lat": col_lat,
+        "lon": col_lon,
+        "wind": col_wind,
+    }
+    missing = [key for key, value in required_map.items() if value is None]
+    if missing:
         raise ValueError(
-            "IBTrACS columns not found for time or wind. Please map columns explicitly."
+            f"IBTrACS column mapping failed. Missing required fields: {missing}. "
+            f"Available columns: {list(df.columns)}"
         )
 
+    # ------------------------------------------------------------------
+    # Build canonical output table
+    # ------------------------------------------------------------------
     out = pd.DataFrame()
-    out["sid"] = df[col_sid].astype(str)
-    out["name"] = df[col_name].astype(str) if col_name else ""
-    out["basin"] = df[col_basin].astype(str) if col_basin else ""
-    out["timestamp"] = pd.to_datetime(df[col_time], errors="coerce")
-    out["lat"] = pd.to_numeric(df[col_lat], errors="coerce")
-    out["lon"] = pd.to_numeric(df[col_lon], errors="coerce")
-    out["wind_kt"] = pd.to_numeric(df[col_wind], errors="coerce")
-    out["pressure_mb"] = (
-        pd.to_numeric(df[col_pres], errors="coerce") if col_pres else pd.NA
+
+    out["sid"] = _clean_text_column(df[col_sid], default="")
+    out["storm_name"] = (
+        _clean_text_column(df[col_name], default="") if col_name is not None else ""
+    )
+    # Preserve the legacy alias used by older parts of the pipeline.
+    out["name"] = out["storm_name"]
+
+    out["basin"] = (
+        _clean_text_column(df[col_basin], default="") if col_basin is not None else ""
     )
 
+    out["timestamp"] = pd.to_datetime(df[col_time], errors="coerce")
+    out["lat"] = pd.to_numeric(df[col_lat], errors="coerce")
+    out["lon"] = _standardize_longitude(df[col_lon])
+
+    # Best-track wind must be in knots for RI labeling consistency.
+    out["wind_kt"] = pd.to_numeric(df[col_wind], errors="coerce")
+
+    out["pressure_mb"] = (
+        pd.to_numeric(df[col_pres], errors="coerce") if col_pres is not None else pd.NA
+    )
+
+    # ------------------------------------------------------------------
+    # Drop unusable rows before scientific target generation
+    # ------------------------------------------------------------------
     out = out.dropna(subset=["timestamp", "lat", "lon", "wind_kt"]).copy()
 
-    # Filter to 6-hourly records (most IBTrACS is 6h anyway)
+    # Keep only the standard 6-hourly analysis times expected by the pipeline.
     out["hour"] = out["timestamp"].dt.hour
     out = out[out["hour"].isin([0, 6, 12, 18])].copy()
     out = out.drop(columns=["hour"])
 
-    # Apply basin filter
+    # Optional basin filter.
     if basin_filter:
         out = out[out["basin"].str.contains(basin_filter, na=False)].copy()
 
-    # Apply minimum wind filter
+    # Optional minimum wind filter.
     if min_wind_kt is not None:
         out = out[out["wind_kt"] >= float(min_wind_kt)].copy()
 
-    # Apply year range filter
+    # Optional inclusive year filter.
     if year_range is not None:
         start_year, end_year = year_range
         out = out[
-            (out["timestamp"].dt.year >= start_year)
-            & (out["timestamp"].dt.year <= end_year)
+            (out["timestamp"].dt.year >= int(start_year))
+            & (out["timestamp"].dt.year <= int(end_year))
         ].copy()
 
+    # Sort before computing forward deltas.
     out = out.sort_values(["sid", "timestamp"]).reset_index(drop=True)
 
+    # ------------------------------------------------------------------
+    # Generate scientific targets
+    # ------------------------------------------------------------------
+    # dv12_kt and dv24_kt are continuous targets.
     out = add_wind_deltas(out)
-    out = label_ri(out, ri_threshold_kt_24h=ri_threshold_kt_24h)
 
-    # Create legacy 'datetime' column: YYYYmmdd HHMM
+    # RI label uses the standard 24-hour threshold.
+    out = label_ri(out, ri_threshold_kt_24h=float(ri_threshold_kt_24h))
+
+    # Legacy datetime string expected by parts of the older codebase.
     out["datetime"] = out["timestamp"].dt.strftime("%Y%m%d %H%M")
 
-    # Remove rows lacking future targets (dv12/dv24 require future steps)
+    # Remove rows without future intensity targets.
     out = out.dropna(subset=["dv12_kt", "dv24_kt"]).copy()
+
+    # Reorder columns for readability and reproducibility.
+    preferred_order = [
+        "sid",
+        "storm_name",
+        "name",
+        "basin",
+        "timestamp",
+        "datetime",
+        "lat",
+        "lon",
+        "wind_kt",
+        "pressure_mb",
+        "dv12_kt",
+        "dv24_kt",
+        "ri_label",
+    ]
+    remaining = [c for c in out.columns if c not in preferred_order]
+    out = out[preferred_order + remaining]
 
     out_csv.parent.mkdir(parents=True, exist_ok=True)
     out.to_csv(out_csv, index=False)
-    logger.info(f"Wrote event list: {out_csv} rows={len(out)}")
+
+    logger.info("Wrote event list: %s | rows=%d", out_csv, len(out))
+    logger.info(
+        "Event-list summary | storms=%d | RI positives=%d | years=%s-%s",
+        out["sid"].nunique(),
+        int(out["ri_label"].sum()) if "ri_label" in out.columns else 0,
+        int(out["timestamp"].dt.year.min()) if len(out) else -1,
+        int(out["timestamp"].dt.year.max()) if len(out) else -1,
+    )
 
 
 def run_prepare(cfg: dict, force: bool = False) -> None:
-    """Entrypoint for prepare command."""
-    # 1. Ensure IBTrACS is downloaded
+    """Entrypoint for the prepare command.
+
+    Workflow
+    --------
+    1. Ensure IBTrACS is downloaded
+    2. Build the standardized event list
+    """
     ibtracs_path = download_ibtracs(cfg, force_download=force)
 
-    # 2. Build event list
     out_csv = Path(cfg_get(cfg, "paths.event_list", "./data/event_list_augmented.csv"))
     basin_filter = cfg_get(cfg, "data.basin", None)
     min_wind_kt = cfg_get(cfg, "data.min_wind_kt", None)
     ri_threshold = float(cfg_get(cfg, "labels.ri_threshold_kt_24h", 30.0))
 
-    # Get year range from config (if available)
     year_range_cfg = cfg_get(cfg, "download.years", None)
-    year_range = None
+    year_range: Optional[Tuple[int, int]] = None
     if year_range_cfg is not None and len(year_range_cfg) == 2:
         year_range = (int(year_range_cfg[0]), int(year_range_cfg[1]))
 
     build_event_list(
-        ibtracs_csv=ibtracs_path,
+        ibtracs_csv=Path(ibtracs_path),
         out_csv=out_csv,
         basin_filter=basin_filter,
         min_wind_kt=min_wind_kt,
         year_range=year_range,
         ri_threshold_kt_24h=ri_threshold,
     )
-    logger.info(f"Event list saved to {out_csv}")
+
+    logger.info("Event list saved to %s", out_csv)

@@ -1,13 +1,15 @@
 {
-  "roc_auc": 0.8328965428190205,
-  "pr_auc": 0.3470076127356539,
-  "brier": 0.07407050116070966,
-  "threshold": 0.06660475957221222,
-  "f1": 0.3100649350649351,
-  "precision": 0.18707149853085211,
-  "recall": 0.9052132701421801,
-  "n": 2193,
-  "positives": 211,
-  "negatives": 1982,
-  "note": "External products (e.g., TCHP) are validation-only and never used as inputs."
+  "roc_auc": 0.5898021308980214,
+  "pr_auc": 0.12075024034777905,
+  "precision": 0.17647058823529413,
+  "recall": 0.3333333333333333,
+  "f1": 0.23076923076923078,
+  "brier": 0.08328272549967676,
+  "threshold": 0.46313047409057617,
+  "n": 155,
+  "n_positive": 9,
+  "n_negative": 146,
+  "release_note": "Core released metrics are classification/probabilistic metrics. External spatial validation is optional and experimental.",
+  "ece": 0.08616557538810451,
+  "mce": 0.8083108961582184
 }

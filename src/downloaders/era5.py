@@ -86,7 +86,11 @@ class ERA5Downloader:
 
         self.raw_dir = Path(cfg["paths"]["raw_data"]).resolve()
         self.raw_dir.mkdir(parents=True, exist_ok=True)
-        self.area = cfg["download"].get("spatial_subset", [35, -100, 5, -20])
+
+        # Use spatial subset from config, fallback to a safe Atlantic default
+        self.area = cfg["download"].get(
+            "spatial_subset", [60, -140, 0, -20]   # N, W, S, E
+        )
         self.max_workers = cfg["download"].get("max_workers", 2)
         self.max_retries = 3
         self.retry_delay = 5
@@ -155,7 +159,9 @@ class ERA5Downloader:
                 if filepath.exists():
                     filepath.unlink()
                 if attempt < self.max_retries:
-                    time.sleep(self.retry_delay * (2 ** (attempt - 1)))
+                    sleep_time = self.retry_delay * (2 ** (attempt - 1))
+                    logger.info(f"Retrying in {sleep_time} seconds...")
+                    time.sleep(sleep_time)
         logger.error(
             f"Failed to download {year}-{month:02d} after {self.max_retries} attempts."
         )

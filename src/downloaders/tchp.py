@@ -39,8 +39,6 @@ def _safe_replace(src_tmp: Path, dst: Path) -> None:
     """
     try:
         if dst.exists():
-            # If the file is locked by another process, this may fail.
-            # In that case, we keep the tmp and raise a clear error.
             dst.unlink()
         src_tmp.replace(dst)
     except PermissionError as e:
@@ -116,9 +114,14 @@ class TCHPDownloader:
         self.years = self._resolve_years()
         self.max_workers = int(cfg_get(cfg, "download.max_workers", 4))
 
-        # ERDDAP base endpoint for the dataset (datasetID without file extension)
-        # Example browser endpoint: https://cwcgom.aoml.noaa.gov/erddap/griddap/aomlTCHP.html
-        self.erddap_url = str(cfg_get(cfg, "download.tchp.erddap_url", "https://cwcgom.aoml.noaa.gov/erddap/griddap/aomlTCHP"))
+        # ERDDAP endpoint – can be overridden in config, otherwise use default
+        self.erddap_url = str(
+            cfg_get(
+                cfg,
+                "download.tchp.erddap_url",
+                "https://cwcgom.aoml.noaa.gov/erddap/griddap/aomlTCHP"
+            )
+        )
 
         # Spatial bounds (Atlantic basin by default; configurable)
         self.lat_min = float(cfg_get(cfg, "download.tchp.lat_min", 0.0))
@@ -126,8 +129,13 @@ class TCHPDownloader:
         self.lon_min = float(cfg_get(cfg, "download.tchp.lon_min", -100.0))
         self.lon_max = float(cfg_get(cfg, "download.tchp.lon_max", -10.0))
 
-        # Variable name (ERDDAP aomlTCHP uses this)
-        self.var_name = "Tropical_Cyclone_Heat_Potential"
+        # Common variable names for TCHP (order of preference)
+        self.var_candidates = [
+            "Tropical_Cyclone_Heat_Potential",
+            "tchp",
+            "TCHP",
+            "tchp_ssh",
+        ]
 
     def _resolve_years(self) -> List[int]:
         """Get list of years from config or from event list."""
@@ -171,7 +179,6 @@ class TCHPDownloader:
             raise ValueError(f"Unknown source: {self.source}")
 
         # Determine output name based on the *selected* source label
-        # (So you can keep multiple source outputs side-by-side if needed.)
         if self.source == "auto":
             preferred = "noaa"
         else:
@@ -215,10 +222,11 @@ class TCHPDownloader:
 
         Key robustness decisions:
           - Use tz-naive timestamps (no 'Z') to avoid pandas timezone index errors
+          - Try multiple variable names
           - Avoid HDF5-based writing when possible (engine='scipy')
           - Write via tmp -> replace to avoid partial file issues on Windows
         """
-        logger.info(f"Downloading TCHP for {year} from NOAA ERDDAP")
+        logger.info(f"Downloading TCHP for {year} from NOAA ERDDAP ({self.erddap_url})")
 
         try:
             # tz-naive range (avoid 'Z' suffix to prevent timezone-aware indexing errors)
@@ -226,10 +234,9 @@ class TCHPDownloader:
             end = pd.Timestamp(year=year, month=12, day=31, hour=23, minute=59, second=59)
 
             # Open remote dataset
-            # Note: avoid forcing engine="netcdf4" to reduce dependency on HDF5.
             ds = xr.open_dataset(self.erddap_url)
 
-            # AOML ERDDAP aomlTCHP commonly uses lon in [-180, 180] degrees_east.
+            # ERDDAP aomlTCHP commonly uses lon in [-180, 180] degrees_east.
             # Your config is already in that convention (e.g., -100..-10 for Atlantic).
             subset = ds.sel(
                 time=slice(start, end),
@@ -237,12 +244,20 @@ class TCHPDownloader:
                 longitude=slice(self.lon_min, self.lon_max),
             )
 
-            if self.var_name not in subset.data_vars:
+            # Find the first available variable name
+            var_name = None
+            for candidate in self.var_candidates:
+                if candidate in subset.data_vars:
+                    var_name = candidate
+                    break
+            if var_name is None:
                 raise KeyError(
-                    f"Variable '{self.var_name}' not found in dataset. Available: {list(subset.data_vars)}"
+                    f"No TCHP variable found in dataset. Tried: {self.var_candidates}. "
+                    f"Available: {list(subset.data_vars)}"
                 )
 
-            da = subset[self.var_name].load()
+            da = subset[var_name].load()
+            logger.info(f"Using variable '{var_name}' from ERDDAP")
 
             # Save safely
             _write_dataarray_netcdf_safe(da, out_path)
@@ -270,9 +285,6 @@ class TCHPDownloader:
           prefer ERDDAP or update the remote_path to the current archive structure.
         """
         ftp_host = "ftp.aoml.noaa.gov"
-
-        # NOTE: This remote path is project-specific and may be outdated.
-        # If you get 550 errors, the archive path likely changed.
         remote_path = f"/pub/phod/pub/tcp data/TCHP_historical/tchp_{year}.nc"
 
         max_retries = 3
@@ -355,9 +367,6 @@ class TCHPDownloader:
             if not dataset_id:
                 raise ValueError("Missing download.tchp.copernicus.dataset_id in config.")
 
-            # Variables differ by product; keep a conservative default.
-            variables = ["tchp"]
-
             # Copernicus expects lon/lat in degrees (typically -180..180 and -90..90),
             # but product conventions vary; user must ensure config matches.
             kwargs = {}
@@ -367,7 +376,7 @@ class TCHPDownloader:
 
             copernicusmarine.subset(
                 dataset_id=dataset_id,
-                variables=variables,
+                variables=["tchp"],  # may vary; adjust if needed
                 minimum_longitude=self.lon_min,
                 maximum_longitude=self.lon_max,
                 minimum_latitude=self.lat_min,

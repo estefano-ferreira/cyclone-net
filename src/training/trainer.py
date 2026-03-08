@@ -1,58 +1,82 @@
 from __future__ import annotations
 
 """
-CycloneNet — Trainer (config-driven, scientifically auditable).
+CycloneNet — config-driven trainer aligned with the released scientific scope.
 
-This module is intentionally minimal and reproducible:
-- Public entrypoint: train(cfg)  -> used by run.py
-- No NetCDF access (only reads dataset outputs from data/interim)
-- No "directional" physical filtering; physics-guided terms are optional and data-driven.
+Scientific intent
+-----------------
+This trainer is designed to remain consistent with the CycloneNet release:
 
-Core tasks:
-- RI classification: BCEWithLogits
-- dv12 / dv24 regression: SmoothL1 with missing-target masks
+- The primary task is RI classification.
+- Auxiliary tasks dv12 / dv24 are allowed, but must not dominate the training
+  objective unless explicitly configured.
+- Threshold selection is performed on validation only and then reused unchanged
+  during evaluation.
+- Checkpoints and reports strictly follow the configured project paths.
 
-Optional physics-guided terms (only if present in batch):
-- Prior alignment: KL divergence between model FuelMap distribution and a physical prior map (fuel potential)
-- Equation consistency: encourages consistency between u/v and (vort/div) at t0 (lightweight, optional)
-- FuelMap regularizers: TV + L1 (optional)
-
-This trainer assumes the dataset returns keys consistent with PhysicsDataset:
-  x, y, dv12, dv24, dv12_mask, dv24_mask
-  prior_map_t0, prior_mask
-  u10_t0, v10_t0, vort_t0, div_t0, dx_m, dy_m, eq_mask
+Important design principle
+--------------------------
+This module must obey the project architecture declared in config.yaml.
+No training artifact path is hardcoded outside the configuration.
 """
 
+import importlib
+import inspect
 import json
 import logging
+import random
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
+from sklearn.metrics import f1_score, roc_auc_score
 from torch.utils.data import DataLoader
-from sklearn.metrics import roc_auc_score
 
 from src.utils.config import cfg_get
-from src.utils.git import get_git_revision_short_hash
-from src.evaluation.metrics import select_threshold_for_recall
-
-try:
-    from tqdm import tqdm
-except Exception:  # pragma: no cover
-    tqdm = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
 
-# -----------------------------------------------------------------------------
-# Small losses (deterministic, standard)
-# -----------------------------------------------------------------------------
+def set_global_seed(seed: int) -> None:
+    """
+    Set all relevant random seeds for reproducibility.
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def _resolve_device(cfg: Dict[str, Any]) -> torch.device:
+    """
+    Resolve device from config while preserving explicit project control.
+    """
+    device_cfg = str(cfg_get(cfg, "training.device", "auto")).lower()
+
+    if device_cfg == "cpu":
+        return torch.device("cpu")
+    if device_cfg == "cuda":
+        if not torch.cuda.is_available():
+            raise RuntimeError("training.device='cuda' but CUDA is not available.")
+        return torch.device("cuda")
+    if device_cfg == "auto":
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    raise ValueError(f"Unsupported training.device value: {device_cfg}")
+
+
 def masked_smooth_l1(pred: torch.Tensor, target: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
-    """SmoothL1 with mask (mask=1 for valid targets). Shapes: (B,)"""
+    """
+    Compute masked SmoothL1 loss for auxiliary regression targets.
+    """
     loss = F.smooth_l1_loss(pred, target, reduction="none")
     loss = loss * mask
     denom = torch.clamp(mask.sum(), min=1.0)
@@ -61,8 +85,7 @@ def masked_smooth_l1(pred: torch.Tensor, target: torch.Tensor, mask: torch.Tenso
 
 def tv_loss_2d(logits: torch.Tensor) -> torch.Tensor:
     """
-    Total variation loss on logits, encourages spatial smoothness.
-    logits: (B,1,H,W)
+    Total variation penalty for spatial smoothness of FuelMap logits.
     """
     dx = torch.abs(logits[:, :, :, 1:] - logits[:, :, :, :-1]).mean()
     dy = torch.abs(logits[:, :, 1:, :] - logits[:, :, :-1, :]).mean()
@@ -70,111 +93,165 @@ def tv_loss_2d(logits: torch.Tensor) -> torch.Tensor:
 
 
 def l1_loss(logits: torch.Tensor) -> torch.Tensor:
-    """L1 sparsity on logits (not probabilities)."""
+    """
+    L1 sparsity penalty for FuelMap logits.
+    """
     return torch.abs(logits).mean()
 
 
 def kl_alignment_loss(fuelmap_logits: torch.Tensor, prior_prob: torch.Tensor) -> torch.Tensor:
     """
-    KL(prior || fuelmap) using spatial distributions.
-    fuelmap_logits: (B,1,H,W)
-    prior_prob: (B,1,H,W) expected to be non-negative; will be normalized here.
+    KL alignment between predicted FuelMap distribution and prior map distribution.
+
+    This is a weak physics-guided alignment term. It is not ground truth.
     """
-    B = fuelmap_logits.shape[0]
-    fm = fuelmap_logits.view(B, -1)
-    pr = prior_prob.view(B, -1)
+    b, _, h, w = fuelmap_logits.shape
+    p = torch.softmax(fuelmap_logits.view(b, -1), dim=-1)
 
-    pr = torch.clamp(pr, min=0.0)
-    pr = pr / torch.clamp(pr.sum(dim=-1, keepdim=True), min=1e-12)
+    q = torch.clamp(prior_prob.view(b, -1), min=0.0)
+    q = q / torch.clamp(q.sum(dim=-1, keepdim=True), min=1e-8)
 
-    fm = torch.softmax(fm, dim=-1)
-    kl = (pr * (torch.log(pr + 1e-12) - torch.log(fm + 1e-12))).sum(dim=-1)
-    return kl.mean()
+    return torch.sum(
+        q * (torch.log(torch.clamp(q, min=1e-8)) - torch.log(torch.clamp(p, min=1e-8))),
+        dim=-1,
+    ).mean()
 
 
-def equation_consistency_loss(
-    u: torch.Tensor,
-    v: torch.Tensor,
-    vort: torch.Tensor,
-    div: torch.Tensor,
-    dx: float,
-    dy: float,
-) -> torch.Tensor:
+def select_threshold_by_f1(y_true: np.ndarray, y_scores: np.ndarray) -> float:
     """
-    Enforce that computed finite-diff vort/div from u/v are consistent with provided vort/div.
-    u,v,vort,div: (B,1,H,W)
+    Select threshold on validation by maximizing F1.
+
+    This avoids degenerate thresholds such as 0.0 that may appear when
+    optimizing recall alone under severe class imbalance.
     """
-    # Finite differences in torch (central-ish)
-    # du/dx
-    du_dx = (u[:, :, :, 2:] - u[:, :, :, :-2]) / (2.0 * dx)
-    du_dx = F.pad(du_dx, (1, 1, 0, 0), mode="replicate")
-    # dv/dy
-    dv_dy = (v[:, :, 2:, :] - v[:, :, :-2, :]) / (2.0 * dy)
-    dv_dy = F.pad(dv_dy, (0, 0, 1, 1), mode="replicate")
+    best_f1 = -1.0
+    best_threshold = 0.5
 
-    # dv/dx
-    dv_dx = (v[:, :, :, 2:] - v[:, :, :, :-2]) / (2.0 * dx)
-    dv_dx = F.pad(dv_dx, (1, 1, 0, 0), mode="replicate")
-    # du/dy
-    du_dy = (u[:, :, 2:, :] - u[:, :, :-2, :]) / (2.0 * dy)
-    du_dy = F.pad(du_dy, (0, 0, 1, 1), mode="replicate")
+    unique_scores = np.unique(y_scores)
+    if unique_scores.size == 0:
+        return 0.5
 
-    vort_hat = dv_dx - du_dy
-    div_hat = du_dx + dv_dy
+    candidates = np.concatenate(
+        [
+            np.array([0.0, 0.01, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90]),
+            unique_scores,
+        ]
+    )
+    candidates = np.unique(np.clip(candidates, 0.0, 1.0))
 
-    return F.mse_loss(vort_hat, vort) + F.mse_loss(div_hat, div)
+    for threshold in candidates:
+        pred = (y_scores >= threshold).astype(int)
+        score = f1_score(y_true, pred, zero_division=0)
+        if score > best_f1:
+            best_f1 = score
+            best_threshold = float(threshold)
+
+    return float(best_threshold)
 
 
-# -----------------------------------------------------------------------------
-# Config bundles
-# -----------------------------------------------------------------------------
 @dataclass
-class LossWeights:
-    lambda_ri: float = 1.0
-    lambda_dv12: float = 0.4
-    lambda_dv24: float = 0.6
-    lambda_prior: float = 0.2
-    lambda_eq: float = 0.1
-    lambda_tv: float = 0.001
-    lambda_l1: float = 0.0008
+class EpochResult:
+    """
+    Container for per-epoch training or validation metrics.
+    """
+    loss: float
+    cls_loss: float
+    dv12_loss: float
+    dv24_loss: float
+    phys_loss: float
+    roc_auc: Optional[float]
 
 
-def _resolve_device(cfg: Dict[str, Any]) -> torch.device:
-    dev = str(cfg_get(cfg, "training.device", "auto")).lower()
-    if dev == "auto":
-        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    return torch.device(dev)
+def _to_device(batch: Dict[str, Any], device: torch.device) -> Dict[str, Any]:
+    """
+    Move tensor entries of a batch to the target device.
+    """
+    out: Dict[str, Any] = {}
+    for key, value in batch.items():
+        out[key] = value.to(device) if isinstance(value, torch.Tensor) else value
+    return out
+
+
+def _safe_auc(y_true: np.ndarray, y_prob: np.ndarray) -> Optional[float]:
+    """
+    Compute ROC-AUC safely when both classes are present.
+    """
+    if len(np.unique(y_true)) < 2:
+        return None
+    try:
+        return float(roc_auc_score(y_true, y_prob))
+    except Exception:
+        return None
+
+
+def _extract_ri_logit(outputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+    """
+    Extract RI classification logits from model output dictionary.
+    """
+    if "ri_logit" not in outputs:
+        raise KeyError("Model outputs must contain 'ri_logit'.")
+    return outputs["ri_logit"].float().view(-1)
+
+
+def _extract_regression(outputs: Dict[str, torch.Tensor], key: str) -> torch.Tensor:
+    """
+    Extract a scalar regression head from model outputs.
+    """
+    if key not in outputs:
+        raise KeyError(f"Model outputs must contain '{key}'.")
+    return outputs[key].float().view(-1)
+
+
+def _build_loaders(cfg: Dict[str, Any]) -> tuple[DataLoader, DataLoader]:
+    """
+    Build train/validation loaders from the configured dataset.
+    """
+    from src.data.dataset import PhysicsDataset
+
+    batch_size = int(cfg_get(cfg, "training.batch_size", 16))
+    num_workers = int(cfg_get(cfg, "repro.num_workers", 0))
+    pin_memory = torch.cuda.is_available()
+
+    train_ds = PhysicsDataset(cfg=cfg, split="train")
+    val_ds = PhysicsDataset(cfg=cfg, split="val")
+
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        drop_last=False,
+    )
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        drop_last=False,
+    )
+    return train_loader, val_loader
 
 
 def _build_model(cfg: Dict[str, Any]) -> torch.nn.Module:
     """
-    Build the model in a robust, signature-safe way.
+    Build the model robustly without relying on a missing factory module.
 
-    Why this exists:
-    - Different project versions may expose different class names.
-    - __init__ signatures may differ (e.g., 'use_sta' not accepted).
-    - We must not guess or pass unsupported kwargs.
-
-    Strategy:
-    1) Try physics-guided module(s), scan for a nn.Module class with "Guided" in name.
-    2) Fallback to RI-only module, scan for a nn.Module class with "RI" in name.
-    3) Instantiate using only kwargs accepted by the class signature.
+    The model selection order prioritizes the physics-guided released model.
     """
-    import importlib
-    import inspect
-    import torch.nn as nn
-
-    in_ch = int(cfg_get(cfg, "model.input_channels", len(
-        cfg_get(cfg, "model.input_channels_names", []))))
+    in_ch = int(
+        cfg_get(
+            cfg,
+            "model.input_channels",
+            len(cfg_get(cfg, "model.input_channels_names", [])),
+        )
+    )
     hidden = int(cfg_get(cfg, "model.hidden_channels", 32))
     dropout = float(cfg_get(cfg, "model.dropout", 0.10))
-    use_sta = bool(cfg_get(cfg, "model.use_sta", True))
+    use_sta = bool(cfg_get(cfg, "model.use_sta", False))
 
     def _pick_model_class(mod, prefer_keywords: list[str]) -> type[nn.Module]:
-        """
-        Pick the best candidate class from a module by scanning nn.Module subclasses.
-        prefer_keywords: ordered keywords to prefer in the class name.
-        """
         candidates: list[type[nn.Module]] = []
         for name in dir(mod):
             obj = getattr(mod, name, None)
@@ -182,8 +259,7 @@ def _build_model(cfg: Dict[str, Any]) -> torch.nn.Module:
                 candidates.append(obj)
 
         if not candidates:
-            raise ImportError(
-                f"No nn.Module subclasses found in module: {mod.__name__}")
+            raise ImportError(f"No nn.Module subclasses found in module: {mod.__name__}")
 
         def score(cls: type[nn.Module]) -> int:
             n = cls.__name__.lower()
@@ -191,7 +267,7 @@ def _build_model(cfg: Dict[str, Any]) -> torch.nn.Module:
             for i, kw in enumerate(prefer_keywords):
                 if kw.lower() in n:
                     s += (len(prefer_keywords) - i) * 10
-            if "cyclonenet" in n:
+            if "cyclonenet" in n or "cyclone" in n:
                 s += 5
             return s
 
@@ -199,20 +275,15 @@ def _build_model(cfg: Dict[str, Any]) -> torch.nn.Module:
         return candidates[0]
 
     def _instantiate(cls: type[nn.Module], kwargs: Dict[str, Any]) -> nn.Module:
-        """
-        Instantiate cls using only kwargs accepted by its __init__ signature.
-        """
         sig = inspect.signature(cls.__init__)
         accepted = set(sig.parameters.keys())
-        # remove 'self'
         accepted.discard("self")
         filtered = {k: v for k, v in kwargs.items() if k in accepted}
         return cls(**filtered)
 
-    # Common kwargs we would like to pass if supported
     common_kwargs = {
         "in_channels": in_ch,
-        "input_channels": in_ch,   # some implementations use input_channels
+        "input_channels": in_ch,
         "hidden_channels": hidden,
         "dropout": dropout,
         "use_sta": use_sta,
@@ -220,406 +291,297 @@ def _build_model(cfg: Dict[str, Any]) -> torch.nn.Module:
         "config": cfg,
     }
 
-    # 1) Try physics-guided models
     guided_modules = [
         "src.models.cyclone_net_physics_guided",
         "src.models.cyclone_net_physics_guided_true",
         "src.models.cyclonenet_physics_guided",
     ]
-    for mname in guided_modules:
+
+    for module_name in guided_modules:
         try:
-            mod = importlib.import_module(mname)
-            cls = _pick_model_class(mod, prefer_keywords=[
-                                    "guided", "physics", "cyclonenet"])
-            logger.info(f"Using model class: {mname}.{cls.__name__}")
+            mod = importlib.import_module(module_name)
+            cls = _pick_model_class(mod, prefer_keywords=["guided", "physics", "cyclonenet"])
+            logger.info("Using model class: %s.%s", module_name, cls.__name__)
             return _instantiate(cls, common_kwargs)
         except Exception:
             continue
 
-    # 2) Fallback: RI-only
-    ri_modules = [
+    fallback_modules = [
         "src.models.cyclone_net_ri_only",
         "src.models.cyclonenet_ri_only",
     ]
+
     last_err: Optional[Exception] = None
-    for mname in ri_modules:
+    for module_name in fallback_modules:
         try:
-            mod = importlib.import_module(mname)
+            mod = importlib.import_module(module_name)
             cls = _pick_model_class(mod, prefer_keywords=["ri", "cyclonenet"])
-            logger.info(f"Using model class: {mname}.{cls.__name__}")
+            logger.info("Using model class: %s.%s", module_name, cls.__name__)
             return _instantiate(cls, common_kwargs)
-        except Exception as e:
-            last_err = e
+        except Exception as exc:
+            last_err = exc
             continue
 
     raise ImportError(f"Could not build a model. Last error: {last_err}")
 
 
-def _build_loaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoader]:
-    """
-    Build train/val loaders using PhysicsDataset(cfg, split=...).
-    """
-    from src.data.dataset import PhysicsDataset  # lazy import
-
-    batch_size = int(cfg_get(cfg, "training.batch_size", 16))
-    num_workers = int(cfg_get(cfg, "repro.num_workers", 4))
-
-    ds_train = PhysicsDataset(cfg, split="train")
-    ds_val = PhysicsDataset(cfg, split="val")
-
-    train_loader = DataLoader(
-        ds_train,
-        batch_size=batch_size,
-        shuffle=True,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
-        drop_last=False,
-    )
-    val_loader = DataLoader(
-        ds_val,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
-        drop_last=False,
-    )
-    return train_loader, val_loader
-
-
 def _build_optimizer(cfg: Dict[str, Any], model: torch.nn.Module) -> torch.optim.Optimizer:
-    lr = float(cfg_get(cfg, "training.lr", 7e-4))
+    """
+    Build the optimizer from configuration.
+    """
+    lr = float(cfg_get(cfg, "training.lr", 1e-4))
     wd = float(cfg_get(cfg, "training.weight_decay", 1e-4))
     return torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=wd)
 
 
-def _load_loss_weights(cfg: Dict[str, Any]) -> LossWeights:
-    return LossWeights(
-        lambda_ri=float(cfg_get(cfg, "training.lambda_ri", 1.0)),
-        lambda_dv12=float(cfg_get(cfg, "training.lambda_dv12", 0.4)),
-        lambda_dv24=float(cfg_get(cfg, "training.lambda_dv24", 0.6)),
-        lambda_prior=float(cfg_get(cfg, "training.lambda_heat", 0.2)),
-        lambda_eq=float(cfg_get(cfg, "training.lambda_phys_consistency", 0.1)),
-        lambda_tv=float(cfg_get(cfg, "training.lambda_fuelmap_tv", 0.001)),
-        lambda_l1=float(cfg_get(cfg, "training.lambda_fuelmap_l1", 0.0008)),
+def _physics_loss(cfg: Dict[str, Any], batch: Dict[str, Any], outputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+    """
+    Compute the optional weak physics-guided loss.
+
+    This term remains auxiliary and should not redefine the scientific claim.
+    """
+    device = batch["x"].device
+    total = torch.tensor(0.0, device=device)
+
+    if "fuelmap_logits" in outputs and "prior_map_t0" in batch:
+        lam = float(cfg_get(cfg, "training.physics.lambda_prior_align", 0.0))
+        if lam > 0.0:
+            total = total + lam * kl_alignment_loss(outputs["fuelmap_logits"], batch["prior_map_t0"])
+
+    if "fuelmap_logits" in outputs:
+        lam_tv = float(cfg_get(cfg, "training.physics.lambda_tv", 0.0))
+        lam_l1 = float(cfg_get(cfg, "training.physics.lambda_l1", 0.0))
+        if lam_tv > 0.0:
+            total = total + lam_tv * tv_loss_2d(outputs["fuelmap_logits"])
+        if lam_l1 > 0.0:
+            total = total + lam_l1 * l1_loss(outputs["fuelmap_logits"])
+
+    return total
+
+
+def run_epoch(
+    model: torch.nn.Module,
+    loader: DataLoader,
+    device: torch.device,
+    cfg: Dict[str, Any],
+    optimizer: Optional[torch.optim.Optimizer],
+) -> EpochResult:
+    """
+    Run one train or validation epoch.
+    """
+    is_train = optimizer is not None
+    model.train(is_train)
+
+    total_loss = 0.0
+    total_cls = 0.0
+    total_dv12 = 0.0
+    total_dv24 = 0.0
+    total_phys = 0.0
+    n_batches = 0
+
+    y_true_all = []
+    y_prob_all = []
+
+    for batch in loader:
+        batch = _to_device(batch, device)
+        y = batch["y"].float().view(-1)
+        dv12 = batch["dv12"].float().view(-1)
+        dv24 = batch["dv24"].float().view(-1)
+        dv12_mask = batch["dv12_mask"].float().view(-1)
+        dv24_mask = batch["dv24_mask"].float().view(-1)
+
+        if is_train:
+            optimizer.zero_grad(set_to_none=True)
+
+        with torch.set_grad_enabled(is_train):
+            prior = batch.get("prior_map_t0", None)
+            outputs = model(batch["x"], prior_map_t0=prior) if isinstance(prior, torch.Tensor) else model(batch["x"])
+
+            ri_logit = _extract_ri_logit(outputs)
+            dv12_pred = _extract_regression(outputs, "dv12")
+            dv24_pred = _extract_regression(outputs, "dv24")
+
+            cls_loss = F.binary_cross_entropy_with_logits(ri_logit, y)
+            dv12_loss = masked_smooth_l1(dv12_pred, dv12, dv12_mask)
+            dv24_loss = masked_smooth_l1(dv24_pred, dv24, dv24_mask)
+            phys_loss = _physics_loss(cfg, batch, outputs)
+
+            w_cls = float(cfg_get(cfg, "training.lambda_ri", 1.0))
+            w_dv12 = float(cfg_get(cfg, "training.lambda_dv12", 1.0))
+            w_dv24 = float(cfg_get(cfg, "training.lambda_dv24", 1.0))
+
+            loss = w_cls * cls_loss + w_dv12 * dv12_loss + w_dv24 * dv24_loss + phys_loss
+
+            if is_train:
+                loss.backward()
+                max_grad_norm = float(cfg_get(cfg, "training.max_grad_norm", 0.0))
+                if max_grad_norm > 0.0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
+                optimizer.step()
+
+        total_loss += float(loss.detach().cpu())
+        total_cls += float(cls_loss.detach().cpu())
+        total_dv12 += float(dv12_loss.detach().cpu())
+        total_dv24 += float(dv24_loss.detach().cpu())
+        total_phys += float(phys_loss.detach().cpu())
+        n_batches += 1
+
+        y_true_all.append(y.detach().cpu().numpy())
+        y_prob_all.append(torch.sigmoid(ri_logit).detach().cpu().numpy())
+
+    y_true_np = np.concatenate(y_true_all) if y_true_all else np.array([], dtype=np.float32)
+    y_prob_np = np.concatenate(y_prob_all) if y_prob_all else np.array([], dtype=np.float32)
+    auc = _safe_auc(y_true_np, y_prob_np) if len(y_true_np) else None
+
+    denom = max(n_batches, 1)
+    return EpochResult(
+        loss=total_loss / denom,
+        cls_loss=total_cls / denom,
+        dv12_loss=total_dv12 / denom,
+        dv24_loss=total_dv24 / denom,
+        phys_loss=total_phys / denom,
+        roc_auc=auc,
     )
 
 
-# -----------------------------------------------------------------------------
-# AUC computation on validation set
-# -----------------------------------------------------------------------------
-def compute_val_auc(model: torch.nn.Module, val_loader: DataLoader, device: torch.device) -> float:
-    """Compute ROC-AUC on validation set using raw logits."""
-    model.eval()
-    all_scores, all_labels = [], []
-    with torch.no_grad():
-        for batch in val_loader:
-            x = batch["x"].to(device)
-            y = batch["y"].cpu().numpy()
-            out = model(x)
-            scores = torch.sigmoid(out["ri_logit"]).cpu().numpy()
-            all_scores.extend(scores)
-            all_labels.extend(y)
-    return roc_auc_score(all_labels, all_scores)
-
-
-# -----------------------------------------------------------------------------
-# Epoch loops
-# -----------------------------------------------------------------------------
-@torch.no_grad()
-def _eval_one_epoch(
-    cfg: Dict[str, Any],
+def _save_checkpoint(
+    path: Path,
     model: torch.nn.Module,
-    loader: DataLoader,
-    device: torch.device,
-    w: LossWeights,
-) -> Dict[str, float]:
-    model.eval()
-
-    totals = {"loss": 0.0, "loss_ri": 0.0, "loss_dv12": 0.0,
-              "loss_dv24": 0.0, "loss_prior": 0.0, "loss_eq": 0.0}
-    n = 0
-
-    for batch in loader:
-        x = batch["x"].to(device)
-        y = batch["y"].to(device)
-        dv12 = batch["dv12"].to(device)
-        dv24 = batch["dv24"].to(device)
-        dv12_mask = batch["dv12_mask"].to(device)
-        dv24_mask = batch["dv24_mask"].to(device)
-
-        out = model(x)
-
-        loss_ri = F.binary_cross_entropy_with_logits(out["ri_logit"], y)
-        loss_dv12 = masked_smooth_l1(out["dv12"], dv12, dv12_mask)
-        loss_dv24 = masked_smooth_l1(out["dv24"], dv24, dv24_mask)
-
-        loss = w.lambda_ri * loss_ri + w.lambda_dv12 * \
-            loss_dv12 + w.lambda_dv24 * loss_dv24
-
-        loss_prior = torch.tensor(0.0, device=device)
-        loss_eq = torch.tensor(0.0, device=device)
-
-        # Optional prior alignment if model provides fuelmap logits and dataset provides prior
-        if "fuelmap_logits" in out and "prior_map_t0" in batch:
-            prior = batch["prior_map_t0"].to(device)
-            prior_mask = batch.get("prior_mask", torch.zeros(
-                (x.size(0),), device=device)).to(device)
-            if prior_mask.sum() > 0:
-                m = prior_mask > 0.5
-                loss_prior = kl_alignment_loss(
-                    out["fuelmap_logits"][m], prior[m])
-                loss = loss + w.lambda_prior * loss_prior
-                loss = loss + w.lambda_tv * \
-                    tv_loss_2d(out["fuelmap_logits"]) + \
-                    w.lambda_l1 * l1_loss(out["fuelmap_logits"])
-
-        # Optional equation consistency at t0
-        if "fuelmap_logits" in out and batch.get("eq_mask", None) is not None:
-            eq_mask = batch["eq_mask"].to(device)
-            if eq_mask.sum() > 0:
-                m = eq_mask > 0.5
-                u = batch["u10_t0"].to(device)[m]
-                v = batch["v10_t0"].to(device)[m]
-                vort = batch["vort_t0"].to(device)[m]
-                div = batch["div_t0"].to(device)[m]
-                dx = float(batch["dx_m"].to(device)[m].mean().item())
-                dy = float(batch["dy_m"].to(device)[m].mean().item())
-                loss_eq = equation_consistency_loss(
-                    u, v, vort, div, dx=dx, dy=dy)
-                loss = loss + w.lambda_eq * loss_eq
-
-        totals["loss"] += float(loss.item())
-        totals["loss_ri"] += float(loss_ri.item())
-        totals["loss_dv12"] += float(loss_dv12.item())
-        totals["loss_dv24"] += float(loss_dv24.item())
-        totals["loss_prior"] += float(loss_prior.item())
-        totals["loss_eq"] += float(loss_eq.item())
-        n += 1
-
-    for k in totals:
-        totals[k] /= max(1, n)
-    return totals
-
-
-def _train_one_epoch(
-    cfg: Dict[str, Any],
-    model: torch.nn.Module,
-    loader: DataLoader,
-    optim: torch.optim.Optimizer,
-    device: torch.device,
-    w: LossWeights,
+    optimizer: torch.optim.Optimizer,
     epoch: int,
-    epochs: int,
-) -> Dict[str, float]:
-    model.train()
-
-    totals = {"loss": 0.0, "loss_ri": 0.0, "loss_dv12": 0.0,
-              "loss_dv24": 0.0, "loss_prior": 0.0, "loss_eq": 0.0}
-    n = 0
-
-    iterable = loader
-    if tqdm is not None:
-        iterable = tqdm(loader, desc=f"train {epoch}/{epochs}", unit="batch")
-
-    for batch in iterable:
-        x = batch["x"].to(device)
-        y = batch["y"].to(device)
-        dv12 = batch["dv12"].to(device)
-        dv24 = batch["dv24"].to(device)
-        dv12_mask = batch["dv12_mask"].to(device)
-        dv24_mask = batch["dv24_mask"].to(device)
-
-        optim.zero_grad(set_to_none=True)
-
-        out = model(x)
-
-        loss_ri = F.binary_cross_entropy_with_logits(out["ri_logit"], y)
-        loss_dv12 = masked_smooth_l1(out["dv12"], dv12, dv12_mask)
-        loss_dv24 = masked_smooth_l1(out["dv24"], dv24, dv24_mask)
-
-        loss = w.lambda_ri * loss_ri + w.lambda_dv12 * \
-            loss_dv12 + w.lambda_dv24 * loss_dv24
-
-        loss_prior = torch.tensor(0.0, device=device)
-        loss_eq = torch.tensor(0.0, device=device)
-
-        # Optional prior alignment
-        if "fuelmap_logits" in out and "prior_map_t0" in batch:
-            prior = batch["prior_map_t0"].to(device)
-            prior_mask = batch.get("prior_mask", torch.zeros(
-                (x.size(0),), device=device)).to(device)
-            if prior_mask.sum() > 0:
-                m = prior_mask > 0.5
-                loss_prior = kl_alignment_loss(
-                    out["fuelmap_logits"][m], prior[m])
-                loss = loss + w.lambda_prior * loss_prior
-                loss = loss + w.lambda_tv * \
-                    tv_loss_2d(out["fuelmap_logits"]) + \
-                    w.lambda_l1 * l1_loss(out["fuelmap_logits"])
-
-        # Optional equation consistency
-        if "fuelmap_logits" in out and batch.get("eq_mask", None) is not None:
-            eq_mask = batch["eq_mask"].to(device)
-            if eq_mask.sum() > 0:
-                m = eq_mask > 0.5
-                u = batch["u10_t0"].to(device)[m]
-                v = batch["v10_t0"].to(device)[m]
-                vort = batch["vort_t0"].to(device)[m]
-                div = batch["div_t0"].to(device)[m]
-                dx = float(batch["dx_m"].to(device)[m].mean().item())
-                dy = float(batch["dy_m"].to(device)[m].mean().item())
-                loss_eq = equation_consistency_loss(
-                    u, v, vort, div, dx=dx, dy=dy)
-                loss = loss + w.lambda_eq * loss_eq
-
-        loss.backward()
-        optim.step()
-
-        totals["loss"] += float(loss.item())
-        totals["loss_ri"] += float(loss_ri.item())
-        totals["loss_dv12"] += float(loss_dv12.item())
-        totals["loss_dv24"] += float(loss_dv24.item())
-        totals["loss_prior"] += float(loss_prior.item())
-        totals["loss_eq"] += float(loss_eq.item())
-        n += 1
-
-    for k in totals:
-        totals[k] /= max(1, n)
-    return totals
-
-
-# -----------------------------------------------------------------------------
-# Public entrypoints expected by run.py
-# -----------------------------------------------------------------------------
-def train(cfg: Dict[str, Any]) -> Dict[str, float]:
+    metric_name: str,
+    metric_value: float,
+) -> None:
     """
-    Public config-driven entrypoint expected by run.py.
+    Save a training checkpoint.
     """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(
+        {
+            "epoch": epoch,
+            "model_state": model.state_dict(),
+            "optimizer_state": optimizer.state_dict(),
+            "metric_name": metric_name,
+            "metric_value": metric_value,
+        },
+        path,
+    )
+
+
+def train(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Main training entrypoint.
+
+    This function obeys the configured architecture:
+    - checkpoints -> paths.checkpoints_dir
+    - reports/history -> paths.results_dir
+    """
+    seed = int(cfg_get(cfg, "repro.seed", cfg_get(cfg, "training.seed", 42)))
+    set_global_seed(seed)
+
     device = _resolve_device(cfg)
+
+    ckpt_dir = Path(cfg_get(cfg, "paths.checkpoints_dir", "./models/checkpoints")).resolve()
+    results_dir = Path(cfg_get(cfg, "paths.results_dir", "./outputs/results")).resolve()
+    ckpt_dir.mkdir(parents=True, exist_ok=True)
+    results_dir.mkdir(parents=True, exist_ok=True)
+
     train_loader, val_loader = _build_loaders(cfg)
     model = _build_model(cfg).to(device)
-    optim = _build_optimizer(cfg, model)
-    w = _load_loss_weights(cfg)
+    optimizer = _build_optimizer(cfg, model)
 
-    epochs = int(cfg_get(cfg, "training.epochs", 1))
-
-    out_dir = Path(cfg_get(cfg, "paths.results_dir",
-                   "./outputs/results")).resolve()
-    ckpt_dir = Path(cfg_get(cfg, "paths.checkpoints_dir",
-                    "./models/checkpoints")).resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
-    ckpt_dir.mkdir(parents=True, exist_ok=True)
-
+    epochs = int(cfg_get(cfg, "training.epochs", 20))
     best_val_loss = float("inf")
-    best_val_auc = -1.0
-    best_loss_path = ckpt_dir / "best_model.pt"
-    best_auc_path = ckpt_dir / "best_auc_model.pt"
+    best_val_auc = float("-inf")
+
     history = []
 
-    logger.info(f"Device: {device}")
-    logger.info(
-        f"Train batches: {len(train_loader)} | Val batches: {len(val_loader)}")
-    logger.info(f"Loss weights: {w}")
+    best_auc_path = ckpt_dir / "best_auc_model.pt"
+    best_loss_path = ckpt_dir / "best_model.pt"
+    threshold_path = ckpt_dir / "best_threshold.json"
+    history_path = results_dir / "training_history.json"
+    summary_path = results_dir / "train_summary.json"
 
-    # Log model architecture to verify STA
-    logger.info(f"Model class: {model.__class__.__name__}")
-    if hasattr(model, 'use_sta'):
-        logger.info(f"use_sta = {model.use_sta}")
+    for epoch in range(1, epochs + 1):
+        train_res = run_epoch(model, train_loader, device, cfg, optimizer)
+        val_res = run_epoch(model, val_loader, device, cfg, optimizer=None)
 
-    for ep in range(1, epochs + 1):
-        tr = _train_one_epoch(cfg, model, train_loader,
-                              optim, device, w, epoch=ep, epochs=epochs)
-        va = _eval_one_epoch(cfg, model, val_loader, device, w)
-
-        # Compute validation AUC
-        val_auc = compute_val_auc(model, val_loader, device)
-
-        row = {"epoch": ep, **{f"train_{k}": v for k, v in tr.items()},
-               **{f"val_{k}": v for k, v in va.items()}, "val_auc": val_auc}
+        row = {
+            "epoch": epoch,
+            "train_loss": train_res.loss,
+            "train_cls_loss": train_res.cls_loss,
+            "train_dv12_loss": train_res.dv12_loss,
+            "train_dv24_loss": train_res.dv24_loss,
+            "train_phys_loss": train_res.phys_loss,
+            "val_loss": val_res.loss,
+            "val_cls_loss": val_res.cls_loss,
+            "val_dv12_loss": val_res.dv12_loss,
+            "val_dv24_loss": val_res.dv24_loss,
+            "val_phys_loss": val_res.phys_loss,
+            "val_auc": val_res.roc_auc,
+        }
         history.append(row)
 
-        logger.info(f"[epoch {ep}/{epochs}] train_loss={tr['loss']:.6f} val_loss={va['loss']:.6f} "
-                    f"val_ri={va['loss_ri']:.6f} val_dv24={va['loss_dv24']:.6f} val_auc={val_auc:.4f}")
+        logger.info(
+            "Epoch %d/%d | train_loss=%.5f | val_loss=%.5f | val_auc=%s",
+            epoch,
+            epochs,
+            train_res.loss,
+            val_res.loss,
+            f"{val_res.roc_auc:.5f}" if val_res.roc_auc is not None else "NA",
+        )
 
-        # Save best model by validation loss (optional, can keep)
-        if va["loss"] < best_val_loss:
-            best_val_loss = va["loss"]
-            torch.save(
-                {
-                    "epoch": ep,
-                    "model_state": model.state_dict(),
-                    "optimizer_state": optim.state_dict(),
-                    "cfg": cfg,
-                    "best_val_loss": best_val_loss,
-                },
-                best_loss_path,
-            )
-            logger.debug(
-                f"Best loss model updated at epoch {ep} (loss={best_val_loss:.4f})")
+        if val_res.loss < best_val_loss:
+            best_val_loss = val_res.loss
+            _save_checkpoint(best_loss_path, model, optimizer, epoch, "val_loss", best_val_loss)
 
-        # Save best model by validation AUC
-        if val_auc > best_val_auc:
-            best_val_auc = val_auc
-            torch.save(model.state_dict(), best_auc_path)
-            logger.info(
-                f"New best model by AUC (AUC={val_auc:.4f}) saved to {best_auc_path}")
+        if val_res.roc_auc is not None and val_res.roc_auc > best_val_auc:
+            best_val_auc = val_res.roc_auc
+            _save_checkpoint(best_auc_path, model, optimizer, epoch, "val_auc", best_val_auc)
 
-    # --- After training, select best threshold on validation set ---
-    logger.info("Selecting best threshold on validation set...")
+    if best_auc_path.exists():
+        checkpoint = torch.load(best_auc_path, map_location=device)
+        if isinstance(checkpoint, dict) and "model_state" in checkpoint:
+            model.load_state_dict(checkpoint["model_state"], strict=False)
+
+    y_true = []
+    y_prob = []
+
     model.eval()
-    val_scores = []
-    val_labels = []
     with torch.no_grad():
         for batch in val_loader:
-            x = batch["x"].to(device)
-            y = batch["y"].cpu().numpy()
-            out = model(x)
-            scores = torch.sigmoid(out["ri_logit"]).cpu().numpy()
-            val_scores.extend(scores)
-            val_labels.extend(y)
-    val_scores = np.array(val_scores, dtype=float)
-    val_labels = np.array(val_labels, dtype=int)
+            batch = _to_device(batch, device)
+            prior = batch.get("prior_map_t0", None)
+            outputs = model(batch["x"], prior_map_t0=prior) if isinstance(prior, torch.Tensor) else model(batch["x"])
+            ri_logit = _extract_ri_logit(outputs)
+            y_true.append(batch["y"].float().view(-1).cpu().numpy())
+            y_prob.append(torch.sigmoid(ri_logit).cpu().numpy())
 
-    target_recall = float(cfg_get(cfg, "training.eval_target_recall", 0.90))
-    best_threshold = select_threshold_for_recall(val_scores, val_labels, target_recall)
+    y_true_np = np.concatenate(y_true) if y_true else np.array([], dtype=np.float32)
+    y_prob_np = np.concatenate(y_prob) if y_prob else np.array([], dtype=np.float32)
 
-    threshold_info = {
-        "threshold": float(best_threshold),
-        "selected_on": "val",
-        "criterion": f"recall>={target_recall}",
-        "seed": int(cfg_get(cfg, "splits.seed", 1337)),
-        "git_commit": get_git_revision_short_hash(),
-        "timestamp": datetime.now().isoformat(),
-    }
-    threshold_path = ckpt_dir / "best_threshold.json"
-    with open(threshold_path, "w", encoding="utf-8") as f:
-        json.dump(threshold_info, f, indent=2)
-    logger.info(f"Best threshold {best_threshold:.4f} saved to {threshold_path}")
+    selected_threshold = select_threshold_by_f1(y_true_np, y_prob_np) if len(y_true_np) else 0.5
 
-    # Also save a copy to results dir for easy access
-    results_threshold = out_dir / "best_threshold.json"
-    with open(results_threshold, "w", encoding="utf-8") as f:
-        json.dump(threshold_info, f, indent=2)
+    with threshold_path.open("w", encoding="utf-8") as f:
+        json.dump({"threshold": float(selected_threshold)}, f, indent=2)
 
-    # Save training history
-    hist_path = out_dir / "train_history.json"
-    hist_path.write_text(json.dumps(history, indent=2), encoding="utf-8")
+    with history_path.open("w", encoding="utf-8") as f:
+        json.dump(history, f, indent=2)
 
-    return {
-        "best_val_loss": float(best_val_loss),
-        "best_val_auc": float(best_val_auc),
-        "checkpoint_loss": str(best_loss_path),
-        "checkpoint_auc": str(best_auc_path),
-        "history": str(hist_path),
+    summary = {
+        "seed": seed,
+        "device": str(device),
+        "epochs": epochs,
+        "best_val_loss": best_val_loss,
+        "best_val_auc": None if best_val_auc == float("-inf") else best_val_auc,
+        "selected_threshold": float(selected_threshold),
+        "checkpoint_dir": str(ckpt_dir),
+        "results_dir": str(results_dir),
+        "best_auc_checkpoint": str(best_auc_path),
+        "best_loss_checkpoint": str(best_loss_path),
     }
 
+    with summary_path.open("w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
 
-def main() -> None:
-    """CLI entrypoint for debugging."""
-    from src.utils.config import load_config
-    cfg = load_config("config.yaml")
-    train(cfg)
-
-
-if __name__ == "__main__":
-    main()
+    return summary

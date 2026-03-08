@@ -43,7 +43,7 @@ download:
     - 10m_v_component_of_wind
     - 2m_temperature
     - 2m_dewpoint_temperature
-  years: [1980, 2024] # Inclusive range of years
+  years: [2020, 2024] # Inclusive range of years
   months: [6, 7, 8, 9, 10, 11] # Atlantic hurricane season months
   days: ALL # Download all days
   times: ["00:00", "06:00", "12:00", "18:00"] # 6‑hourly synoptic times
@@ -58,7 +58,7 @@ download:
   tchp:
     enabled: true # Enable to download TCHP data (requires additional setup)
     source: auto # 'noaa', 'aoml', 'copernicus', or 'auto' (year‑based)
-    years: [1980, 2024] # Years to download (can be auto‑detected from event list)
+    years: [2020, 2024] # Years to download (can be auto‑detected from event list)
     lat_min: 0.0
     lat_max: 60.0
     lon_min: -100.0
@@ -149,7 +149,7 @@ model:
     - div_1ps
     - grad_mslp_Pa_per_m
     - sst_anom_K
-  use_sta: true # Whether to use spatio‑temporal attention module (if implemented by model)
+  use_sta: false # Whether to use spatio‑temporal attention module (if implemented by model)
   hidden_channels: 32 # Base number of hidden channels in convolutional layers
   dropout: 0.1 # Dropout rate for regularization
 
@@ -163,9 +163,9 @@ training:
   lr: 0.0007 # Learning rate
   weight_decay: 0.0001 # L2 regularization
   eval_target_recall: 0.9 # Target recall for threshold selection on validation set
-  lambda_ri: 5.0 # Weight for RI classification loss (increased importance)
-  lambda_dv12: 0.2 # Weight for 12‑h intensity change regression (reduced)
-  lambda_dv24: 0.2 # Weight for 24‑h intensity change regression (reduced)
+  lambda_ri: 10.0 # 5.0 Weight for RI classification loss (increased importance)
+  lambda_dv12: 0.05 # 0.2 Weight for 12‑h intensity change regression (reduced)
+  lambda_dv24: 0.05 # 0.2 Weight for 24‑h intensity change regression (reduced)
   use_prior_loss: true # enable/disable prior alignment loss
   use_consistency_loss: true # enable/disable equation consistency loss
   use_tv_l1: true # enable/disable TV + L1 regularization
