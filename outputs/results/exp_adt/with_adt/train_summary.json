@@ -1,0 +1,12 @@
+{
+  "seed": 1337,
+  "device": "cpu",
+  "epochs": 30,
+  "best_val_loss": 6.53548789024353,
+  "best_val_auc": 0.9056603773584906,
+  "selected_threshold": 0.06417114287614822,
+  "checkpoint_dir": "C:\\Users\\Est\u00e9fano\\Documents\\Developer\\bmi.io\\Arquiteturas\\github\\cyclone-net\\models\\exp_adt\\with_adt",
+  "results_dir": "C:\\Users\\Est\u00e9fano\\Documents\\Developer\\bmi.io\\Arquiteturas\\github\\cyclone-net\\outputs\\results\\exp_adt\\with_adt",
+  "best_auc_checkpoint": "C:\\Users\\Est\u00e9fano\\Documents\\Developer\\bmi.io\\Arquiteturas\\github\\cyclone-net\\models\\exp_adt\\with_adt\\best_auc_model.pt",
+  "best_loss_checkpoint": "C:\\Users\\Est\u00e9fano\\Documents\\Developer\\bmi.io\\Arquiteturas\\github\\cyclone-net\\models\\exp_adt\\with_adt\\best_model.pt"
+}

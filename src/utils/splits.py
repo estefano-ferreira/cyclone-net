@@ -28,9 +28,11 @@ class SplitConfig:
     def from_config(cfg: Dict[str, Any]) -> "SplitConfig":
         method = str(cfg_get(cfg, "splits.method", "sid")).lower()
         seed = int(cfg_get(cfg, "splits.seed", cfg_get(cfg, "training.seed", 42)))
-        train = float(cfg_get(cfg, "splits.train", 0.70))
-        val = float(cfg_get(cfg, "splits.val", 0.15))
-        test = float(cfg_get(cfg, "splits.test", 0.15))
+        # Accept both the documented `*_frac` keys (config.yaml) and the short
+        # `train/val/test` aliases so configuration is actually honoured.
+        train = float(cfg_get(cfg, "splits.train", cfg_get(cfg, "splits.train_frac", 0.70)))
+        val = float(cfg_get(cfg, "splits.val", cfg_get(cfg, "splits.val_frac", 0.15)))
+        test = float(cfg_get(cfg, "splits.test", cfg_get(cfg, "splits.test_frac", 0.15)))
         persist = bool(cfg_get(cfg, "splits.persist", True))
         path = Path(str(cfg_get(cfg, "paths.splits_csv", "./data/normalized/splits.csv"))).resolve()
         return SplitConfig(train=train, val=val, test=test, seed=seed, method=method, persist=persist, path=path)

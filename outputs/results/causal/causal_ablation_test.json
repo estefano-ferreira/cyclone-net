@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "split": "test",
+    "k": 0.1,
+    "factor": 1.0,
+    "channels": [
+      "sst_anom_K",
+      "wind_mps"
+    ],
+    "n_events": 96,
+    "device": "cpu"
+  },
+  "status": "ok",
+  "ri_probability": {
+    "mean_drop_fuel": 0.02465558966914173,
+    "mean_drop_control": 0.003006019881057531,
+    "mean_difference_fuel_minus_control": 0.0216495697880842,
+    "fraction_fuel_stronger": 0.9583333333333334,
+    "paired_t_statistic": 5.149906823527606,
+    "paired_p_value": 1.4076907260632303e-06
+  },
+  "causal_evidence": {
+    "significant": true,
+    "interpretation": "Ablating the FuelMap-identified region reduces predicted RI significantly more than ablating an equally-sized low-fuel control region."
+  },
+  "dv24": {
+    "mean_drop_fuel": 0.2689895111446579,
+    "mean_drop_control": -0.08101973061760266,
+    "mean_difference_fuel_minus_control": 0.3500092417622606
+  }
+}

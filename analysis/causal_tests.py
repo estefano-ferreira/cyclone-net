@@ -1,58 +1,51 @@
 from __future__ import annotations
 
-"""CycloneNet — contrafactual (ablation) tests for physics-guided claims.
+"""CycloneNet — counterfactual (ablation) causal test (CLI wrapper).
 
-Goal:
-- Provide *causal-style* evidence that the model's predicted intensification depends on the
-  localized "fuel" region identified by FuelMap / physical prior.
+Thin command-line front-end over src.evaluation.causal_ablation. It loads the
+project config and the released checkpoint, then runs the FuelMap ablation vs a
+low-fuel control region and reports whether the model's RI prediction causally
+depends on the identified energy source.
 
-Method (simple and reproducible):
-1) Run inference to get dv24_hat (or pRI) and FuelMap logits.
-2) Build a mask from the top-k% pixels of the FuelMap.
-3) Apply ablation on selected physical channels within that mask (e.g., reduce SST anomaly, reduce wind).
-4) Re-run inference and measure delta.
-
-This is not a full causal inference framework, but it is a strong, reviewer-friendly diagnostic.
-
-Usage:
-  python analysis/causal_tests.py --interim data/interim --splits data/splits.csv --norm data/processed/norm_profile9.json --profile 9 --k 0.05
-
-Requires:
-- A trained model checkpoint and a small loader wrapper in your project.
-This script is provided as a template (project-specific checkpoint loading may vary).
+Example:
+  python analysis/causal_tests.py --split test --k 0.05 --factor 0.5 \
+      --channels sst_anom_K wind_mps
 """
 
 import argparse
 import json
+import sys
 from pathlib import Path
-import numpy as np
-import torch
 
-def topk_mask(fuelmap: np.ndarray, k: float) -> np.ndarray:
-    # fuelmap: (H,W) logits or scores
-    flat = fuelmap.reshape(-1)
-    thr = np.quantile(flat, 1.0 - k)
-    return (fuelmap >= thr).astype(np.float32)
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-def ablate(x: torch.Tensor, mask: torch.Tensor, channel_indices: list[int], factor: float) -> torch.Tensor:
-    # x: (B,C,T,H,W), mask: (B,1,H,W)
-    x2 = x.clone()
-    for ci in channel_indices:
-        # apply to all timesteps for that channel
-        x2[:, ci, :, :, :] = x2[:, ci, :, :, :] * (1.0 - factor * mask)
-    return x2
+from src.evaluation.causal_ablation import run_and_save
+from src.utils.config import cfg_get, load_config
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--k", type=float, default=0.05, help="Top-k fraction for ablation mask")
-    ap.add_argument("--factor", type=float, default=0.5, help="Ablation strength (0..1)")
-    ap.add_argument("--channels", nargs="+", default=["sst_K", "u10_mps", "v10_mps"], help="Channel names to ablate")
-    ap.add_argument("--note", default="Template script; integrate with your checkpoint loading.")
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description="FuelMap counterfactual causal test")
+    ap.add_argument("--split", default="test", choices=["val", "test"])
+    ap.add_argument("--k", type=float, default=0.05, help="Top/bottom-k fraction for masks")
+    ap.add_argument("--factor", type=float, default=0.5, help="Ablation strength in [0,1]")
+    ap.add_argument("--channels", nargs="+", default=["sst_anom_K", "wind_mps"],
+                    help="Input channel names to ablate inside the masks")
+    ap.add_argument("--max-events", type=int, default=None)
+    ap.add_argument("--config", default="config.yaml")
     args = ap.parse_args()
 
-    print("This is a template. Integrate with your checkpoint/model/dataloader to run.")
-    print("Suggested approach: use FuelMap logits -> mask -> ablate physical channels -> delta dv24/pRI.")
-    print("k=", args.k, "factor=", args.factor, "channels=", args.channels)
+    cfg = load_config(args.config)
+    results_dir = Path(cfg_get(cfg, "paths.results_dir", "./outputs/results")).resolve()
+    out_path = results_dir / "causal" / f"causal_ablation_{args.split}.json"
+
+    report = run_and_save(
+        cfg, split=args.split, k=args.k, factor=args.factor,
+        channels=args.channels, out_path=out_path, max_events=args.max_events,
+    )
+    print(json.dumps(report.get("causal_evidence", report), indent=2))
+
 
 if __name__ == "__main__":
     main()

@@ -203,8 +203,101 @@ def cmd_evaluate(args):
     results_dir = Path(cfg["paths"]["results_dir"])
     save_run_snapshot(cfg, results_dir, "evaluate")
     from src.evaluation.evaluate import run_evaluate
-    run_evaluate(cfg, split=args.split, calibrate=args.calibrate)
+    run_evaluate(
+        cfg,
+        split=args.split,
+        calibrate=args.calibrate,
+        experimental_external_spatial=bool(getattr(args, "spatial", False)),
+    )
     logger.info("evaluate: done")
+
+
+def cmd_download_tchp(args):
+    cfg = ensure_normalized_paths(load_config("config.yaml"))
+    ensure_dirs(cfg)
+    results_dir = Path(cfg["paths"]["results_dir"])
+    save_run_snapshot(cfg, results_dir, "download-tchp")
+    from src.downloaders.tchp import download_tchp
+    download_tchp(cfg, force=bool(args.force))
+    logger.info("download-tchp: done")
+
+
+def cmd_download_ssh(args):
+    cfg = ensure_normalized_paths(load_config("config.yaml"))
+    ensure_dirs(cfg)
+    results_dir = Path(cfg["paths"]["results_dir"])
+    save_run_snapshot(cfg, results_dir, "download-ssh")
+    from src.downloaders.ssh import run_download_ssh
+    run_download_ssh(cfg, force=bool(args.force))
+    logger.info("download-ssh: done")
+
+
+def cmd_preprocess_adt(args):
+    cfg = ensure_normalized_paths(load_config("config.yaml"))
+    ensure_dirs(cfg)
+    results_dir = Path(cfg["paths"]["results_dir"])
+    save_run_snapshot(cfg, results_dir, "preprocess-adt")
+    from src.processors.preprocess_adt import run_preprocess_adt
+    run_preprocess_adt(cfg)
+    logger.info("preprocess-adt: done")
+
+
+def cmd_preprocess_tchp(args):
+    cfg = ensure_normalized_paths(load_config("config.yaml"))
+    ensure_dirs(cfg)
+    results_dir = Path(cfg["paths"]["results_dir"])
+    save_run_snapshot(cfg, results_dir, "preprocess-tchp")
+    from src.processors.preprocess_tchp import run_preprocess_tchp
+    run_preprocess_tchp(cfg)
+    logger.info("preprocess-tchp: done")
+
+
+def cmd_baseline(args):
+    cfg = ensure_normalized_paths(load_config("config.yaml"))
+    ensure_dirs(cfg)
+    results_dir = Path(cfg["paths"]["results_dir"])
+    save_run_snapshot(cfg, results_dir, "baseline")
+    from src.baselines.tabular_lr import TabularBaseline
+
+    baseline = TabularBaseline(cfg)
+    baseline.train()
+    metrics, pred_df = baseline.evaluate(split=args.split)
+    out_dir = results_dir / "baseline"
+    baseline.save_results(out_dir, metrics, pred_df)
+    logger.info("baseline: done | metrics=%s", json.dumps(metrics))
+
+
+def cmd_validate_sla(args):
+    cfg = ensure_normalized_paths(load_config("config.yaml"))
+    ensure_dirs(cfg)
+    results_dir = Path(cfg["paths"]["results_dir"])
+    save_run_snapshot(cfg, results_dir, "validate-sla")
+    from src.evaluation.sla_validation import run_and_save
+
+    out_path = results_dir / "sla" / f"sla_validation_{args.year}.json"
+    report = run_and_save(cfg, year=int(args.year), window_deg=float(args.window_deg),
+                          out_path=out_path, max_events=args.max_events)
+    logger.info("validate-sla: done | status=%s", report.get("status"))
+
+
+def cmd_causal(args):
+    cfg = ensure_normalized_paths(load_config("config.yaml"))
+    ensure_dirs(cfg)
+    results_dir = Path(cfg["paths"]["results_dir"])
+    save_run_snapshot(cfg, results_dir, "causal")
+    from src.evaluation.causal_ablation import run_and_save
+
+    out_path = results_dir / "causal" / f"causal_ablation_{args.split}.json"
+    report = run_and_save(
+        cfg,
+        split=args.split,
+        k=float(args.k),
+        factor=float(args.factor),
+        channels=list(args.channels),
+        out_path=out_path,
+        max_events=args.max_events,
+    )
+    logger.info("causal: done | evidence=%s", json.dumps(report.get("causal_evidence", {})))
 
 
 def cmd_dataqa(args):
@@ -257,7 +350,44 @@ def build_parser() -> argparse.ArgumentParser:
     sp = sub.add_parser("evaluate", help="Evaluate trained model")
     sp.add_argument("--split", default="test", choices=["val", "test"])
     sp.add_argument("--calibrate", action="store_true")
+    sp.add_argument(
+        "--spatial",
+        action="store_true",
+        help="Run TCHP spatial validation (requires 'preprocess-tchp' to have enriched metadata)",
+    )
     sp.set_defaults(func=cmd_evaluate)
+
+    sp = sub.add_parser("download-tchp", help="Download TCHP validation data (NOAA/AOML/Copernicus)")
+    sp.add_argument("--force", action="store_true")
+    sp.set_defaults(func=cmd_download_tchp)
+
+    sp = sub.add_parser("download-ssh", help="Download Sea Level Anomaly (SLA) ocean signal (minimal season)")
+    sp.add_argument("--force", action="store_true")
+    sp.set_defaults(func=cmd_download_ssh)
+
+    sp = sub.add_parser("preprocess-adt", help="Sample ADT ocean channel into events + train-only ADT stats")
+    sp.set_defaults(func=cmd_preprocess_adt)
+
+    sp = sub.add_parser("preprocess-tchp", help="Enrich event metadata with audited TCHP peak locations")
+    sp.set_defaults(func=cmd_preprocess_tchp)
+
+    sp = sub.add_parser("baseline", help="Train/evaluate the tabular logistic-regression baseline")
+    sp.add_argument("--split", default="test", choices=["val", "test"])
+    sp.set_defaults(func=cmd_baseline)
+
+    sp = sub.add_parser("validate-sla", help="Validate SLA co-location with TCHP and RI (observational)")
+    sp.add_argument("--year", type=int, default=2023)
+    sp.add_argument("--window-deg", type=float, default=5.0, dest="window_deg")
+    sp.add_argument("--max-events", type=int, default=None, dest="max_events")
+    sp.set_defaults(func=cmd_validate_sla)
+
+    sp = sub.add_parser("causal", help="Counterfactual FuelMap ablation causal test (vs low-fuel control)")
+    sp.add_argument("--split", default="test", choices=["val", "test"])
+    sp.add_argument("--k", type=float, default=0.05, help="Top/bottom-k fraction for masks")
+    sp.add_argument("--factor", type=float, default=0.5, help="Ablation strength in [0,1]")
+    sp.add_argument("--channels", nargs="+", default=["sst_anom_K", "wind_mps"])
+    sp.add_argument("--max-events", type=int, default=None, dest="max_events")
+    sp.set_defaults(func=cmd_causal)
 
     sp = sub.add_parser("dataqa", help="Run artifact quality assurance")
     sp.add_argument("--split", default="test", choices=["train", "val", "test"])

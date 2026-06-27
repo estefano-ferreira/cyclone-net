@@ -247,6 +247,10 @@ def _build_model(cfg: Dict[str, Any]) -> torch.nn.Module:
             len(cfg_get(cfg, "model.input_channels_names", [])),
         )
     )
+    # The dataset appends one extra ADT ocean channel when enabled; the model's first
+    # conv must account for it. Single source of truth: the config flag.
+    if bool(cfg_get(cfg, "model.use_adt_input", False)):
+        in_ch += 1
     hidden = int(cfg_get(cfg, "model.hidden_channels", 32))
     dropout = float(cfg_get(cfg, "model.dropout", 0.10))
     use_sta = bool(cfg_get(cfg, "model.use_sta", False))
@@ -336,25 +340,79 @@ def _build_optimizer(cfg: Dict[str, Any], model: torch.nn.Module) -> torch.optim
 
 def _physics_loss(cfg: Dict[str, Any], batch: Dict[str, Any], outputs: Dict[str, torch.Tensor]) -> torch.Tensor:
     """
-    Compute the optional weak physics-guided loss.
+    Compute the physics-guided loss that makes CycloneNet physics-guided in practice.
 
-    This term remains auxiliary and should not redefine the scientific claim.
+    Terms (each gated by a weight in config training.physics.*; 0.0 disables it):
+
+      1. lambda_prior_align — KL alignment pulling the learned FuelMap distribution
+         toward the physical prior map P (SST-anomaly x wind x convergence, or total
+         heat flux). This is a weak supervision toward a physically motivated
+         energy-source map, not ground truth.
+
+      2. lambda_forward — forward physical constraint. The model derives an energy
+         score from the overlap of FuelMap and the prior map and maps it to a
+         predicted dv24 (`dv24_forward_hat`). Supervising it against the real dv24
+         forces "localized surface energy -> intensification" to be learned.
+
+      3/4. lambda_tv / lambda_l1 — spatial smoothness / sparsity regularizers on the
+         FuelMap so the localization is physically plausible (compact, contiguous).
+
+      5. lambda_consistency — OPTIONAL, OFF by default. Equation consistency between
+         vort/div recomputed from u/v and the stored vort/div channels. Both sides
+         derive from the same input wind field, so this is near-degenerate and is
+         documented as a weak representational regularizer, not a physical claim.
+
+    When all weights are 0.0 this returns 0 and the model is a plain 3D-CNN.
     """
     device = batch["x"].device
-    total = torch.tensor(0.0, device=device)
+    total = torch.zeros((), device=device)
 
-    if "fuelmap_logits" in outputs and "prior_map_t0" in batch:
-        lam = float(cfg_get(cfg, "training.physics.lambda_prior_align", 0.0))
-        if lam > 0.0:
-            total = total + lam * kl_alignment_loss(outputs["fuelmap_logits"], batch["prior_map_t0"])
+    lam_prior = float(cfg_get(cfg, "training.physics.lambda_prior_align", 0.0))
+    lam_fwd = float(cfg_get(cfg, "training.physics.lambda_forward", 0.0))
+    lam_tv = float(cfg_get(cfg, "training.physics.lambda_tv", 0.0))
+    lam_l1 = float(cfg_get(cfg, "training.physics.lambda_l1", 0.0))
+    lam_cons = float(cfg_get(cfg, "training.physics.lambda_consistency", 0.0))
 
-    if "fuelmap_logits" in outputs:
-        lam_tv = float(cfg_get(cfg, "training.physics.lambda_tv", 0.0))
-        lam_l1 = float(cfg_get(cfg, "training.physics.lambda_l1", 0.0))
-        if lam_tv > 0.0:
-            total = total + lam_tv * tv_loss_2d(outputs["fuelmap_logits"])
-        if lam_l1 > 0.0:
-            total = total + lam_l1 * l1_loss(outputs["fuelmap_logits"])
+    fuelmap = outputs.get("fuelmap_logits", None)
+
+    # 1. Prior alignment: FuelMap <- physical prior map.
+    if fuelmap is not None and lam_prior > 0.0 and isinstance(batch.get("prior_map_t0"), torch.Tensor):
+        total = total + lam_prior * kl_alignment_loss(fuelmap, batch["prior_map_t0"])
+
+    # 2. Forward physical constraint: localized energy -> dv24.
+    if lam_fwd > 0.0 and isinstance(outputs.get("dv24_forward_hat"), torch.Tensor):
+        fwd_loss = masked_smooth_l1(
+            outputs["dv24_forward_hat"].float().view(-1),
+            batch["dv24"].float().view(-1),
+            batch["dv24_mask"].float().view(-1),
+        )
+        total = total + lam_fwd * fwd_loss
+
+    # 3/4. FuelMap regularizers.
+    if fuelmap is not None and lam_tv > 0.0:
+        total = total + lam_tv * tv_loss_2d(fuelmap)
+    if fuelmap is not None and lam_l1 > 0.0:
+        total = total + lam_l1 * l1_loss(fuelmap)
+
+    # 5. Equation consistency (weak; off by default). Computed only over samples whose
+    #    equation fields are present (eq_mask=1), using their physical grid spacing.
+    if lam_cons > 0.0 and isinstance(batch.get("eq_mask"), torch.Tensor):
+        from src.physics.physics_guided_losses import equation_consistency_loss
+
+        eq_mask = batch["eq_mask"].float().view(-1)
+        valid = eq_mask > 0.0
+        if bool(valid.any()):
+            dx = float(batch["dx_m"].float().view(-1)[valid].mean().item())
+            dy = float(batch["dy_m"].float().view(-1)[valid].mean().item())
+            cons = equation_consistency_loss(
+                batch["u10_t0"][valid],
+                batch["v10_t0"][valid],
+                batch["vort_t0"][valid],
+                batch["div_t0"][valid],
+                dx=dx,
+                dy=dy,
+            )
+            total = total + lam_cons * cons
 
     return total
 
@@ -560,10 +618,32 @@ def train(cfg: Dict[str, Any]) -> Dict[str, Any]:
     y_true_np = np.concatenate(y_true) if y_true else np.array([], dtype=np.float32)
     y_prob_np = np.concatenate(y_prob) if y_prob else np.array([], dtype=np.float32)
 
-    selected_threshold = select_threshold_by_f1(y_true_np, y_prob_np) if len(y_true_np) else 0.5
+    # Threshold selection (validation only). Default policy honours the project's
+    # forensic high-recall mandate: pick the highest-precision threshold that still
+    # reaches training.eval_target_recall. Configurable via training.threshold_method.
+    from src.utils.thresholding import ThresholdConfig, select_threshold
+
+    thr_cfg = ThresholdConfig(
+        method=str(cfg_get(cfg, "training.threshold_method", "precision_at_recall")),
+        min_recall=float(cfg_get(cfg, "training.eval_target_recall", 0.90)),
+        fallback_threshold=0.5,
+    )
+    if len(y_true_np):
+        selected_threshold, thr_metrics = select_threshold(y_true_np, y_prob_np, thr_cfg)
+    else:
+        selected_threshold, thr_metrics = 0.5, {"precision": 0.0, "recall": 0.0, "f1": 0.0}
 
     with threshold_path.open("w", encoding="utf-8") as f:
-        json.dump({"threshold": float(selected_threshold)}, f, indent=2)
+        json.dump(
+            {
+                "threshold": float(selected_threshold),
+                "method": thr_cfg.method,
+                "min_recall": thr_cfg.min_recall,
+                "val_metrics_at_threshold": thr_metrics,
+            },
+            f,
+            indent=2,
+        )
 
     with history_path.open("w", encoding="utf-8") as f:
         json.dump(history, f, indent=2)

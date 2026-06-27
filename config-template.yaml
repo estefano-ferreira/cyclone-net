@@ -18,6 +18,7 @@ paths:
   sanity_report: ./data/normalized/sanity_report.json # Output of sanity gate
   valid_manifest: ./data/normalized/valid_events.csv # List of events that passed preprocessing
   tchp_dir: ./data/external/tchp # Directory for external TCHP data (validation only)
+  ocean_dir: ./data/external/ocean # Sea level anomaly (SLA/ADT) ocean fields
 
 # ----------------------------------------------------------------------
 # Sanity: Thresholds for the minimal sanity gate (hard-fail checks)
@@ -70,6 +71,17 @@ download:
       dataset_id: "cmems_mod_glo_phy_my_0.25deg_P1D-m"
       username: ""
       password: ""
+
+  # Sea Level Anomaly / Absolute Dynamic Topography — surface signature of the
+  # subsurface ocean heat reservoir. ADT is used as an extra MODEL INPUT (see
+  # model.use_adt_input); SLA is the eddy anomaly. Reuses the Copernicus creds above.
+  ssh:
+    enabled: true
+    dataset_id: "cmems_obs-sl_glo_phy-ssh_my_allsat-l4-duacs-0.125deg_P1D"
+    variables: [sla, adt]
+    years: [2022, 2023]        # years with valid gridded TCHP (for SLA<->TCHP validation)
+    season_months: [8, 9, 10]
+    box: { lat_min: 5.0, lat_max: 40.0, lon_min: -100.0, lon_max: -15.0 }
 
 # ----------------------------------------------------------------------
 # Data: Parameters for cube extraction from ERA5
@@ -152,6 +164,8 @@ model:
   use_sta: false # Whether to use spatio‑temporal attention module (if implemented by model)
   hidden_channels: 32 # Base number of hidden channels in convolutional layers
   dropout: 0.1 # Dropout rate for regularization
+  use_adt_input: true # Append ADT (sea surface height) as an extra ocean channel (+1 input).
+                      # Requires 'run.py preprocess-adt'. Justified by ADT<->TCHP proxy (rho~0.30).
 
 # ----------------------------------------------------------------------
 # Training: Hyperparameters for model optimization
@@ -163,12 +177,27 @@ training:
   lr: 0.0007 # Learning rate
   weight_decay: 0.0001 # L2 regularization
   eval_target_recall: 0.9 # Target recall for threshold selection on validation set
+  threshold_method: precision_at_recall # 'precision_at_recall' (forensic high-recall) or 'max_f1'
   lambda_ri: 10.0 # 5.0 Weight for RI classification loss (increased importance)
   lambda_dv12: 0.05 # 0.2 Weight for 12‑h intensity change regression (reduced)
   lambda_dv24: 0.05 # 0.2 Weight for 24‑h intensity change regression (reduced)
-  use_prior_loss: true # enable/disable prior alignment loss
-  use_consistency_loss: true # enable/disable equation consistency loss
-  use_tv_l1: true # enable/disable TV + L1 regularization
+
+  # ------------------------------------------------------------------
+  # Physics-guided loss weights (read by src/training/trainer.py::_physics_loss).
+  # These are the ONLY switches that make the model physics-guided.
+  # When every weight below is 0.0 the model is a plain 3D-CNN classifier.
+  # Set a weight to 0.0 to disable that individual term.
+  # ------------------------------------------------------------------
+  physics:
+    lambda_prior_align: 1.0   # KL alignment: FuelMap distribution <- physical prior map (fuel potential)
+    lambda_forward: 0.5       # Forward constraint: dv24_forward_hat (energy localized on prior) must predict dv24
+    lambda_tv: 0.001          # FuelMap total-variation smoothness regularizer
+    lambda_l1: 0.0001         # FuelMap L1 sparsity regularizer
+    # Equation consistency (vort/div recomputed from u/v vs the stored vort/div channels).
+    # WEAK / representational only: both sides derive from the SAME input wind field, so this
+    # term is near-degenerate (penalises mostly grid-edge discretisation differences). It is NOT
+    # a physical-discovery constraint. Off by default; documented for transparency.
+    lambda_consistency: 0.0
 
 # ----------------------------------------------------------------------
 # Reproducibility: Determinism and parallel workers

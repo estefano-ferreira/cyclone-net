@@ -172,6 +172,19 @@ class PhysicsDataset(Dataset):
         self.std = torch.tensor(
             stats["std"], dtype=torch.float32).clamp(min=1e-6)
 
+        # Optional ADT ocean channel (absolute dynamic topography ~ subsurface heat
+        # reservoir). Appended AFTER the named cube channels, so it does not disturb
+        # the channel-name selection / normalization-match logic above. Train-only
+        # ADT stats live under separate keys in the normalization file.
+        self.use_adt = bool(cfg_get(cfg, "model.use_adt_input", False))
+        self.adt_mean = float(stats.get("adt_mean", 0.0))
+        self.adt_std = float(max(stats.get("adt_std", 1.0), 1e-6))
+        if self.use_adt and "adt_mean" not in stats:
+            logger.warning(
+                "model.use_adt_input=true but normalization stats lack 'adt_mean'. "
+                "Run 'python run.py preprocess-adt' after 'normalize'. ADT will be neutral."
+            )
+
         self.augment = bool(augment) and split == "train"
         self.seed = int(cfg_get(cfg, "splits.seed", 1337))
 
@@ -212,6 +225,21 @@ class PhysicsDataset(Dataset):
         std = self.std.view(-1, 1, 1, 1)
         x = (x - mean) / std
         x = torch.nan_to_num(x, nan=0.0, posinf=0.0, neginf=0.0)
+
+        # Append the ADT ocean channel (covered events) or a neutral, masked channel.
+        adt_mask = 0.0
+        if self.use_adt:
+            T2, H2, W2 = x.shape[1], x.shape[2], x.shape[3]
+            adt_path = self.interim_dir / f"{eid}_adt.npy"
+            if adt_path.exists():
+                a = np.load(adt_path).astype(np.float32)
+                a = (a - self.adt_mean) / self.adt_std
+                a = np.nan_to_num(a, nan=0.0, posinf=0.0, neginf=0.0)
+                adt_mask = 1.0
+            else:
+                a = np.zeros((H2, W2), dtype=np.float32)  # neutral == normalized mean
+            a_t = torch.from_numpy(a).view(1, 1, H2, W2).expand(1, T2, H2, W2).contiguous()
+            x = torch.cat([x, a_t], dim=0)  # (C+1, T, H, W)
 
         # Targets
         y = torch.tensor(float(int(meta.get("ri_label", 0))),
@@ -308,4 +336,5 @@ class PhysicsDataset(Dataset):
             "eq_mask": eq_mask,
             "total_heat_flux_t0": thf,
             "total_heat_flux_mask": thf_mask,
+            "adt_mask": torch.tensor(adt_mask, dtype=torch.float32),
         }

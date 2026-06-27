@@ -1,0 +1,44 @@
+{
+  "status": "ok",
+  "meta": {
+    "year": 2022,
+    "window_deg": 5.0,
+    "season_months": [
+      8,
+      9,
+      10
+    ],
+    "ocean_variable": "adt",
+    "tchp_variable": "Tropical_Cyclone_Heat_Potential",
+    "localizer": "local-anomaly (basin background removed)",
+    "n_events_covered": 87,
+    "n_used": 87,
+    "n_skipped": 0
+  },
+  "proxy_sla_vs_tchp": {
+    "status": "ok",
+    "n": 87,
+    "spearman_rho": 0.2968104622482433,
+    "p_value": 0.005244411329023515,
+    "interpretation": "SLA tracks TCHP at the storm centre (positive, significant) -> SLA is a usable surface proxy for the subsurface reservoir."
+  },
+  "colocation_vs_center_baseline": {
+    "status": "ok",
+    "n": 87,
+    "sla_peak_to_tchp_mean_km": 546.1300964911743,
+    "center_to_tchp_mean_km": 483.32494604260563,
+    "sla_minus_center_km": 62.80515044856831,
+    "fraction_sla_closer": 0.3333333333333333,
+    "interpretation": "The SLA maximum does NOT beat the storm-centre baseline."
+  },
+  "ri_signal": {
+    "status": "ok",
+    "n_ri": 9,
+    "n_nonri": 78,
+    "sla_center_median_ri_m": 0.7943,
+    "sla_center_median_nonri_m": 0.63415,
+    "mannwhitney_u": 562.0,
+    "p_value_ri_greater": 0.0016740425847581056,
+    "interpretation": "RI events sit over significantly higher SLA (warmer reservoir) than non-RI events."
+  }
+}

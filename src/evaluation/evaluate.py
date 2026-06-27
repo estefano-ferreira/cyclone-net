@@ -125,14 +125,27 @@ def _load_threshold(cfg: Dict[str, Any]) -> float:
 
 def _load_checkpoint(model: torch.nn.Module, ckpt_path: Path, device: torch.device) -> None:
     """
-    Load a checkpoint into the model.
+    Load a checkpoint into the model, tolerating shape changes (e.g. a different
+    input-channel count after enabling/disabling the ADT input). Shape-mismatched
+    tensors are skipped with a loud warning instead of crashing, so a stale
+    checkpoint is reported clearly rather than producing a cryptic size-mismatch.
     """
     checkpoint = torch.load(ckpt_path, map_location=device)
+    state = checkpoint["model_state"] if (isinstance(checkpoint, dict) and "model_state" in checkpoint) else checkpoint
 
-    if isinstance(checkpoint, dict) and "model_state" in checkpoint:
-        model.load_state_dict(checkpoint["model_state"], strict=False)
-    else:
-        model.load_state_dict(checkpoint, strict=False)
+    model_state = model.state_dict()
+    compatible = {k: v for k, v in state.items()
+                  if k in model_state and tuple(v.shape) == tuple(model_state[k].shape)}
+    skipped = [k for k in state if k not in compatible and k in model_state]
+
+    if skipped:
+        logger.warning(
+            "Checkpoint has %d tensor(s) with mismatched shapes (skipped): %s. "
+            "This usually means the input-channel count changed (e.g. ADT was enabled). "
+            "RE-TRAIN the model — evaluating on this checkpoint is invalid.",
+            len(skipped), skipped[:4],
+        )
+    model.load_state_dict(compatible, strict=False)
 
 
 def _build_loader(cfg: Dict[str, Any], split: str) -> DataLoader:
@@ -339,16 +352,16 @@ def _try_external_spatial_validation(
     pred_df: pd.DataFrame,
 ) -> Dict[str, Any]:
     """
-    Run optional external spatial validation.
+    Validate the predicted FuelMap hotspot against the TCHP peak.
 
-    This path is intentionally lazy-loaded so that the main release evaluation
-    does not fail when experimental modules are not being used.
+    The TCHP peaks are produced once and audited by `run.py preprocess-tchp`, then
+    stored in each event's interim metadata. This validation reuses that audited
+    output (single source of truth) rather than re-opening TCHP NetCDFs here.
     """
     out: Dict[str, Any] = {
-        "experimental_external_spatial": True,
         "note": (
-            "External spatial validation is experimental and should be reported "
-            "separately from the core release metrics."
+            "Spatial validation compares the predicted FuelMap peak to the TCHP peak "
+            "computed and audited during 'run.py preprocess-tchp'."
         ),
     }
 
@@ -365,17 +378,17 @@ def _try_external_spatial_validation(
         return out
 
     try:
-        tchp_root = Path(cfg_get(cfg, "paths.tchp_data", "./data/external/tchp")).resolve()
-        if not tchp_root.exists():
+        interim_dir = Path(cfg_get(cfg, "paths.interim_data", "./data/interim")).resolve()
+        if not interim_dir.exists():
             out["status"] = "skipped"
-            out["reason"] = "tchp_data_directory_missing"
+            out["reason"] = "interim_metadata_directory_missing"
             return out
 
         results = compute_spatial_metrics_from_predictions(
             pred_df=pred_df,
-            tchp_root=tchp_root,
+            interim_dir=interim_dir,
         )
-        out["status"] = "ok"
+        out["status"] = results.get("status", "ok")
         out["metrics"] = results
         return out
 

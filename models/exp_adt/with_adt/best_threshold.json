@@ -1,0 +1,10 @@
+{
+  "threshold": 0.06417114287614822,
+  "method": "precision_at_recall",
+  "min_recall": 0.9,
+  "val_metrics_at_threshold": {
+    "precision": 0.13043478260869565,
+    "recall": 1.0,
+    "f1": 0.23076923076923078
+  }
+}

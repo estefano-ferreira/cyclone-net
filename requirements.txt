@@ -1,5 +1,5 @@
 # CycloneNet – Forensic Atmospheric Analysis Framework
-# Python 3.9 or 3.10 recommended
+# Python 3.10+ required (codebase uses PEP 604 union syntax `X | Y`); 3.12 / 3.14 tested.
 # All dependencies are listed with minimum versions; use pip install -r requirements.txt
 
 # ------------------------------
@@ -41,6 +41,11 @@ PyYAML>=6.0                   # YAML configuration parsing
 # ------------------------------
 torch>=1.10.0                 # PyTorch (CUDA support recommended for training)
 # torchvision not required
+
+# ------------------------------
+# Development / testing
+# ------------------------------
+pytest>=7.0                   # Unit tests under tests/ (physics, geometry, splits, losses)
 
 # ------------------------------
 # Additional utilities (if needed)

@@ -31,6 +31,27 @@ def _ensure_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
+def tchp_time_steps(path: Path) -> int:
+    """
+    Number of time steps in a TCHP NetCDF, or -1 if unreadable.
+
+    A valid yearly TCHP file must contain time steps; empty stubs (a previous bug
+    wrote 0-length files when the ERDDAP slice fell outside the dataset's coverage)
+    return 0 and must be treated as invalid, not as a successful download.
+    """
+    try:
+        import xarray as xr
+        for eng in ("scipy", "h5netcdf", "netcdf4"):
+            try:
+                with xr.open_dataset(path, engine=eng) as ds:
+                    return int(ds.sizes.get("time", 0))
+            except Exception:
+                continue
+        return -1
+    except Exception:
+        return -1
+
+
 def _safe_replace(src_tmp: Path, dst: Path) -> None:
     """
     Replace destination file atomically (best-effort on Windows).
@@ -185,9 +206,19 @@ class TCHPDownloader:
             preferred = self.source
 
         out_path = get_tchp_file_path(self.tchp_dir, year, preferred)
-        if out_path.exists() and not force:
-            logger.info(f"File {out_path.name} already exists. Skipping.")
-            return out_path
+        if out_path.exists():
+            steps = tchp_time_steps(out_path)
+            if steps > 0 and not force:
+                logger.info(f"File {out_path.name} already exists ({steps} time steps). Skipping.")
+                return out_path
+            if steps <= 0:
+                # Remove a previously-written empty/invalid stub so it cannot masquerade
+                # as a successful download and can be cleanly re-attempted.
+                logger.warning(f"Removing invalid TCHP file {out_path.name} (time steps={steps}).")
+                try:
+                    out_path.unlink()
+                except OSError:
+                    pass
 
         if preferred == "noaa":
             result = self._download_erddap(year, out_path)
@@ -243,6 +274,18 @@ class TCHPDownloader:
                 latitude=slice(self.lat_min, self.lat_max),
                 longitude=slice(self.lon_min, self.lon_max),
             )
+
+            # Critical: the ERDDAP aomlTCHP dataset only covers 2022-present. For earlier
+            # years the time slice is empty. Never write a 0-length file and report success
+            # (the previous behaviour left misleading 4 KB stubs); return None so the caller
+            # can try a fallback or clearly mark the year unavailable.
+            if int(subset.sizes.get("time", 0)) == 0:
+                logger.warning(
+                    f"ERDDAP has no TCHP data for {year} "
+                    f"(dataset coverage starts 2022). No file written."
+                )
+                ds.close()
+                return None
 
             # Find the first available variable name
             var_name = None
@@ -385,7 +428,8 @@ class TCHPDownloader:
                 end_datetime=f"{year}-12-31",
                 output_filename=out_path.name,
                 output_directory=str(out_path.parent),
-                force_download=True,
+                overwrite=True,  # copernicusmarine v2 removed 'force_download'
+                disable_progress_bar=True,
                 **kwargs,
             )
 

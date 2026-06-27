@@ -88,7 +88,12 @@ cyclone-net/
 - **Unique Event Identification** – Each event now has an ID combining SID and timestamp (e.g., `AL052005_2005_08_27_0600`), eliminating any risk of collision.
 - **Physical Unit Checks & NaN‑Free Guarantee** – SST and MSLP are normalised to Kelvin and Pascal; unrealistic values cause event rejection. After preprocessing, every cube is verified to contain **no NaN or Inf values** – any such event is discarded.
 - **Self‑Contained Metadata** – Each event’s JSON contains the full list of timestamps, centre coordinates, channel names, and (if available) TCHP maxima – enabling validation independent of the original event list.
-- **Physics‑guided losses** – The training objective includes terms that encourage consistency between wind fields and derived vorticity/divergence (equation‑consistency loss), as well as alignment of the FuelMap with a simple physical prior (SST anomaly × wind speed × (1+convergence)) via KL divergence.  
+- **Physics‑guided losses** – Controlled entirely by the `training.physics` block in `config.yaml`; when every weight there is `0.0` the model degrades to a plain 3D‑CNN. Active terms by default:
+  - **`lambda_prior_align`** – KL alignment of the learned FuelMap with a physical prior map (SST anomaly × wind speed × (1+convergence), or total heat flux when available).
+  - **`lambda_forward`** – a forward physical constraint: the energy localized by the FuelMap over the prior map must predict the 24 h intensity change (`dv24`), tying "localized surface energy → intensification".
+  - **`lambda_tv` / `lambda_l1`** – smoothness / sparsity regularizers keeping the FuelMap physically plausible (compact, contiguous).
+  - **`lambda_consistency`** (off by default) – equation consistency between vorticity/divergence recomputed from the wind field and the stored diagnostic channels. Because both sides derive from the same input wind, this term is **near‑degenerate** and is documented as a weak representational regularizer, **not** a physical‑discovery constraint.
+
   _Note: Heat flux channels (latent, sensible, total) are computed during preprocessing but are currently **not used as model inputs**; they are retained for future integration._
 
 ---
@@ -229,7 +234,15 @@ Example test‑set output now includes:
 
 ## 📊 Final Test‑Set Performance
 
-The model was evaluated on a held‑out test set of 2,193 samples (15% of all storms, never seen during training or validation). The threshold was selected to achieve recall ≥90% on the validation set and then applied unchanged to the test set. **No external validation data (e.g., TCHP) was used in this evaluation; therefore spatial error metrics are not reported.** Future work will integrate TCHP data to assess the model’s localisation accuracy.
+> ⚠️ **Numbers below are superseded and pending regeneration.** They were produced by an
+> earlier pipeline revision in which (a) the physics‑guided losses were inadvertently
+> inactive and (b) the validation threshold was chosen by max‑F1. The current code makes
+> the physics losses active by default (see `training.physics` in `config.yaml`) and selects
+> the threshold via `precision_at_recall` honouring `training.eval_target_recall`. These
+> metrics will be regenerated after re‑training with the corrected pipeline. The table is
+> retained only as a historical reference point.
+
+The model was evaluated on a held‑out test set of 2,193 samples (15% of all storms, never seen during training or validation). The threshold was selected to reach the configured target recall on the validation set and then applied unchanged to the test set. **No external validation data (e.g., TCHP) was used in this evaluation; therefore spatial error metrics are not reported.** Future work will integrate TCHP data to assess the model’s localisation accuracy.
 
 | Metric                   | Test Value | Interpretation                                     |
 | ------------------------ | ---------- | -------------------------------------------------- |
@@ -252,7 +265,7 @@ The high recall of **90.5%** satisfies the forensic mandate of capturing nearly 
 - **Diagnostic, not predictive** – The framework is validated on historical data (hindcast) and has not been tested for real‑time forecasting.
 - **Engineering‑first** – The primary contribution is a robust, auditable data pipeline; the neural network is a proof‑of‑concept that demonstrates the integration path.
 - **Deliberate bias** – High recall is achieved by accepting a moderate number of false positives (e.g., the Isaac case). This trade‑off is configurable and fully documented.
-- **Spatial validation pending** – Integration with TCHP (Tropical Cyclone Heat Potential) is planned for future releases to quantify the model’s ability to pinpoint the exact thermodynamic fuel source. Current evaluation does **not** include geographic error metrics because the necessary external data (TCHP) was not used in this benchmark.
+- **Spatial validation (now implemented)** – TCHP (Tropical Cyclone Heat Potential) spatial validation is wired into the pipeline. Run `python run.py preprocess-tchp` to enrich event metadata with audited TCHP peak locations, then `python run.py evaluate --spatial` to compute the great‑circle distance between the predicted FuelMap peak and the TCHP peak, **plus a skill comparison against a naive "predict the storm centre" baseline** (the model only demonstrates spatial skill if it beats that baseline). The historical benchmark table above predates this and therefore reports no geographic error; those numbers will accompany the regenerated metrics.
 - **Heat flux channels** – Although computed, latent and sensible heat fluxes are **not part of the model inputs** in the current version. They are stored for future enhancements.
 - **Interpretability** – The model localises the energy source via **soft‑argmax on the learned FuelMap**. Gradient‑based attribution methods (e.g., integrated gradients) are implemented in `interpretability.py` but are **not yet integrated** into the evaluation pipeline; they remain experimental.
 - **Equation consistency** – The loss that enforces vorticity/divergence derived from wind fields to match diagnostic channels is implemented, but its accuracy depends on the grid spacing (0.25°). This is documented in the code.

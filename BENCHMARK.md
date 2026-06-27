@@ -1,5 +1,11 @@
 ## CycloneNet – Test‑Set Validation Report
 
+> ⚠️ **Superseded — pending regeneration.** The metrics in this report were produced by an
+> earlier pipeline revision in which the physics‑guided losses were inactive and the
+> validation threshold was selected by max‑F1 (not the forensic recall target). The current
+> code activates the physics losses by default and uses `precision_at_recall`. All numbers
+> below will be regenerated after re‑training; treat them as a historical baseline only.
+
 This document presents the final diagnostic performance of the CycloneNet framework on the **test set**, which comprises storms not seen during training or validation. The metrics below are computed using the threshold that maximises recall (≥90%) on the validation set (**threshold = 0.0666**) and then applied unchanged to the test set. All results are derived from the same pipeline used during development, ensuring full reproducibility.
 
 ---
