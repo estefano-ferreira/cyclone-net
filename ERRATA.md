@@ -108,6 +108,35 @@ source feeding hurricanes." The title term "Atmospheric Singularity Mapping" ove
 the scope and **has been removed** from the project's documentation and citation
 metadata; the revised manuscript carries an honest title.
 
+## 6. dv24 is a positional shift, not a strictly temporal 24 h delta
+
+**Discovered during cross-validation of the web platform against raw IBTrACS**
+(the platform's served values match the source point-by-point; this item is
+about the *definition* both the platform and the scientific pipeline share).
+
+**What the code does:** dv24 — the 24 h intensity change underlying the RI
+label — is computed as a **positional shift of 4 rows** in the best-track
+series, not as a temporal join at t + 24 h.
+
+**When it is exact:** on standard synoptic rows (6 h spacing), 4 rows = 24 h
+exactly. This is the overwhelming majority of points.
+
+**When it deviates:** IBTrACS includes rare non-synoptic special rows (e.g.
+landfall entries at HH:30). When one enters the series, "4 rows ahead"
+corresponds to 23.5 h or 24.5 h instead of 24 h — a small deviation from the
+canonical RI definition (Kaplan & DeMaria 2003).
+
+**Magnitude:** ~1.3% of points in the validation sample (3/235, five
+well-documented storms), concentrated at landfall rows. The scientific
+pipeline's `ri_label` uses the **same** positional convention, so the platform
+and the model are internally consistent — there is no discrepancy between what
+the model saw and what the platform displays.
+
+**Status:** documented. The correction (filter to `minute == 0` rows, or a
+temporal join) will be applied at the next retrain (together with the
+pressure-level backfill), because it alters labels of the frozen dataset and
+does not justify reopening the current milestone on its own.
+
 ---
 
 ## Summary
@@ -125,3 +154,10 @@ superseded headline numbers are replaced by reproducible ones (ROC-AUC 0.796, PR
 validated contribution is the auditable pipeline and the RI classification skill;
 spatial energy-source attribution is documented as a validated-negative hypothesis
 (item 4 above, three independent angles).
+
+A sixth item, found after the above were closed, is documented in item 6: the
+dv24/RI label is a positional (4-row) rather than strictly temporal (24 h)
+delta, deviating from the canonical definition at rare non-synoptic best-track
+rows (~1.3% of points in the validation sample). Platform and model share the
+convention (internally consistent); the correction is scheduled for the next
+retrain rather than a reopening of the current milestone.

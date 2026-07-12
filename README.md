@@ -4,6 +4,12 @@
 
 Unlike operational forecasting models, CycloneNet is built as a **high‑recall diagnostic tool** with a strong emphasis on **auditability, transparency, and reproducibility**. It is the result of applying robust software engineering principles to complex geospatial data, creating a verifiable foundation for retrospective storm analysis.
 
+## 🌐 Live Platform — Interactive Event Explorer
+
+**https://estefano-ferreira.github.io/cyclone-net/**
+
+A static, client‑side explorer of **historical, observed data only**: storm tracks, intensity (wind/pressure) curves, and RI‑candidate markers from the IBTrACS best‑track record. It displays **no model predictions and makes no forecasts** — every value shown is an observation, served with SHA‑256 integrity verification against a build manifest (the browser refuses to render tampered or corrupted artifacts). Consistent with the project's validated‑negative result, the FuelMap layer is **not** part of the explorer: its slot documents that the spatial energy‑source hypothesis was tested against TCHP and is unsupported (see *Spatial validation* below and [ERRATA.md](./ERRATA.md)).
+
 ---
 
 ## 👨‍💻 Developer's Vision
