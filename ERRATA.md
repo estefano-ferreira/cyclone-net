@@ -41,41 +41,52 @@ threshold-selection routine.
 (`precision_at_recall`, honoring `training.eval_target_recall`), consistent with the
 paper's stated forensic high-recall intent.
 
-## 3. The reported metrics are NOT reproducible from the public repository
+## 3. The reported metrics were NOT reproducible from the public repository — **RESOLVED**
 
 **What the paper reports:** a held-out test set of **2,193 samples (211 RI positives)**,
 with **ROC-AUC = 0.83, recall = 0.905**.
 
-**What the public repository contains:** a dataset covering **2020–2023 only**
-(972 valid events; test split = **155 samples, 9 RI positives**). The headline metrics
-**cannot be reproduced** from the released code and data. On the public dataset, with the
-corrected (physics-active) pipeline, test ROC-AUC is on the order of **~0.6**, on a test
-set with too few positives (9) to support a stable estimate.
+**What the public repository contained at audit time:** a dataset covering **2020–2023
+only** (972 valid events; test split = **155 samples, 9 RI positives**). The headline
+metrics **could not be reproduced** from the released code and data. On that public
+dataset, with the corrected (physics-active) pipeline, test ROC-AUC was on the order of
+**~0.6**, on a test set with too few positives (9) to support a stable estimate.
 
-**Cause:** the headline numbers derive from a larger dataset that was not included in the
-public release.
+**Cause:** the headline numbers derived from a larger dataset that was not included in
+the public release.
 
-**Required action (choose one):**
-- (a) release the full dataset used for the reported metrics, so 0.83 is reproducible; or
-- (b) replace the headline metrics with the modest numbers reproducible from the public
-  data, clearly stating the reduced sample size; or
-- (c) clearly label the original metrics as derived from a non-released dataset.
+**Resolution (option (a) — full data release):** the repository now builds and releases
+the **full 1980–2023** dataset (16,780 valid events / 802 RI positives / 992 storms) via
+a windowed, checksummed, provenance-manifested pipeline, with hash-deterministic
+storm-level splits. The model was retrained deterministically on this dataset (the
+committed checkpoint was reproduced digit-for-digit from scratch), and the headline
+metrics are **replaced** by numbers reproducible from the public artifacts:
+**ROC-AUC 0.796 [95% CI 0.753–0.837], PR-AUC 0.251 [0.179–0.331], recall 0.852** on a
+test split of 2,679 events (115 RI positives). Both confidence intervals sit entirely
+above chance — the first release of this project for which that is true. The original
+0.83/0.905 figures remain non-reproducible and are superseded; they should not be cited.
 
-Until one of these is done, the reported performance numbers should be treated as
-**not independently reproducible**.
+## 4. FuelMap localization does not beat a trivial baseline (validated negative, three angles)
 
-## 4. FuelMap localization does not beat a trivial baseline (new evidence)
+The paper correctly **does not claim** externally validated localization. Validations
+added during and after the audit make the negative result robust from three independent
+angles:
 
-The paper correctly **does not claim** externally validated localization. A validation
-added during the audit (predicted FuelMap peak vs. TCHP peak) confirms and strengthens
-this caveat with a concrete result: the FuelMap peak does **not** locate the TCHP peak
-better than a naive "storm-centre" baseline. The localization claim should therefore be
-stated as **unsupported**, not merely "pending."
+1. **Static TCHP validation** (n = 226 eligible test events, TCHP publicly gridded
+   2022+): the FuelMap peak beats a random-point null (p = 0.0003) but does **not**
+   locate the TCHP peak better than a naive "storm-centre" baseline — median 539 km vs
+   561 km, closer in only 46% of events (p = 0.30, sign-flip permutation).
+2. **Dynamic displacement test:** the FuelMap's apparent collapse-toward-centre during
+   RI, initially a candidate signal, was tested against a control.
+3. **Physics-prior control:** re-running the displacement analysis on the pure
+   enthalpy-flux prior (no learned weights) reproduces the dynamic behavior — it is
+   arithmetic of the physics prior, **not** learned skill.
 
-A counterfactual ablation (occluding the FuelMap region vs. an equal-size control) does
+The localization claim is therefore **unsupported**, not merely "pending." A
+counterfactual ablation (occluding the FuelMap region vs. an equal-size control) does
 show the model's RI prediction depends on the identified region (paired test, p ≈ 1e-6) —
 but this demonstrates *model-internal* dependence, **not** that the region is the true
-physical energy source.
+physical energy source. Full protocols: `docs/fuelmap_validation.md`.
 
 ## 5. Novelty positioning
 
@@ -94,17 +105,23 @@ forensic/diagnostic framing are **established**, not new:
 (an auditable, configuration-driven, tested hybrid physics+ML pipeline), **not** a
 scientific discovery, a novel architecture, nor a new capability to "identify the energy
 source feeding hurricanes." The title term "Atmospheric Singularity Mapping" overstates
-the scope and should be revised.
+the scope and **has been removed** from the project's documentation and citation
+metadata; the revised manuscript carries an honest title.
 
 ---
 
 ## Summary
 
 The preprint's *intent* was honest (it explicitly disclaimed discovery, novel
-architecture, and validated localization). The errors are: (1) the released code did not
-implement the physics-guided method it described; (2) the threshold method differed;
-(3) the headline metrics are not reproducible from the released artifacts; and (4) the
-framing/title overstate the scope relative to existing literature and operational tools.
+architecture, and validated localization). The errors were: (1) the released code did
+not implement the physics-guided method it described; (2) the threshold method differed;
+(3) the headline metrics were not reproducible from the released artifacts; and (4) the
+framing/title overstated the scope relative to existing literature and operational tools.
 
-Items (1) and (2) are corrected in the current code. Items (3) and (4) require the author
-to decide between releasing the full dataset or revising the reported numbers and framing.
+**Status:** all four items are now addressed. (1) and (2) are corrected in the current
+code. (3) is resolved via option (a) — the full 1980–2023 dataset is released and the
+superseded headline numbers are replaced by reproducible ones (ROC-AUC 0.796, PR-AUC
+0.251, both CIs above chance). (4) is addressed by revising the title and framing: the
+validated contribution is the auditable pipeline and the RI classification skill;
+spatial energy-source attribution is documented as a validated-negative hypothesis
+(item 4 above, three independent angles).

@@ -1,5 +1,15 @@
 # Case Studies
 
+> ⚠️ **SUPERSEDED — do not cite.** The examples below were produced by an earlier
+> pipeline revision and are **not reproducible** from the current model or dataset.
+> In particular, the FuelMap-vs-TCHP distances shown (tens of km) are inconsistent
+> with the validated result on the current test set (median 539 km, no skill beyond
+> the storm-centre baseline; see `docs/fuelmap_validation.md` and `ERRATA.md` item 4),
+> and gridded TCHP is not publicly available before 2022, so the pre-2022 comparisons
+> below cannot be independently verified. Real, reproducible test-set examples are in
+> [`BENCHMARK.md`](../BENCHMARK.md). This page is retained only as a historical record
+> pending replacement.
+
 This page presents selected examples of CycloneNet predictions, including both successes and failures, to illustrate model behavior and limitations.
 
 ## Success Cases

@@ -4,7 +4,7 @@
 Software Engineer, Independent Researcher
 estefano.senhor@gmail.com · https://github.com/estefano-ferreira/cyclone-net
 
-*Revised, corrected manuscript (supersedes "CycloneNet V2: ... Atmospheric Singularity Mapping", Feb 2026). See §8 for the correction record.*
+*Revised, corrected manuscript (supersedes "CycloneNet V2: ... Atmospheric Singularity Mapping", Feb 2026; this revision, Jul 2026, adds the full 1980–2023 data release and results). See §8 for the correction record.*
 
 ---
 
@@ -37,11 +37,17 @@ test; and (2) an **honest audit** that yields cautionary, mostly **negative** re
 - A prior release of this pipeline reported the model as "physics-guided" while the
   physics losses were, in fact, inactive (weight 0) in the released configuration.
 
-We report classification metrics reproducible from the public 2020–2023 dataset
-(test ROC-AUC ≈ 0.6 on a small, low-positive test set) and note that previously published
-headline metrics (ROC-AUC 0.83) were obtained on a larger dataset not included in the
-public release. We present this as a reproducible baseline and as a caution against
-overclaiming in physics-guided cyclone ML.
+The audit's central reproducibility failure — headline metrics (ROC-AUC 0.83) obtained
+on an unreleased dataset — is resolved in this revision by releasing the full
+**1980–2023** dataset (16,780 events, 802 RI positives, 992 storms) built by a windowed,
+checksummed pipeline, and retraining deterministically on it. On the held-out test split
+(2,679 events, 115 RI positives) the classifier achieves **ROC-AUC 0.796 [95% CI
+0.753–0.837]** and **PR-AUC 0.251 [0.179–0.331]** at the test split's 4.3% prevalence — the first version
+of this project whose skill is statistically distinguishable from chance, and the
+confirmation-by-intervention of the audit's diagnostic that sample size, not
+architecture, was the bottleneck. The negative results on spatial attribution stand and
+are strengthened by two additional controls. We present this as a reproducible baseline
+and as a caution against overclaiming in physics-guided cyclone ML.
 
 ---
 
@@ -86,18 +92,29 @@ execution quality, not scientific contribution.
 ## 3. Data
 
 - **ERA5** (Copernicus CDS), 0.25°: SST, MSLP, 10 m winds; optionally 2 m temperature and
-  dewpoint for bulk heat-flux diagnostics. The **public release covers 2020–2023**,
-  Atlantic/East-Pacific season months.
+  dewpoint for bulk heat-flux diagnostics. The **public release covers 1980–2023**,
+  North Atlantic sector season months. Because the raw monthly files (~60 GB) exceed
+  local storage, the dataset is built by a **windowed pipeline**
+  (download → extract → verify → discard raw), with per-window provenance manifests
+  recording SHA-256 checksums, per-event extraction outcomes, and the deletion record —
+  every released cube is auditable back to its source file.
 - **IBTrACS** best-track for storm centres, intensities, and RI labels (Δv ≥ 30 kt/24 h).
+  Event identifiers embed the storm ID (`era5_{timestamp}_{SID}`), so concurrent storms
+  at the same timestamp never collide.
 - **TCHP** (NOAA/AOML ERDDAP) and **sea-level anomaly / ADT** (Copernicus DUACS) for
   external ocean validation. Note: the AOML gridded TCHP product covers 2022–present only;
   pre-2022 gridded TCHP is not publicly available, which limits validation to 2022–2023.
 
 For each event, a 40×40 (≈10°×10°) spatio-temporal cube over five 6-hourly steps
 (t0…t−24 h) is extracted with nine input channels (SST, MSLP, U10, V10, wind speed,
-vorticity, divergence, |∇MSLP|, SST anomaly). Splits are by storm identifier (SID) to
-prevent leakage; normalization statistics are computed on the training split only. On the
-public dataset this yields 972 valid events (train/val/test = 655/162/155).
+vorticity, divergence, |∇MSLP|, SST anomaly). Splits are storm-level and
+**hash-deterministic**: each storm is assigned to train/val/test by the SHA-256 hash of
+its identifier, so adding new storms never reassigns existing ones (the previous
+seeded-shuffle scheme reassigned 136 of 155 test events when the dataset grew — a
+leakage mechanism eliminated in this revision). Normalization statistics are computed on
+the training split only. The full dataset yields **16,780 valid events from 992 storms
+(802 RI positives, 4.8% global prevalence)**; train/val/test = 11,150/2,951/2,679 events with
+545/142/115 positives (per-split prevalence 4.3–4.9%).
 
 ## 4. Methods
 
@@ -135,21 +152,50 @@ the TCHP peak — the model only demonstrates spatial skill if it beats this bas
 
 ### 5.1 Classification (reproducible from public data)
 
-On the public 2020–2023 test split (n = 155; **only 9 RI positives**), a 30-epoch run with
-physics-guided losses active achieves **ROC-AUC ≈ 0.60, PR-AUC ≈ 0.45**. The small number
-of positives makes this a high-variance estimate; it should be read as a rough baseline,
-not a skill claim. The headline ROC-AUC = 0.83 reported in the prior version was obtained
-on a larger dataset that is **not** part of the public release and is not reproducible from
-the released artifacts (see §8).
+On the held-out 1980–2023 test split (n = 2,679; **115 RI positives**), the
+physics-guided model achieves **ROC-AUC 0.796 [95% CI 0.753–0.837]** and
+**PR-AUC 0.251 [0.179–0.331]** against the test split's 4.3% prevalence (5.8× chance), with recall
+0.852 and precision 0.070 at the validation-selected high-recall operating point
+(Brier 0.037, ECE 0.011; bootstrap CIs, 10,000 resamples). Both confidence intervals
+sit entirely above chance. Training is deterministic — the released checkpoint was
+reproduced digit-for-digit from scratch — and every number in this section is
+computable from the public repository and dataset, resolving the reproducibility
+failure recorded in §8.
 
-### 5.2 Spatial localization — negative result
+The trajectory across dataset generations is itself a result. The same architecture,
+losses, and hyperparameters produce:
 
-The FuelMap peak does **not** locate the TCHP peak better than the naive storm-centre
-baseline; on the covered subset the storm centre is, on average, closer to the TCHP peak
-than the FuelMap peak. Naïve "peak-of-field-in-window" localization is further confounded
-by the basin-scale ocean gradient (a majority of in-window TCHP maxima fall on the window
-edge). **We therefore report FuelMap-based localization of the energy source as
-unsupported.**
+| Dataset | Test positives | ROC-AUC [95% CI] | PR-AUC ÷ prevalence |
+| --- | --- | --- | --- |
+| 2020–2023 (original release) | 9 | 0.590 [0.334–0.842] | 2.1× |
+| 2020–2023, collision-fixed IDs | 13 | 0.614 [0.453–0.785] | 3.6× |
+| 1980–2023 (this revision) | 115 | **0.796 [0.753–0.837]** | **5.8×** |
+
+The first two rows have confidence intervals spanning chance; the audit's diagnostic —
+that sample size, not architecture, was the binding constraint — is thereby confirmed
+by intervention rather than argument. We still make no operational skill claim: no
+comparison against SHIPS-RII or other operational baselines has been performed (§7).
+
+### 5.2 Spatial localization — negative result, three independent angles
+
+The negative result on FuelMap localization survives the dataset expansion and two
+additional controls:
+
+1. **Static TCHP validation** (n = 226 eligible test events, 2022–2023 coverage): the
+   FuelMap peak beats a random-point null (p = 0.0003) — it tracks the storm — but does
+   **not** locate the TCHP peak better than the naive storm-centre baseline (median
+   539 km vs 561 km; closer in only 46% of events; sign-flip permutation p = 0.30).
+2. **Dynamic displacement test:** the FuelMap's apparent collapse toward the storm
+   centre during RI episodes, a candidate dynamic signal, was tested explicitly.
+3. **Physics-prior control:** repeating the displacement analysis on the pure
+   enthalpy-flux prior — no learned weights at all — reproduces the same dynamic
+   behavior. The "signal" is arithmetic of the physics prior, not learned skill.
+
+Naïve "peak-of-field-in-window" localization is further confounded by the basin-scale
+ocean gradient (a majority of in-window TCHP maxima fall on the window edge). **We
+therefore report FuelMap-based localization of the energy source as unsupported**, and
+note that the model's demonstrable classification skill (§5.1) does not transfer to
+spatial attribution.
 
 ### 5.3 ADT ocean input — null result
 
@@ -159,7 +205,9 @@ improve RI classification — it is marginally worse on every split (full test R
 underpowered and inconclusive; the honest reading is that ADT's value cannot be
 demonstrated in this data regime. Separately, ADT does track TCHP at the storm centre
 (Spearman ρ ≈ 0.30, replicated for 2022 and 2023) — but this merely **reproduces known
-altimetry-OHC relationships**, it does not establish new science.
+altimetry-OHC relationships**, it does not establish new science. (This ablation
+predates the 1980–2023 expansion; a paired feature ablation on the expanded dataset,
+with ~800 positives of statistical power, is planned as follow-up work.)
 
 ### 5.4 Model-internal causal dependence — positive but limited
 
@@ -187,11 +235,21 @@ that a plausible such map does not.
 
 ## 7. Limitations
 
-- Small public dataset (2020–2023; 9 test positives) → high-variance metrics.
-- TCHP validation limited to 2022–2023 (gridded pre-2022 TCHP unavailable publicly).
-- No comparison against operational baselines (SHIPS-RII) — required before any skill claim.
+- **Surface-only input features.** The nine channels are surface/near-surface fields;
+  the model sees neither the subsurface ocean reservoir that governs sustained RI nor
+  the atmospheric column (e.g. deep-layer shear, mid-level humidity) that operational
+  predictors exploit. Pressure-level extensions are implemented in the pipeline but not
+  yet part of the released training set.
+- **0.25° ERA5 resolution** cannot resolve inner-core structure; the model necessarily
+  learns environmental favorability, not storm-scale dynamics.
+- **No comparison against operational baselines (SHIPS-RII)** — required before any
+  operational skill claim; §5.1's result is skill above chance, not skill above the
+  state of practice.
+- TCHP validation limited to 2022–2023 (gridded pre-2022 TCHP unavailable publicly),
+  i.e. n = 226 of 2,679 test events.
 - The heuristic prior is not a physical guarantee; the equation-consistency term is degenerate.
-- Surface-only inputs cannot resolve the subsurface reservoir that governs sustained RI.
+- The recall-first operating point yields precision 0.070 — appropriate for the forensic
+  screening framing, unusable as an alarm system.
 
 ## 8. Correction record
 
@@ -199,20 +257,27 @@ This manuscript corrects the prior version ("CycloneNet V2 … Atmospheric Singu
 Mapping"). Specifically: (1) the released code did not implement the physics-guided losses
 it described (weights defaulted to 0); this is fixed. (2) The threshold methodology in the
 code differed from the text; this is reconciled. (3) The headline metrics (2,193 test
-samples, ROC-AUC 0.83) are not reproducible from the public repository and derive from a
-larger, unreleased dataset. (4) The title and "uniqueness/innovation" framing overstated
-the scope relative to existing literature and operational tools. A detailed errata is
-provided in the repository (`ERRATA.md`).
+samples, ROC-AUC 0.83) were not reproducible from the public repository and derived from a
+larger, unreleased dataset; this is **resolved in this revision** by releasing the full
+1980–2023 dataset and replacing the superseded numbers with the reproducible results of
+§5.1 — the 0.83/0.905 figures should not be cited. (4) The title and
+"uniqueness/innovation" framing overstated the scope relative to existing literature and
+operational tools; the title is revised and the framing corrected throughout. A detailed
+errata is provided in the repository (`ERRATA.md`).
 
 ## 9. Conclusion
 
 CycloneNet is an honest, reproducible, well-engineered hybrid physics+ML pipeline for
 forensic RI analysis. It is **not** a novel method, a new scientific finding, nor a tool
 that identifies the physical energy source of hurricanes — that capability already exists
-operationally. Its contribution is engineering transparency plus a cautionary audit whose
-central findings are negative: learned FuelMap localization does not beat a trivial
-baseline, and a surface ocean input does not improve RI skill here. We release it as a
-reproducible baseline and as a record of what, in this approach, does and does not work.
+operationally. Its contribution is engineering transparency plus a two-sided audit: on
+the positive side, RI classification skill that is statistically distinguishable from
+chance and fully reproducible from public artifacts (ROC-AUC 0.796, PR-AUC 5.8× chance,
+115 test positives), obtained by fixing the audit-identified bottleneck (sample size)
+rather than the architecture; on the negative side, learned FuelMap localization does
+not beat a trivial baseline — a result now robust across a static TCHP comparison, a
+dynamic displacement test, and a physics-prior control. We release it as a reproducible
+baseline and as a record of what, in this approach, does and does not work.
 
 *Code, data instructions, tests, and the errata are available under CC BY-NC 4.0 at
 https://github.com/estefano-ferreira/cyclone-net.*

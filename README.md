@@ -1,6 +1,6 @@
 # 🌪️ CycloneNet — A Forensic Engineering Framework for Atmospheric Analysis
 
-**CycloneNet** is an open‑source software framework designed for the **forensic audit of tropical cyclones**. It provides an automated, reproducible pipeline that ingests historical meteorological data (ERA5 reanalysis, IBTrACS) and produces geospatially localized diagnostic maps of thermodynamic conditions associated with rapid intensification (RI).
+**CycloneNet** is an open‑source software framework designed for the **forensic audit of tropical cyclones**. It provides an automated, reproducible pipeline that ingests historical meteorological data (ERA5 reanalysis, IBTrACS) and produces geospatially referenced **hypothesis maps** of thermodynamic conditions associated with rapid intensification (RI) — spatial energy‑source attribution from these maps was tested externally and is **not supported** (see *Spatial validation* below).
 
 Unlike operational forecasting models, CycloneNet is built as a **high‑recall diagnostic tool** with a strong emphasis on **auditability, transparency, and reproducibility**. It is the result of applying robust software engineering principles to complex geospatial data, creating a verifiable foundation for retrospective storm analysis.
 
@@ -26,8 +26,8 @@ Unlike operational forecasting models, CycloneNet is built as a **high‑recall 
 - **High‑Sensitivity Detection**  
   The system is tuned to maximise recall (true positive rate) – a deliberate trade‑off to ensure that no potential intensification signature is missed in historical records. This **safety‑first bias** is documented and can be adjusted via the configuration.
 
-- **Geospatial Attribution**  
-  The model produces continuous coordinates (via soft‑argmax on a learned FuelMap) that point to the region of highest thermodynamic relevance within a 40×40 grid‑point window (approx. 10°×10°). The resulting “target lock” can be compared directly to the storm centre or, in future releases, to a physically derived energy proxy such as Tropical Cyclone Heat Potential (TCHP).
+- **Geospatial Attribution (hypothesis — validated NEGATIVE)**  
+  The model produces continuous coordinates (via soft‑argmax on a learned FuelMap) within a 40×40 grid‑point window (approx. 10°×10°). This “target lock” was tested against audited Tropical Cyclone Heat Potential (TCHP) peaks and a naive storm‑centre baseline: the FuelMap does **not** localize the energy source beyond storm position (n=226, p=0.30 vs the centre baseline). The coordinates are retained for transparency and auditability, not as a validated attribution. See [ERRATA.md](./ERRATA.md) and `docs/fuelmap_validation.md`.
 
 ---
 
@@ -85,12 +85,12 @@ cyclone-net/
 
 - **Immutable Raw Data** – ERA5 monthly files are downloaded once and never altered; all derived products (cubes, grids) are stored separately.
 - **Storm‑Level Splits** – Data are split by SID to guarantee that no storm appears in more than one set (train/val/test).
-- **Unique Event Identification** – Each event now has an ID combining SID and timestamp (e.g., `AL052005_2005_08_27_0600`), eliminating any risk of collision.
+- **Unique Event Identification** – Each event now has an ID combining timestamp and SID in the format `era5_{YYYY_MM_DD_HHMM}_{SID}` (e.g., `era5_2015_08_28_1200_2015238N10255`), eliminating any risk of collision between concurrent storms.
 - **Physical Unit Checks & NaN‑Free Guarantee** – SST and MSLP are normalised to Kelvin and Pascal; unrealistic values cause event rejection. After preprocessing, every cube is verified to contain **no NaN or Inf values** – any such event is discarded.
 - **Self‑Contained Metadata** – Each event’s JSON contains the full list of timestamps, centre coordinates, channel names, and (if available) TCHP maxima – enabling validation independent of the original event list.
 - **Physics‑guided losses** – Controlled entirely by the `training.physics` block in `config.yaml`; when every weight there is `0.0` the model degrades to a plain 3D‑CNN. Active terms by default:
   - **`lambda_prior_align`** – KL alignment of the learned FuelMap with a physical prior map (SST anomaly × wind speed × (1+convergence), or total heat flux when available).
-  - **`lambda_forward`** – a forward physical constraint: the energy localized by the FuelMap over the prior map must predict the 24 h intensity change (`dv24`), tying "localized surface energy → intensification".
+  - **`lambda_forward`** – a forward physical constraint: the energy the FuelMap concentrates over the (heuristic) prior map must predict the 24 h intensity change (`dv24`), tying "localized surface energy → intensification" **as training‑time supervision** — not a validated physical attribution.
   - **`lambda_tv` / `lambda_l1`** – smoothness / sparsity regularizers keeping the FuelMap physically plausible (compact, contiguous).
   - **`lambda_consistency`** (off by default) – equation consistency between vorticity/divergence recomputed from the wind field and the stored diagnostic channels. Because both sides derive from the same input wind, this term is **near‑degenerate** and is documented as a weak representational regularizer, **not** a physical‑discovery constraint.
 
@@ -240,24 +240,13 @@ The preprocessing step (`preprocess_scientific.py`) now:
 
 ### Tropical Cyclone Heat Potential (TCHP) validation
 
-To assess the model’s ability to locate the thermodynamic energy source, we now integrate external TCHP data **for validation only**. The following steps are available:
+To **test the hypothesis** that the FuelMap localizes the thermodynamic energy source, we validate it against external TCHP data (**validation only** — never a model input). **The result is negative (below).** The following steps are available:
 
 - **Download TCHP data** (optional, set `download.tchp.enabled: true` in `config.yaml`). The downloader automatically selects the appropriate source (NOAA ERDDAP for years ≥2022, AOML FTP for 1993–2021).
 - **Add TCHP maxima to metadata** with `python run.py preprocess-tchp`. For each event, the corresponding TCHP file is opened, the region around the cyclone centre is extracted, and the location of the maximum TCHP value (after smoothing) is stored in the event’s JSON metadata (`tchp_max_lat`, `tchp_max_lon`, `tchp_max_value`).
 - **Spatial evaluation** during `evaluate`: if TCHP metadata exists, the script computes the great‑circle distance between the predicted FuelMap peak (via soft‑argmax) and the TCHP maximum. Advanced spatial metrics (top‑10 overlap, rank correlation) are also reported when the full TCHP map is available (enable `--full-spatial` flag).
 
-Example test‑set output now includes:
-
-```json
-{
-  "tchp_mean_dist_km": 112.4,
-  "tchp_median_dist_km": 98.2,
-  "tchp_std_dist_km": 67.1,
-  "tchp_min_dist_km": 12.3,
-  "tchp_max_dist_km": 423.5,
-  "tchp_n": 1842
-}
-```
+**Result of this validation (honest):** on the 226 eligible test events (TCHP publicly gridded 2022+), the FuelMap peak lies a median **539 km** from the audited TCHP peak, versus **561 km** for the naive storm‑centre baseline — closer in only 46% of events (**p = 0.30**, sign‑flip permutation). It beats a random‑point null (p = 0.0003), i.e. it tracks the storm, but shows **no localization skill beyond storm position**. A dynamic displacement test with a pure‑physics‑prior control attributes the FuelMap's behavior during RI to the enthalpy‑flux prior's arithmetic, not learned skill. Full protocol and numbers: `docs/fuelmap_validation.md`.
 
 > **Note:** TCHP data is used **exclusively for validation** and never as a model input, preserving the scientific integrity of the experiment.
 
@@ -265,29 +254,21 @@ Example test‑set output now includes:
 
 ## 📊 Final Test‑Set Performance
 
-> ⚠️ **Numbers below are superseded and pending regeneration.** They were produced by an
-> earlier pipeline revision in which (a) the physics‑guided losses were inadvertently
-> inactive and (b) the validation threshold was chosen by max‑F1. The current code makes
-> the physics losses active by default (see `training.physics` in `config.yaml`) and selects
-> the threshold via `precision_at_recall` honouring `training.eval_target_recall`. These
-> metrics will be regenerated after re‑training with the corrected pipeline. The table is
-> retained only as a historical reference point.
+The model was trained and evaluated on the full **1980–2023** North Atlantic sector archive: **16,780 valid events / 802 RI positives / 992 storms**, with hash‑deterministic storm‑level splits (adding storms never reassigns existing ones). The held‑out test split — **2,679 events / 115 RI positives / 153 storms** — was never used during development. The threshold was selected on the validation split via `precision_at_recall` and applied unchanged to the test set. These numbers are reproducible from the public repository and dataset.
 
-The model was evaluated on a held‑out test set of 2,193 samples (15% of all storms, never seen during training or validation). The threshold was selected to reach the configured target recall on the validation set and then applied unchanged to the test set. **No external validation data (e.g., TCHP) was used in this evaluation; therefore spatial error metrics are not reported.** Future work will integrate TCHP data to assess the model’s localisation accuracy.
+| Metric                   | Test Value | Interpretation                                              |
+| ------------------------ | ---------- | ----------------------------------------------------------- |
+| **ROC‑AUC**              | **0.796** [95% CI 0.753–0.837] | CI entirely above chance.               |
+| **PR‑AUC**               | **0.251** [95% CI 0.179–0.331] | 5.8× the 4.3% prevalence; CI above chance. |
+| **Recall (Sensitivity)** | **0.852**  | High sensitivity at the forensic operating point.           |
+| **Precision**            | 0.070      | The accepted cost of the recall‑first mandate.              |
+| **F1‑score**             | 0.129      | Dominated by the deliberate recall bias.                    |
+| **Brier score**          | 0.0372     | Calibrated probabilistic outputs (ECE 0.011).               |
+| **Threshold**            | 0.0097     | Chosen on validation (142 positives) for recall ≥ 0.85.     |
+| **Positive samples**     | 115        | RI events in the test set.                                  |
+| **Negative samples**     | 2,564      | Non‑RI events in the test set.                              |
 
-| Metric                   | Test Value | Interpretation                                     |
-| ------------------------ | ---------- | -------------------------------------------------- |
-| **ROC‑AUC**              | 0.8329     | Good discriminative power.                         |
-| **PR‑AUC**               | 0.3470     | Precision‑recall trade‑off for the minority class. |
-| **Recall (Sensitivity)** | **0.905**  | **High sensitivity** – captures >90% of RI events. |
-| **Precision**            | 0.187      | Acceptable given the recall target.                |
-| **F1‑score**             | 0.310      | Harmonic mean of precision and recall.             |
-| **Brier score**          | 0.074      | Well‑calibrated probabilistic outputs.             |
-| **Threshold**            | 0.0666     | Operating point chosen for recall ≥90%.            |
-| **Positive samples**     | 211        | RI events in the test set.                         |
-| **Negative samples**     | 1982       | Non‑RI events in the test set.                     |
-
-The high recall of **90.5%** satisfies the forensic mandate of capturing nearly all intensification events, even at the cost of a moderate number of false positives (precision 18.7%). A detailed per‑sample breakdown (including examples of false positives such as Hurricane Isaac) is available in [`BENCHMARK.md`](./BENCHMARK.md).
+This is the first version of the project with **statistically demonstrable skill**: both AUC confidence intervals sit entirely above chance. Earlier releases (44 and then 96 test‑relevant positives) had CIs spanning chance — the diagnostic verdict "the bottleneck is sample size" was confirmed by intervention (17× data expansion). A per‑sample breakdown with real test‑set examples is in [`BENCHMARK.md`](./BENCHMARK.md); the correction history is in [`ERRATA.md`](./ERRATA.md).
 
 ---
 
@@ -295,10 +276,10 @@ The high recall of **90.5%** satisfies the forensic mandate of capturing nearly 
 
 - **Diagnostic, not predictive** – The framework is validated on historical data (hindcast) and has not been tested for real‑time forecasting.
 - **Engineering‑first** – The primary contribution is a robust, auditable data pipeline; the neural network is a proof‑of‑concept that demonstrates the integration path.
-- **Deliberate bias** – High recall is achieved by accepting a moderate number of false positives (e.g., the Isaac case). This trade‑off is configurable and fully documented.
-- **Spatial validation (now implemented)** – TCHP (Tropical Cyclone Heat Potential) spatial validation is wired into the pipeline. Run `python run.py preprocess-tchp` to enrich event metadata with audited TCHP peak locations, then `python run.py evaluate --spatial` to compute the great‑circle distance between the predicted FuelMap peak and the TCHP peak, **plus a skill comparison against a naive "predict the storm centre" baseline** (the model only demonstrates spatial skill if it beats that baseline). The historical benchmark table above predates this and therefore reports no geographic error; those numbers will accompany the regenerated metrics.
+- **Deliberate bias** – High recall is achieved by accepting many false positives (precision 0.070 at 4.3% prevalence). This trade‑off is configurable and fully documented.
+- **Spatial validation (executed — negative)** – TCHP spatial validation was run against the held‑out test set: the FuelMap peak does **not** beat the naive "predict the storm centre" baseline (median 539 km vs 561 km, n=226, p=0.30). The framework's validated contribution is the RI **classification** skill and the auditable pipeline; spatial energy‑source attribution remains an unsupported hypothesis. Protocol: `python run.py preprocess-tchp` then `python run.py evaluate --spatial`; full analysis in `docs/fuelmap_validation.md`.
 - **Heat flux channels** – Although computed, latent and sensible heat fluxes are **not part of the model inputs** in the current version. They are stored for future enhancements.
-- **Interpretability** – The model localises the energy source via **soft‑argmax on the learned FuelMap**. Gradient‑based attribution methods (e.g., integrated gradients) are implemented in `interpretability.py` but are **not yet integrated** into the evaluation pipeline; they remain experimental.
+- **Interpretability** – The model produces a spatial FuelMap via **soft‑argmax on a learned logit map**; this is retained for transparency but does **NOT** localize the energy source (see *Spatial validation* above). Gradient‑based attribution methods (e.g., integrated gradients) in `interpretability.py` remain experimental and not integrated into the evaluation pipeline.
 - **Equation consistency** – The loss that enforces vorticity/divergence derived from wind fields to match diagnostic channels is implemented, but its accuracy depends on the grid spacing (0.25°). This is documented in the code.
 
 ---

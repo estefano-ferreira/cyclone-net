@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use CycloneNet in your research, please cite it as below."
+title: >-
+  CycloneNet: A Reproducible Physics-Guided Pipeline for Forensic
+  Rapid-Intensification Analysis — and an Honest Audit of What It Can
+  and Cannot Do
+type: software
+authors:
+  - family-names: Senhor Ferreira
+    given-names: Estefano
+    email: estefano.senhor@gmail.com
+doi: 10.5281/zenodo.18751255
+repository-code: "https://github.com/estefano-ferreira/cyclone-net"
+license: CC-BY-NC-4.0
+version: "3.0.0"
+date-released: "2026-07-12"
+abstract: >-
+  Open-source, configuration-driven pipeline for forensic (hindcast)
+  analysis of tropical-cyclone rapid intensification (RI) from ERA5
+  reanalysis, with an honest audit of what it can and cannot do. The
+  released 1980-2023 dataset (16,780 events, 802 RI positives) yields
+  reproducible RI classification skill above chance (ROC-AUC 0.796,
+  PR-AUC 0.251); spatial energy-source attribution via the learned
+  FuelMap was tested externally and is not supported. Supersedes the
+  earlier title "CycloneNet V2: A Forensic Physics-Guided Deep Learning
+  Framework for Atmospheric Singularity Mapping" (see ERRATA.md).

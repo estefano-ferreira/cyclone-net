@@ -1,0 +1,384 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{url}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue}
+
+\title{CycloneNet: A Reproducible Physics-Guided Pipeline for Forensic
+Rapid-Intensification Analysis --- and an Honest Audit of What It Can and
+Cannot Do}
+\author{Estefano Senhor Ferreira\\
+\small Software Engineer, Independent Researcher\\
+\small \href{mailto:estefano.senhor@gmail.com}{estefano.senhor@gmail.com}
+\,\textperiodcentered\,
+\url{https://github.com/estefano-ferreira/cyclone-net}}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{center}
+\small\itshape Revised, corrected manuscript (supersedes ``CycloneNet V2:
+\ldots{} Atmospheric Singularity Mapping'', Feb 2026; this revision, Jul 2026,
+adds the full 1980--2023 data release and results). See \S8 for the
+correction record.
+\end{center}
+
+\begin{abstract}
+CycloneNet is an open-source, configuration-driven pipeline for forensic
+(hindcast) analysis of tropical-cyclone rapid intensification (RI) from ERA5
+reanalysis. It couples a 3D-CNN RI classifier with an interpretable spatial
+output (``FuelMap'') and physics-guided weak-constraint losses.
+
+This paper is deliberately \textbf{not} a claim of novelty. The individual
+components (3D-CNNs for RI, physics-informed/interpretable ML for tropical
+cyclones, ocean-heat predictors of RI) are established in the literature, and
+the central physical question --- \emph{where is the ocean energy that fuels a
+storm?} --- is already addressed operationally by Tropical Cyclone Heat
+Potential (TCHP)/ocean-heat-content products and by coupled ocean--atmosphere
+models (HWRF, HAFS) that compute air--sea enthalpy flux directly. CycloneNet
+does not advance the state of the art in RI skill, nor does it discover a new
+physical mechanism.
+
+What this paper contributes is twofold and modest: (1) a \textbf{transparent,
+auditable, reproducible engineering artifact} --- a hybrid physics+ML hindcast
+pipeline with leakage-safe splits, train-only normalization, unit tests, and a
+counterfactual causal test; and (2) an \textbf{honest audit} that yields
+cautionary, mostly \textbf{negative} results:
+\begin{itemize}
+  \item The learned FuelMap does \textbf{not} localize the ocean energy proxy
+        (TCHP) better than a trivial ``predict the storm centre'' baseline.
+  \item Adding a surface-altimetry ocean channel (absolute dynamic topography,
+        ADT) --- itself a known TCHP proxy --- does \textbf{not} measurably
+        improve RI skill in this small-data regime.
+  \item The ``equation-consistency'' physics loss is \textbf{near-degenerate}
+        by construction.
+  \item A prior release of this pipeline reported the model as
+        ``physics-guided'' while the physics losses were, in fact, inactive
+        (weight 0) in the released configuration.
+\end{itemize}
+
+The audit's central reproducibility failure --- headline metrics (ROC-AUC 0.83)
+obtained on an unreleased dataset --- is resolved in this revision by releasing
+the full \textbf{1980--2023} dataset (16{,}780 events, 802 RI positives, 992
+storms) built by a windowed, checksummed pipeline, and retraining
+deterministically on it. On the held-out test split (2{,}679 events, 115 RI
+positives) the classifier achieves \textbf{ROC-AUC 0.796 [95\% CI
+0.753--0.837]} and \textbf{PR-AUC 0.251 [0.179--0.331]} at the test split's
+4.3\% prevalence --- the first version of this project whose skill is statistically
+distinguishable from chance, and the confirmation-by-intervention of the
+audit's diagnostic that sample size, not architecture, was the bottleneck.
+The negative results on spatial attribution stand and are strengthened by two
+additional controls. We present this as a reproducible baseline and as a
+caution against overclaiming in physics-guided cyclone ML.
+\end{abstract}
+
+\section{Introduction}
+
+Tropical cyclones are heat engines: they convert heat stored in the upper
+ocean into kinetic energy through air--sea enthalpy flux, with the rate of
+extraction governed by the wind field and modulated by subsurface ocean heat
+content (Emanuel's potential-intensity theory). Predicting rapid
+intensification (RI; a $\geq$30\,kt increase in 24\,h) is an active, mature
+operational and research problem.
+
+CycloneNet asks a \emph{forensic} variant of this question: for a historical
+storm episode, which environmental conditions in the reanalysis are most
+consistent with intensification-supportive thermodynamics? This is a
+diagnostic/interpretive framing, not a forecasting one. We stress at the
+outset that this framing, and the methods used to pursue it, are \textbf{not
+new} (\S2). The purpose of this paper is to document the system honestly ---
+including what an audit shows it cannot do --- rather than to assert a
+contribution it does not make.
+
+\section{Positioning relative to existing work (what already exists)}
+
+It is important to state plainly what CycloneNet does \emph{not} originate:
+
+\begin{itemize}
+  \item \textbf{Deep learning for RI} is established, including convolutional
+        models over the North Atlantic and East Pacific and
+        ensemble/transformer approaches that match or exceed the skill
+        reported here.
+  \item \textbf{Ocean heat content / altimetry for RI} is foundational
+        operational oceanography: TCHP can be estimated from
+        altimetry-derived sea-surface-height fields and is already a
+        high-performing predictor in the operational SHIPS Rapid
+        Intensification Index. The ADT $\leftrightarrow$ TCHP relationship
+        CycloneNet ``rediscovers'' (\S5) is decades old.
+  \item \textbf{Physics-informed and interpretable ML for TC intensity}
+        (spatial attention, physics-informed networks, interpretable
+        transformers) is an active subfield.
+  \item \textbf{Identifying and quantifying the ocean energy source} of a
+        storm is operational: TCHP/OHC products (NOAA/AOML, NESDIS, Navy
+        NCODA) map the available fuel, and coupled models (HWRF since 2007;
+        HAFS, official 2023) compute the air--sea enthalpy-flux field and the
+        storm-induced cold wake every cycle.
+\end{itemize}
+
+CycloneNet occupies none of this as new ground. Its only non-trivial
+differentiator is engineering discipline (auditability, reproducibility,
+testing), which is a matter of execution quality, not scientific contribution.
+
+\section{Data}
+
+\begin{itemize}
+  \item \textbf{ERA5} (Copernicus CDS), 0.25$^{\circ}$: SST, MSLP, 10\,m
+        winds; optionally 2\,m temperature and dewpoint for bulk heat-flux
+        diagnostics. The \textbf{public release covers 1980--2023}, North
+        Atlantic sector season months. Because the raw monthly files
+        ($\sim$60\,GB) exceed local storage, the dataset is built by a
+        \textbf{windowed pipeline} (download $\rightarrow$ extract
+        $\rightarrow$ verify $\rightarrow$ discard raw), with per-window
+        provenance manifests recording SHA-256 checksums, per-event
+        extraction outcomes, and the deletion record --- every released cube
+        is auditable back to its source file.
+  \item \textbf{IBTrACS} best-track for storm centres, intensities, and RI
+        labels ($\Delta v \geq 30$\,kt/24\,h). Event identifiers embed the
+        storm ID (\texttt{era5\_\{timestamp\}\_\{SID\}}), so concurrent storms
+        at the same timestamp never collide.
+  \item \textbf{TCHP} (NOAA/AOML ERDDAP) and \textbf{sea-level anomaly / ADT}
+        (Copernicus DUACS) for external ocean validation. Note: the AOML
+        gridded TCHP product covers 2022--present only; pre-2022 gridded TCHP
+        is not publicly available, which limits validation to 2022--2023.
+\end{itemize}
+
+For each event, a $40\times40$ ($\approx$10$^{\circ}\times$10$^{\circ}$)
+spatio-temporal cube over five 6-hourly steps ($t_0 \ldots t_{-24\mathrm{h}}$)
+is extracted with nine input channels (SST, MSLP, U10, V10, wind speed,
+vorticity, divergence, $|\nabla \mathrm{MSLP}|$, SST anomaly). Splits are
+storm-level and \textbf{hash-deterministic}: each storm is assigned to
+train/val/test by the SHA-256 hash of its identifier, so adding new storms
+never reassigns existing ones (the previous seeded-shuffle scheme reassigned
+136 of 155 test events when the dataset grew --- a leakage mechanism
+eliminated in this revision). Normalization statistics are computed on the
+training split only. The full dataset yields \textbf{16{,}780 valid events
+from 992 storms (802 RI positives, 4.8\% global prevalence)}; train/val/test =
+11{,}150/2{,}951/2{,}679 events with 545/142/115 positives (per-split
+prevalence 4.3--4.9\%).
+
+\section{Methods}
+
+\textbf{Model.} A two-layer 3D-CNN produces (i) an RI logit and auxiliary
+12/24\,h intensity-change regressions via global pooling, and (ii) a 2D
+FuelMap logit map via a $1\times1$ head, from which a soft-argmax yields
+continuous predicted coordinates.
+
+\textbf{Physics-guided losses (now correctly active).} Controlled by explicit
+weights in \texttt{config.yaml}:
+\begin{itemize}
+  \item \emph{FuelMap--prior alignment} (KL): aligns the FuelMap distribution
+        with a heuristic physical prior
+        $P = \mathrm{ReLU}(\mathrm{SST}_{\mathrm{anom}})\cdot
+        \mathrm{wind}\cdot(1+\mathrm{ReLU}(-\mathrm{div}))$. The prior is
+        explicitly heuristic.
+  \item \emph{Forward constraint}: an energy score from the overlap of
+        FuelMap and prior is mapped to the 24\,h intensity change,
+        supervising ``localized surface energy $\rightarrow$
+        intensification''.
+  \item \emph{TV / L1} regularizers on the FuelMap.
+  \item \emph{Equation consistency} (off by default): we document that this
+        term is \textbf{near-degenerate} --- it compares
+        vorticity/divergence recomputed from the wind field against stored
+        channels derived from the same wind field; empirically, enabling it
+        changes the loss by $<$0.001\%.
+\end{itemize}
+
+\textbf{Optional ADT ocean channel.} ADT can be sampled onto each event grid
+and appended as an extra input channel (with a missingness mask where ocean
+coverage is absent).
+
+\textbf{Threshold.} Selected on validation by a configurable policy; the
+default targets the project's high-recall forensic regime
+(highest-precision threshold meeting a recall target).
+
+\textbf{Causal ablation (with control).} To test whether the model's RI
+prediction depends on the region the FuelMap identifies, we occlude the
+top-$k$\% FuelMap pixels and compare the drop in predicted RI probability
+against occluding an equal-size \emph{low-fuel control} region, using a
+paired test.
+
+\textbf{Spatial validation (with baseline).} Where TCHP is available, we
+compare the distance from the FuelMap peak to the TCHP peak against the
+distance from the \textbf{storm centre} to the TCHP peak --- the model only
+demonstrates spatial skill if it beats this baseline.
+
+\section{Results}
+
+\subsection{Classification (reproducible from public data)}
+
+On the held-out 1980--2023 test split ($n = 2{,}679$; \textbf{115 RI
+positives}), the physics-guided model achieves \textbf{ROC-AUC 0.796 [95\% CI
+0.753--0.837]} and \textbf{PR-AUC 0.251 [0.179--0.331]} against the test
+split's 4.3\% prevalence (5.8$\times$ chance), with recall 0.852 and precision 0.070 at the
+validation-selected high-recall operating point (Brier 0.037, ECE 0.011;
+bootstrap CIs, 10{,}000 resamples). Both confidence intervals sit entirely
+above chance. Training is deterministic --- the released checkpoint was
+reproduced digit-for-digit from scratch --- and every number in this section
+is computable from the public repository and dataset, resolving the
+reproducibility failure recorded in \S8.
+
+The trajectory across dataset generations is itself a result. The same
+architecture, losses, and hyperparameters produce:
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+Dataset & Test positives & ROC-AUC [95\% CI] & PR-AUC $\div$ prevalence \\
+\midrule
+2020--2023 (original release) & 9 & 0.590 [0.334--0.842] & 2.1$\times$ \\
+2020--2023, collision-fixed IDs & 13 & 0.614 [0.453--0.785] & 3.6$\times$ \\
+1980--2023 (this revision) & 115 & \textbf{0.796 [0.753--0.837]} & \textbf{5.8$\times$} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The first two rows have confidence intervals spanning chance; the audit's
+diagnostic --- that sample size, not architecture, was the binding constraint
+--- is thereby confirmed by intervention rather than argument. We still make
+no operational skill claim: no comparison against SHIPS-RII or other
+operational baselines has been performed (\S7).
+
+\subsection{Spatial localization --- negative result, three independent angles}
+
+The negative result on FuelMap localization survives the dataset expansion and
+two additional controls:
+
+\begin{enumerate}
+  \item \textbf{Static TCHP validation} ($n = 226$ eligible test events,
+        2022--2023 coverage): the FuelMap peak beats a random-point null
+        ($p = 0.0003$) --- it tracks the storm --- but does \textbf{not}
+        locate the TCHP peak better than the naive storm-centre baseline
+        (median 539\,km vs 561\,km; closer in only 46\% of events; sign-flip
+        permutation $p = 0.30$).
+  \item \textbf{Dynamic displacement test:} the FuelMap's apparent collapse
+        toward the storm centre during RI episodes, a candidate dynamic
+        signal, was tested explicitly.
+  \item \textbf{Physics-prior control:} repeating the displacement analysis
+        on the pure enthalpy-flux prior --- no learned weights at all ---
+        reproduces the same dynamic behavior. The ``signal'' is arithmetic of
+        the physics prior, not learned skill.
+\end{enumerate}
+
+Na\"ive ``peak-of-field-in-window'' localization is further confounded by the
+basin-scale ocean gradient (a majority of in-window TCHP maxima fall on the
+window edge). \textbf{We therefore report FuelMap-based localization of the
+energy source as unsupported}, and note that the model's demonstrable
+classification skill (\S5.1) does not transfer to spatial attribution.
+
+\subsection{ADT ocean input --- null result}
+
+A controlled with/without-ADT ablation (same seed, data, epochs) shows ADT
+does \textbf{not} improve RI classification --- it is marginally worse on
+every split (full test ROC-AUC 0.599 $\rightarrow$ 0.578). With only 4--9 RI
+positives per evaluation subset, the result is underpowered and inconclusive;
+the honest reading is that ADT's value cannot be demonstrated in this data
+regime. Separately, ADT does track TCHP at the storm centre (Spearman
+$\rho \approx 0.30$, replicated for 2022 and 2023) --- but this merely
+\textbf{reproduces known altimetry-OHC relationships}, it does not establish
+new science. (This ablation predates the 1980--2023 expansion; a paired
+feature ablation on the expanded dataset, with $\sim$800 positives of
+statistical power, is planned as follow-up work.)
+
+\subsection{Model-internal causal dependence --- positive but limited}
+
+Occluding the FuelMap-identified region reduces predicted RI significantly
+more than occluding a low-fuel control region (paired test,
+$p \approx 10^{-6}$; $\sim$93--96\% of events). This shows the \emph{trained
+model} relies on that region --- it does \textbf{not} show the region is the
+true physical energy source. It is an interpretability check, not a physical
+attribution.
+
+\section{Discussion}
+
+The audit clarifies what CycloneNet is. Its FuelMap is a
+saliency/attention-like derived representation whose localization validity,
+when tested against an independent ocean proxy, is not supported. Its
+``physics guidance'' is weak supervision toward a heuristic prior, not a
+physical law (and one of its physics terms is degenerate). Its ocean-input
+extension reproduces established altimetry-OHC relationships without
+improving skill. The framing of ``identifying the energy source feeding a
+hurricane'' overstates the scope: the fuel is extracted locally at the
+air--sea interface beneath the storm (not from a remote region), and mapping
+it is already operational via TCHP/OHC and coupled models.
+
+What remains genuinely useful is the artifact's transparency and the
+discipline of testing each claim --- including reporting the negative ones.
+We believe documenting these failure modes has value: physics-guided and
+``interpretable'' cyclone-ML papers frequently assert that learned maps
+recover physical quantities; here we show, with an explicit baseline, that a
+plausible such map does not.
+
+\section{Limitations}
+
+\begin{itemize}
+  \item \textbf{Surface-only input features.} The nine channels are
+        surface/near-surface fields; the model sees neither the subsurface
+        ocean reservoir that governs sustained RI nor the atmospheric column
+        (e.g.\ deep-layer shear, mid-level humidity) that operational
+        predictors exploit. Pressure-level extensions are implemented in the
+        pipeline but not yet part of the released training set.
+  \item \textbf{0.25$^{\circ}$ ERA5 resolution} cannot resolve inner-core
+        structure; the model necessarily learns environmental favorability,
+        not storm-scale dynamics.
+  \item \textbf{No comparison against operational baselines (SHIPS-RII)} ---
+        required before any operational skill claim; \S5.1's result is skill
+        above chance, not skill above the state of practice.
+  \item TCHP validation limited to 2022--2023 (gridded pre-2022 TCHP
+        unavailable publicly), i.e.\ $n = 226$ of 2{,}679 test events.
+  \item The heuristic prior is not a physical guarantee; the
+        equation-consistency term is degenerate.
+  \item The recall-first operating point yields precision 0.070 ---
+        appropriate for the forensic screening framing, unusable as an alarm
+        system.
+\end{itemize}
+
+\section{Correction record}
+
+This manuscript corrects the prior version (``CycloneNet V2 \ldots{}
+Atmospheric Singularity Mapping''). Specifically: (1) the released code did
+not implement the physics-guided losses it described (weights defaulted to
+0); this is fixed. (2) The threshold methodology in the code differed from
+the text; this is reconciled. (3) The headline metrics (2{,}193 test samples,
+ROC-AUC 0.83) were not reproducible from the public repository and derived
+from a larger, unreleased dataset; this is \textbf{resolved in this revision}
+by releasing the full 1980--2023 dataset and replacing the superseded numbers
+with the reproducible results of \S5.1 --- the 0.83/0.905 figures should not
+be cited. (4) The title and ``uniqueness/innovation'' framing overstated the
+scope relative to existing literature and operational tools; the title is
+revised and the framing corrected throughout. A detailed errata is provided
+in the repository (\texttt{ERRATA.md}).
+
+\section{Conclusion}
+
+CycloneNet is an honest, reproducible, well-engineered hybrid physics+ML
+pipeline for forensic RI analysis. It is \textbf{not} a novel method, a new
+scientific finding, nor a tool that identifies the physical energy source of
+hurricanes --- that capability already exists operationally. Its contribution
+is engineering transparency plus a two-sided audit: on the positive side, RI
+classification skill that is statistically distinguishable from chance and
+fully reproducible from public artifacts (ROC-AUC 0.796, PR-AUC 5.8$\times$
+chance, 115 test positives), obtained by fixing the audit-identified
+bottleneck (sample size) rather than the architecture; on the negative side,
+learned FuelMap localization does not beat a trivial baseline --- a result
+now robust across a static TCHP comparison, a dynamic displacement test, and
+a physics-prior control. We release it as a reproducible baseline and as a
+record of what, in this approach, does and does not work.
+
+\vspace{1em}
+\noindent\emph{Code, data instructions, tests, and the errata are available
+under CC BY-NC 4.0 at
+\url{https://github.com/estefano-ferreira/cyclone-net}.}
+
+\section*{Acknowledgements}
+
+ERA5 (Copernicus C3S), IBTrACS (NOAA NCEI), TCHP (NOAA/AOML), and DUACS
+sea-level data (Copernicus Marine). No external funding.
+
+\end{document}
