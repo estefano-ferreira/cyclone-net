@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Data artifacts: LF everywhere so sha256(manifest) == sha256(git blob) == sha256(served bytes)
+platform/site/data/** text eol=lf
