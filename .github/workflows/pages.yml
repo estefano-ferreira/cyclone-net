@@ -1,10 +1,11 @@
 name: Deploy Platform to GitHub Pages
 
 # Publishes ONLY platform/site (the static Event Explorer).
-# There is deliberately NO build step in CI: the data artifacts under
-# platform/site/data/ are generated locally by platform/build/build_events.py
-# and versioned in the repo, so every published byte is locally auditable
-# (manifest.json carries the sha256 of each artifact). CI only publishes.
+# There is deliberately NO build step and NO secret in this workflow: the
+# data artifacts under platform/site/data/ are generated locally by
+# platform/build/build_events.py and versioned in the repo, so every
+# published byte is locally auditable (manifest.json carries the sha256 of
+# each artifact). CI only packages and publishes the committed statics.
 
 on:
   push:
@@ -16,7 +17,7 @@ on:
 permissions:
   contents: read
   pages: write
-  id-token: read
+  id-token: write  # required by actions/deploy-pages (OIDC)
 
 jobs:
   deploy:

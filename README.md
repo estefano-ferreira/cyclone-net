@@ -116,6 +116,7 @@ credential stores:
 |---|---|---|
 | CDS (ERA5) | `~/.cdsapirc` | [CDS API how-to](https://cds.climate.copernicus.eu/api-how-to) |
 | Copernicus Marine (TCHP/SLA) | copernicusmarine's own store or `COPERNICUSMARINE_SERVICE_USERNAME`/`_PASSWORD` | run `copernicusmarine login` once |
+| FTP hosts (e.g. AOML archive) | `~/.netrc` (`machine <host> login <user> password <pw>`, `chmod 600 ~/.netrc`) | optional — the AOML archive is public and defaults to anonymous login |
 
 Defense in depth (see `security_layer/`):
 

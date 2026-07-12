@@ -1,15 +1,38 @@
 {
-  "roc_auc": 0.5898021308980214,
-  "pr_auc": 0.12075024034777905,
-  "precision": 0.17647058823529413,
-  "recall": 0.3333333333333333,
-  "f1": 0.23076923076923078,
-  "brier": 0.08328272549967676,
-  "threshold": 0.46313047409057617,
-  "n": 155,
-  "n_positive": 9,
-  "n_negative": 146,
+  "roc_auc": 0.7962456759139931,
+  "pr_auc": 0.2505794829234975,
+  "precision": 0.06960227272727272,
+  "recall": 0.8521739130434782,
+  "f1": 0.12869336835193695,
+  "brier": 0.037177817416035173,
+  "threshold": 0.009733318351209164,
+  "n": 2679,
+  "n_positive": 115,
+  "n_negative": 2564,
   "release_note": "Core released metrics are classification/probabilistic metrics. External spatial validation is optional and experimental.",
-  "ece": 0.08616557538810451,
-  "mce": 0.8083108961582184
+  "ece": 0.011117487514468062,
+  "mce": 0.2542030345648527,
+  "dataset_provenance": {
+    "n_events": 16780,
+    "n_ri_positives": 802,
+    "per_split": {
+      "test": {
+        "n": 2679,
+        "pos": 115
+      },
+      "train": {
+        "n": 11150,
+        "pos": 545
+      },
+      "val": {
+        "n": 2951,
+        "pos": 142
+      }
+    },
+    "event_id_scheme": "era5_{timestamp}_{SID} (v2)",
+    "coverage": "1980-2023 North Atlantic sector, 22 provenance-manifested windows",
+    "git_commit": "1b64c63",
+    "created": "2026-07-12T04:41:45.702481+00:00",
+    "purpose": "Full-archive retrain on the complete 1980-2023 dataset"
+  }
 }

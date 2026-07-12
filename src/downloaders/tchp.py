@@ -342,7 +342,22 @@ class TCHPDownloader:
                 )
 
                 ftp = ftplib.FTP(ftp_host, timeout=timeout)
-                ftp.login()  # anonymous
+                # Authentication policy: credentials NEVER live in code or in
+                # the project config. If ~/.netrc has an entry for this host,
+                # use it; otherwise fall back to anonymous login (the AOML
+                # archive is public open data).
+                netrc_auth = None
+                try:
+                    import netrc as _netrc
+
+                    netrc_auth = _netrc.netrc().authenticators(ftp_host)
+                except (FileNotFoundError, _netrc.NetrcParseError):
+                    pass
+                if netrc_auth:
+                    login_name, _, login_password = netrc_auth
+                    ftp.login(login_name or "anonymous", login_password or "")
+                else:
+                    ftp.login()  # anonymous (public archive)
                 ftp.voidcmd("TYPE I")
 
                 size = ftp.size(remote_path)
@@ -390,7 +405,9 @@ class TCHPDownloader:
         Download TCHP from Copernicus Marine Service using its Python client.
 
         Requirements:
-          - copernicusmarine installed and authenticated (or username/password provided in config)
+          - copernicusmarine installed and authenticated via `copernicusmarine login`
+            or COPERNICUSMARINE_SERVICE_* environment variables (credentials are
+            NEVER read from the project config)
         """
         if copernicusmarine is None:
             logger.error(

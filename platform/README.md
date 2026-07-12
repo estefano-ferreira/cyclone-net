@@ -96,14 +96,18 @@ Once running, open the browser console (F12) to inspect:
 
 ## Publishing to GitHub Pages
 
+**Live URL (after first deploy):** https://estefano-ferreira.github.io/cyclone-net/
+
 1. **Enable GitHub Pages:**
    - Repository → Settings → Pages
    - Source: **GitHub Actions**
 
-2. **Trigger deployment:**
-   - The workflow `.github/workflows/deploy-platform.yml` is triggered on:
+2. **Trigger deployment (automatic):**
+   - The workflow `.github/workflows/pages.yml` is triggered on:
      - Push to `main` affecting `platform/site/**`
      - Manual trigger via `workflow_dispatch`
+   - The workflow uses no secrets and runs no build — it only packages the
+     committed statics and publishes them.
 
 3. **What is published:**
    - Only the contents of `platform/site/` (no build artifacts, no venv, no source data)
