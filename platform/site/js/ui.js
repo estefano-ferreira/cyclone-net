@@ -85,15 +85,58 @@ function escapeHtml(str) {
 
 let allEvents = [];
 let selectHandler = null;
-let selectedSid = null;
+let selectedSidA = null;
+let selectedSidB = null;
+let compareMode = false;
 
-export function setupEventSelector(events, onSelect) {
+/**
+ * @param {Array} events
+ * @param {(sel: {sidA: string|null, sidB: string|null}) => void} onSelectionChange
+ *   Fired on every selection change (click, or toggling compare off). Replaces
+ *   the old single-sid onSelect(sid) contract.
+ */
+export function setupEventSelector(events, onSelectionChange) {
   allEvents = [...events].sort((a, b) => (a.start < b.start ? 1 : a.start > b.start ? -1 : 0));
-  selectHandler = onSelect;
+  selectHandler = onSelectionChange;
 
   const searchInput = $('event-search');
   searchInput.addEventListener('input', () => renderEventList(searchInput.value));
+
+  const compareToggle = $('compare-toggle');
+  compareToggle.addEventListener('change', () => {
+    compareMode = compareToggle.checked;
+    if (!compareMode) {
+      // Compare OFF: keep A, clear B, fall back to single-event behavior.
+      selectedSidB = null;
+    }
+    emitSelection(searchInput.value);
+  });
+
   renderEventList('');
+}
+
+function emitSelection(query) {
+  renderEventList(query);
+  if (selectHandler) selectHandler({ sidA: selectedSidA, sidB: selectedSidB });
+}
+
+function handleItemClick(sid) {
+  if (!compareMode) {
+    selectedSidA = sid;
+    selectedSidB = null;
+  } else if (selectedSidA === sid) {
+    // Deselecting the anchor clears the whole comparison — a lone B with no
+    // A would be a meaningless state.
+    selectedSidA = null;
+    selectedSidB = null;
+  } else if (selectedSidB === sid) {
+    selectedSidB = null;
+  } else if (selectedSidA === null) {
+    selectedSidA = sid;
+  } else {
+    // A is anchored; a new event always lands in (or replaces) B.
+    selectedSidB = sid;
+  }
 }
 
 function renderEventList(query) {
@@ -116,19 +159,20 @@ function renderEventList(query) {
   const frag = document.createDocumentFragment();
   for (const e of filtered) {
     const year = e.start ? e.start.slice(0, 4) : '—';
+    const isA = e.sid === selectedSidA;
+    const isB = e.sid === selectedSidB;
     const li = document.createElement('li');
-    li.className = 'event-item' + (e.sid === selectedSid ? ' selected' : '');
+    li.className = 'event-item' + (isA ? ' selected' : '') + (isB ? ' selected-b' : '');
     li.dataset.sid = e.sid;
     li.innerHTML = `
       <span class="event-item-name">${escapeHtml(e.name)} (${year})</span>
       <span class="event-item-meta">max ${e.max_wind_kt != null ? Math.round(e.max_wind_kt) + 'kt' : '—'}</span>
+      ${isB ? '<span class="compare-b-chip">B</span>' : ''}
       ${e.has_ri ? '<span class="ri-badge" title="Rapid intensification candidate present">RI</span>' : ''}
     `;
     li.addEventListener('click', () => {
-      selectedSid = e.sid;
-      for (const node of list.children) node.classList.remove('selected');
-      li.classList.add('selected');
-      if (selectHandler) selectHandler(e.sid);
+      handleItemClick(e.sid);
+      emitSelection($('event-search').value);
     });
     frag.appendChild(li);
   }
@@ -155,6 +199,18 @@ function fmtDuration(startIso, endIso) {
   return `${hours}h`;
 }
 
+function metaRowsHtml(meta) {
+  return `
+      <dt>SID</dt><dd class="mono">${escapeHtml(meta.sid)}</dd>
+      <dt>Basin</dt><dd>${meta.basin != null ? escapeHtml(meta.basin) : '—'}</dd>
+      <dt>Period</dt><dd>${fmtPeriodDate(meta.start)} &ndash; ${fmtPeriodDate(meta.end)}</dd>
+      <dt>Duration</dt><dd>${fmtDuration(meta.start, meta.end)}</dd>
+      <dt>Max wind</dt><dd>${meta.max_wind_kt != null ? meta.max_wind_kt + ' kt' : '—'}</dd>
+      <dt>Min pressure</dt><dd>${meta.min_pressure_mb != null ? meta.min_pressure_mb + ' mb' : '—'}</dd>
+      <dt>Points</dt><dd>${meta.n_points}</dd>
+      <dt>RI observed</dt><dd>${meta.has_ri ? '<span class="ri-badge">RI</span>' : 'no'}</dd>`;
+}
+
 export function renderMetadata(meta) {
   const panel = $('metadata-panel');
   if (!meta) {
@@ -164,15 +220,32 @@ export function renderMetadata(meta) {
   panel.innerHTML = `
     <dl class="meta-list">
       <dt>Name</dt><dd>${escapeHtml(meta.name)}</dd>
-      <dt>SID</dt><dd class="mono">${escapeHtml(meta.sid)}</dd>
-      <dt>Basin</dt><dd>${meta.basin != null ? escapeHtml(meta.basin) : '—'}</dd>
-      <dt>Period</dt><dd>${fmtPeriodDate(meta.start)} &ndash; ${fmtPeriodDate(meta.end)}</dd>
-      <dt>Duration</dt><dd>${fmtDuration(meta.start, meta.end)}</dd>
-      <dt>Max wind</dt><dd>${meta.max_wind_kt != null ? meta.max_wind_kt + ' kt' : '—'}</dd>
-      <dt>Min pressure</dt><dd>${meta.min_pressure_mb != null ? meta.min_pressure_mb + ' mb' : '—'}</dd>
-      <dt>Points</dt><dd>${meta.n_points}</dd>
-      <dt>RI observed</dt><dd>${meta.has_ri ? '<span class="ri-badge">RI</span>' : 'no'}</dd>
+      ${metaRowsHtml(meta)}
     </dl>`;
+}
+
+/**
+ * Two-column side-by-side metadata for compare mode. Same fields as
+ * renderMetadata minus the Name row (carried by the column header instead).
+ * Observed best-track facts only — no derived/comparative text (see
+ * project honesty guardrail).
+ */
+export function renderMetadataCompare(metaA, metaB) {
+  const panel = $('metadata-panel');
+  if (!metaA || !metaB) return;
+  const yearA = metaA.start ? metaA.start.slice(0, 4) : '';
+  const yearB = metaB.start ? metaB.start.slice(0, 4) : '';
+  panel.innerHTML = `
+    <div class="meta-compare">
+      <div class="meta-compare-col">
+        <h3 class="meta-compare-header">${escapeHtml(metaA.name)}${yearA ? ' (' + yearA + ')' : ''}</h3>
+        <dl class="meta-list">${metaRowsHtml(metaA)}</dl>
+      </div>
+      <div class="meta-compare-col">
+        <h3 class="meta-compare-header meta-compare-header-b">${escapeHtml(metaB.name)}${yearB ? ' (' + yearB + ')' : ''}</h3>
+        <dl class="meta-list">${metaRowsHtml(metaB)}</dl>
+      </div>
+    </div>`;
 }
 
 // ---------------------------------------------------------------------

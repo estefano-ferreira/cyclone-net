@@ -313,6 +313,35 @@ def cmd_download_era5pl(args):
     logger.info("download-era5pl: done")
 
 
+def cmd_backfill_pl_window(args):
+    cfg = ensure_normalized_paths(load_config("config.yaml"))
+    ensure_dirs(cfg)
+    if not bool(cfg_get(cfg, "download.pressure_levels.enabled", False)):
+        raise SystemExit("download.pressure_levels.enabled is false in config.yaml — "
+                         "enable it explicitly before running the PL backfill.")
+    results_dir = Path(cfg["paths"]["results_dir"])
+    save_run_snapshot(cfg, results_dir, "backfill-pl-window")
+    from src.pipeline.pl_backfill import backfill_window
+    y0, y1 = int(args.years[0]), int(args.years[1])
+    manifest = backfill_window(cfg, y0, y1, dry_run=bool(args.dry_run))
+    logger.info("backfill-pl-window: done | window=%d-%d | status=%s", y0, y1, manifest.get("status"))
+
+
+def cmd_backfill_pl_windows(args):
+    cfg = ensure_normalized_paths(load_config("config.yaml"))
+    ensure_dirs(cfg)
+    if not bool(cfg_get(cfg, "download.pressure_levels.enabled", False)):
+        raise SystemExit("download.pressure_levels.enabled is false in config.yaml — "
+                         "enable it explicitly before running the PL backfill.")
+    results_dir = Path(cfg["paths"]["results_dir"])
+    save_run_snapshot(cfg, results_dir, "backfill-pl-windows")
+    from src.pipeline.pl_backfill import make_windows, run_all_backfill_windows
+    windows = make_windows(1980, 2019, window_years=2)
+    manifests = run_all_backfill_windows(cfg, windows, dry_run=bool(args.dry_run))
+    done = sum(1 for m in manifests if m.get("status") == "completed")
+    logger.info("backfill-pl-windows: done | completed=%d/%d", done, len(manifests))
+
+
 def cmd_process_window(args):
     cfg = ensure_normalized_paths(load_config("config.yaml"))
     ensure_dirs(cfg)
@@ -430,6 +459,20 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Download ERA5 pressure-level fields (shear + mid-level RH); "
                              "gated by download.pressure_levels.enabled")
     sp.set_defaults(func=cmd_download_era5pl)
+
+    sp = sub.add_parser("backfill-pl-window",
+                        help="Backfill 'shear_850_200_mps'/'rh_mid' channels for events in ONE year "
+                             "window whose cube predates pressure-level extraction (1980-2019 archive); "
+                             "gated by download.pressure_levels.enabled")
+    sp.add_argument("--years", type=int, nargs=2, required=True, metavar=("START", "END"))
+    sp.add_argument("--dry-run", action="store_true", help="Classify events only; no download/write/delete")
+    sp.set_defaults(func=cmd_backfill_pl_window)
+
+    sp = sub.add_parser("backfill-pl-windows",
+                        help="Run backfill-pl-window for every 1980-2019 window (2-year steps), "
+                             "resumable via outputs/provenance/pl_window_*.json manifests")
+    sp.add_argument("--dry-run", action="store_true", help="Classify events only; no download/write/delete")
+    sp.set_defaults(func=cmd_backfill_pl_windows)
 
     sp = sub.add_parser("process-window",
                         help="Windowed pipeline for ONE window: download ERA5, extract events, "

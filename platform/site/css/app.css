@@ -13,6 +13,7 @@
   --danger-bg: #2a1414;
   --warning: #f5a623;
   --warning-bg: #2a2114;
+  --accent-b: #f0883e;
   --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 }
 
@@ -32,7 +33,11 @@ html, body {
 #app {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  /* Fixed app-shell height: the sidebar and main area scroll INTERNALLY
+     (overflow-y below); the page itself never grows a scrollbar just
+     because sidebar content got taller (e.g. compare-mode metadata). */
+  height: 100vh;
+  height: 100dvh;
 }
 
 a { color: var(--accent); }
@@ -134,6 +139,9 @@ code { font-family: var(--mono); font-size: 0.92em; }
   display: flex;
   flex-direction: column;
   min-width: 0;
+  /* Short screens: map (52vh) + chart (min 220px) scroll inside the main
+     area instead of stretching the page. */
+  overflow-y: auto;
 }
 
 #map {
@@ -166,6 +174,21 @@ code { font-family: var(--mono); font-size: 0.92em; }
 }
 #event-search:focus { outline: 1px solid var(--accent); }
 
+.compare-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+.compare-toggle-row input[type="checkbox"] {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 #event-list {
   list-style: none;
   margin: 0;
@@ -188,9 +211,24 @@ code { font-family: var(--mono); font-size: 0.92em; }
 .event-item:last-child { border-bottom: none; }
 .event-item:hover { background: rgba(88, 166, 255, 0.08); }
 .event-item.selected { background: rgba(88, 166, 255, 0.15); }
+.event-item.selected-b {
+  background: rgba(240, 136, 62, 0.12);
+  border-left: 3px solid var(--accent-b);
+  padding-left: calc(0.55rem - 3px);
+}
 
 .event-item-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .event-item-meta { color: var(--text-dim); font-family: var(--mono); font-size: 0.72rem; }
+
+.compare-b-chip {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #0d1117;
+  background: var(--accent-b);
+  border-radius: 3px;
+  padding: 0.05rem 0.32rem;
+  letter-spacing: 0.02em;
+}
 
 .event-list-empty { padding: 0.5rem; color: var(--text-dim); font-size: 0.8rem; }
 
@@ -218,6 +256,37 @@ code { font-family: var(--mono); font-size: 0.92em; }
 .meta-list dt { color: var(--text-dim); }
 .meta-list dd { margin: 0; }
 .mono { font-family: var(--mono); }
+
+/* Compare mode: two-column metadata, side by side. Sized by the panel's own
+   available width (not the viewport) so it behaves the same whether the
+   sidebar is docked or the mobile overlay. */
+#metadata-section { container-type: inline-size; container-name: metadata; }
+
+.meta-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 0.9rem;
+}
+.meta-compare-col { min-width: 0; }
+.meta-compare-header {
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem 0;
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid var(--border);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.meta-compare-header-b {
+  color: var(--accent-b);
+  border-bottom-color: var(--accent-b);
+}
+
+@container metadata (max-width: 420px) {
+  .meta-compare { grid-template-columns: 1fr; gap: 0.9rem 0; }
+}
 
 /* ---------------------------------------------------------------- legend */
 
@@ -295,6 +364,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
 }
 .cn-leaflet-tooltip::before { display: none !important; }
 
+.cn-tooltip-name { color: var(--text); font-weight: 600; margin-bottom: 0.15rem; }
 .cn-tooltip-time { color: var(--text-dim); margin-bottom: 0.15rem; }
 .cn-tooltip-ri { color: var(--warning); font-weight: 600; margin-top: 0.15rem; }
 

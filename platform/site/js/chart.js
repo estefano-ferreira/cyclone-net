@@ -1,12 +1,17 @@
 // Chart.js intensity chart: wind (kt, left axis) colored per-point by the
 // Saffir-Simpson scale, pressure (mb, right axis) as a thinner line with
 // gaps where missing. Exposes a small hover API for map <-> chart cross-hover.
+//
+// Single mode (geojsonB omitted): unchanged wind+pressure rendering.
+// Compare mode: two wind datasets (A solid, B dashed), pressure omitted
+// (four curves on one chart is unreadable) and the pressure axis hidden.
 
 import { windColor, trendArrow } from './scale.js';
 
 let chartInstance = null;
 let hoverCallback = null;
-let currentPoints = [];
+let currentPoints = { A: [], B: [] };
+let compareMode = false;
 
 function fmtTick(ms) {
   const d = new Date(ms);
@@ -14,6 +19,16 @@ function fmtTick(ms) {
   const dd = String(d.getUTCDate()).padStart(2, '0');
   const hh = String(d.getUTCHours()).padStart(2, '0');
   return `${d.getUTCFullYear()}-${mm}-${dd} ${hh}h`;
+}
+
+function windTooltipLines(p) {
+  const lines = [`Wind: ${p.wind_kt != null ? p.wind_kt + ' kt' : '—'}`];
+  if (p.dv24_kt != null) {
+    const sign = p.dv24_kt > 0 ? '+' : '';
+    lines.push(`dv24: ${sign}${p.dv24_kt} kt ${trendArrow(p.trend)}`);
+  }
+  if (p.ri_candidate) lines.push('RI candidate');
+  return lines;
 }
 
 export function initChart(canvasId = 'intensity-chart') {
@@ -40,17 +55,15 @@ export function initChart(canvasId = 'intensity-chart') {
           callbacks: {
             title: (items) => (items.length ? fmtTick(items[0].parsed.x) : ''),
             label: (item) => {
-              const p = currentPoints[item.dataIndex];
-              if (!p) return '';
               if (item.dataset.yAxisID === 'yWind') {
-                const lines = [`Wind: ${p.wind_kt != null ? p.wind_kt + ' kt' : '—'}`];
-                if (p.dv24_kt != null) {
-                  const sign = p.dv24_kt > 0 ? '+' : '';
-                  lines.push(`dv24: ${sign}${p.dv24_kt} kt ${trendArrow(p.trend)}`);
-                }
-                if (p.ri_candidate) lines.push('RI candidate');
-                return lines;
+                const slot = compareMode && item.datasetIndex === 1 ? 'B' : 'A';
+                const p = currentPoints[slot][item.dataIndex];
+                if (!p) return '';
+                return windTooltipLines(p);
               }
+              // Pressure dataset only exists in single mode.
+              const p = currentPoints.A[item.dataIndex];
+              if (!p) return '';
               return `Pressure: ${p.pressure_mb != null ? p.pressure_mb + ' mb' : '—'}`;
             }
           }
@@ -72,6 +85,7 @@ export function initChart(canvasId = 'intensity-chart') {
         yPressure: {
           type: 'linear',
           position: 'right',
+          display: true,
           title: { display: true, text: 'Pressure (mb)', color: '#8b949e' },
           ticks: { color: '#8b949e' },
           grid: { display: false }
@@ -79,7 +93,13 @@ export function initChart(canvasId = 'intensity-chart') {
       },
       onHover: (_evt, elements) => {
         if (!hoverCallback) return;
-        hoverCallback(elements.length ? elements[0].index : null);
+        if (!elements.length) {
+          hoverCallback('A', null);
+          return;
+        }
+        const el = elements[0];
+        const slot = compareMode && el.datasetIndex === 1 ? 'B' : 'A';
+        hoverCallback(slot, el.index);
       }
     }
   });
@@ -90,78 +110,121 @@ export function initChart(canvasId = 'intensity-chart') {
 export function clearChart() {
   if (!chartInstance) return;
   chartInstance.data.datasets = [];
-  currentPoints = [];
+  currentPoints = { A: [], B: [] };
+  compareMode = false;
+  chartInstance.options.scales.yPressure.display = true;
   chartInstance.update();
 }
 
-export function renderChart(geojson) {
-  if (!chartInstance) return;
-
-  const points = geojson.features
-    .filter((f) => f.geometry.type === 'Point')
-    .map((f) => f.properties);
-  currentPoints = points;
-
+function buildWindDataset(points, opts) {
   const windData = points.map((p) => ({ x: new Date(p.t).getTime(), y: p.wind_kt }));
-  const pressureData = points.map((p) => ({
-    x: new Date(p.t).getTime(),
-    y: p.pressure_mb === null || p.pressure_mb === undefined ? null : p.pressure_mb
-  }));
-
   const pointColors = points.map((p) => windColor(p.wind_kt));
   const pointBorderColors = points.map((p) => (p.ri_candidate ? '#ffffff' : windColor(p.wind_kt)));
   const pointBorderWidths = points.map((p) => (p.ri_candidate ? 2 : 1));
   const pointRadii = points.map((p) => (p.ri_candidate ? 6 : 3));
   const pointStyles = points.map((p) => (p.ri_candidate ? 'rectRot' : 'circle'));
 
-  chartInstance.data.datasets = [
-    {
-      label: 'Wind (kt)',
-      data: windData,
-      yAxisID: 'yWind',
-      borderColor: 'rgba(230,237,243,0.8)',
-      borderWidth: 2,
-      backgroundColor: 'transparent',
-      pointBackgroundColor: pointColors,
-      pointBorderColor: pointBorderColors,
-      pointBorderWidth: pointBorderWidths,
-      pointRadius: pointRadii,
-      pointHoverRadius: pointRadii.map((r) => r + 3),
-      pointStyle: pointStyles,
-      spanGaps: false,
-      tension: 0.15
-    },
-    {
-      label: 'Pressure (mb)',
-      data: pressureData,
-      yAxisID: 'yPressure',
-      borderColor: 'rgba(91,163,207,0.6)',
-      borderWidth: 1,
-      backgroundColor: 'transparent',
-      pointRadius: 0,
-      pointHoverRadius: 3,
-      spanGaps: false,
-      tension: 0.15
-    }
-  ];
+  return {
+    label: opts.label,
+    data: windData,
+    yAxisID: 'yWind',
+    borderColor: opts.borderColor,
+    borderDash: opts.borderDash,
+    borderWidth: 2,
+    backgroundColor: 'transparent',
+    pointBackgroundColor: pointColors,
+    pointBorderColor: pointBorderColors,
+    pointBorderWidth: pointBorderWidths,
+    pointRadius: pointRadii,
+    pointHoverRadius: pointRadii.map((r) => r + 3),
+    pointStyle: pointStyles,
+    spanGaps: false,
+    tension: 0.15
+  };
+}
+
+function buildPressureDataset(points) {
+  const pressureData = points.map((p) => ({
+    x: new Date(p.t).getTime(),
+    y: p.pressure_mb === null || p.pressure_mb === undefined ? null : p.pressure_mb
+  }));
+
+  return {
+    label: 'Pressure (mb)',
+    data: pressureData,
+    yAxisID: 'yPressure',
+    borderColor: 'rgba(91,163,207,0.6)',
+    borderWidth: 1,
+    backgroundColor: 'transparent',
+    pointRadius: 0,
+    pointHoverRadius: 3,
+    spanGaps: false,
+    tension: 0.15
+  };
+}
+
+/**
+ * @param {object} geojsonA
+ * @param {object} definitions unused today (kept for API parity with the map/app layer)
+ * @param {object|null} [geojsonB] presence of this arg switches the chart to compare mode
+ * @param {{a?: string, b?: string}} [names] storm names for the dataset legend labels
+ */
+export function renderChart(geojsonA, definitions, geojsonB = null, names = {}) {
+  if (!chartInstance) return;
+
+  compareMode = !!geojsonB;
+
+  const pointsA = geojsonA.features
+    .filter((f) => f.geometry.type === 'Point')
+    .map((f) => f.properties);
+  currentPoints.A = pointsA;
+
+  if (!compareMode) {
+    currentPoints.B = [];
+    chartInstance.data.datasets = [
+      buildWindDataset(pointsA, { label: 'Wind (kt)', borderColor: 'rgba(230,237,243,0.8)' }),
+      buildPressureDataset(pointsA)
+    ];
+    chartInstance.options.scales.yPressure.display = true;
+  } else {
+    const pointsB = geojsonB.features
+      .filter((f) => f.geometry.type === 'Point')
+      .map((f) => f.properties);
+    currentPoints.B = pointsB;
+
+    chartInstance.data.datasets = [
+      buildWindDataset(pointsA, { label: names.a || 'Event A', borderColor: 'rgba(230,237,243,0.8)' }),
+      buildWindDataset(pointsB, {
+        label: names.b || 'Event B',
+        borderColor: 'rgba(240,136,62,0.85)',
+        borderDash: [6, 4]
+      })
+    ];
+    chartInstance.options.scales.yPressure.display = false;
+  }
 
   chartInstance.update();
 }
 
-/** Register a callback(index|null) fired when the user hovers a chart point directly. */
+/** Register a callback(slot, index|null) fired when the user hovers a chart point directly. */
 export function onPointHover(cb) {
   hoverCallback = cb;
 }
 
-/** Programmatically highlight (or clear, with null) the wind-dataset point at `index`. */
-export function highlightIndex(index) {
+/**
+ * Programmatically highlight (or clear, with null) the wind-dataset point at
+ * `index` in `slot`. In single mode slot is always effectively 'A'.
+ */
+export function highlightIndex(slot, index) {
   if (!chartInstance) return;
   if (index === null || index === undefined) {
     chartInstance.setActiveElements([]);
     chartInstance.tooltip.setActiveElements([], { x: 0, y: 0 });
-  } else {
-    chartInstance.setActiveElements([{ datasetIndex: 0, index }]);
-    chartInstance.tooltip.setActiveElements([{ datasetIndex: 0, index }], { x: 0, y: 0 });
+    chartInstance.update();
+    return;
   }
+  const datasetIndex = compareMode && slot === 'B' ? 1 : 0;
+  chartInstance.setActiveElements([{ datasetIndex, index }]);
+  chartInstance.tooltip.setActiveElements([{ datasetIndex, index }], { x: 0, y: 0 });
   chartInstance.update();
 }
