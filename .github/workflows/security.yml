@@ -1,0 +1,28 @@
+name: Security — Secret Guard
+
+# Fails the build if any tracked file contains a credential-shaped string or
+# if a forbidden file (config.yaml, run_snapshot.json, credential stores) is
+# tracked. Complements the local pre-commit hook (security_layer/install_hook.sh),
+# which developers can bypass — CI cannot be bypassed.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  secret-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run secret guard over all tracked files
+        run: python security_layer/secret_guard.py

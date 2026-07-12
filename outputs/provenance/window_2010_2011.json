@@ -1,0 +1,178 @@
+{
+  "window": [
+    2010,
+    2011
+  ],
+  "created_at": "2026-07-12T02:11:17.377559+00:00",
+  "status": "completed",
+  "estimate": {
+    "window": [
+      2010,
+      2011
+    ],
+    "n_events": 1538,
+    "months_needed": [
+      "2010-05",
+      "2010-06",
+      "2010-07",
+      "2010-08",
+      "2010-09",
+      "2010-10",
+      "2010-11",
+      "2011-06",
+      "2011-07",
+      "2011-08",
+      "2011-09",
+      "2011-10",
+      "2011-11"
+    ],
+    "months_to_download": [
+      "2010-05",
+      "2010-06",
+      "2010-07",
+      "2010-08",
+      "2010-09",
+      "2010-10",
+      "2010-11",
+      "2011-06",
+      "2011-07",
+      "2011-08",
+      "2011-09",
+      "2011-10",
+      "2011-11"
+    ],
+    "avg_month_mb_measured": 94.0,
+    "estimated_download_mb": 1222.6
+  },
+  "config_digest": {
+    "variables": [
+      "sea_surface_temperature",
+      "mean_sea_level_pressure",
+      "10m_u_component_of_wind",
+      "10m_v_component_of_wind",
+      "2m_temperature",
+      "2m_dewpoint_temperature"
+    ],
+    "grid": [
+      0.25,
+      0.25
+    ],
+    "spatial_subset": [
+      60,
+      -140,
+      0,
+      -20
+    ],
+    "offsets_hours": [
+      0,
+      -6,
+      -12,
+      -18,
+      -24
+    ],
+    "window_size_px": 40
+  },
+  "downloads": [
+    {
+      "file": "era5_2010_05.nc",
+      "size_bytes": 9059767,
+      "sha256": "38f9e244bbbc04b948c1422a770679abb0ece40f0e0b113527f7ca65c0d21016"
+    },
+    {
+      "file": "era5_2010_06.nc",
+      "size_bytes": 68162008,
+      "sha256": "b36742aa60f0cc4cafa2667258c462a06d4f6fe3fd3ac27c6a60b399c2cb19d9"
+    },
+    {
+      "file": "era5_2010_07.nc",
+      "size_bytes": 47067194,
+      "sha256": "7626a8210e52e299ca20a43738a4814d76d11d202376ec20761ad86ec13a9ad5"
+    },
+    {
+      "file": "era5_2010_08.nc",
+      "size_bytes": 119297394,
+      "sha256": "9083dc0908a9521d761bd8b7e95eb3cf815d8b2ee254c1d4d5ae121178135310"
+    },
+    {
+      "file": "era5_2010_09.nc",
+      "size_bytes": 123789854,
+      "sha256": "c17787b4d518504dbccd5ea85540bc61e889086ca1c8e506de7c6866c712fa77"
+    },
+    {
+      "file": "era5_2010_10.nc",
+      "size_bytes": 85568675,
+      "sha256": "6cd141d885ad9fde2e8fdbf1743a7d35d52705e027ba0716855c49457565de5f"
+    },
+    {
+      "file": "era5_2010_11.nc",
+      "size_bytes": 40805048,
+      "sha256": "ff4f1a9895b8168950cdd84327dd382deaee87d5ba15d19f41f87c8e03c143aa"
+    },
+    {
+      "file": "era5_2011_06.nc",
+      "size_bytes": 59523204,
+      "sha256": "f5a26dd0693446b3afe87474e8b54d0a8663a6ed3c9a4df48a8bdd428b2cfe9e"
+    },
+    {
+      "file": "era5_2011_07.nc",
+      "size_bytes": 93606825,
+      "sha256": "42cc7bd76dc1d2efe216ce7ed8d3ee41f8a4446a65312b096585ba995d63dac9"
+    },
+    {
+      "file": "era5_2011_08.nc",
+      "size_bytes": 119493015,
+      "sha256": "0f15c7389a93617950dd25cee57744ca6c23f352e6401dae78df5ff5831e5e87"
+    },
+    {
+      "file": "era5_2011_09.nc",
+      "size_bytes": 115743150,
+      "sha256": "f9d0aa07d18f4f2815451e7da78efb96a4b7075e6d66428d2e899538570c5c96"
+    },
+    {
+      "file": "era5_2011_10.nc",
+      "size_bytes": 102690290,
+      "sha256": "8293e88b251dcb1e6406e26a2da1b676be9c0143393e19024881197c5b91025f"
+    },
+    {
+      "file": "era5_2011_11.nc",
+      "size_bytes": 60417356,
+      "sha256": "b25ca5257c8d0ff3127316e9dfa81f5a2c97de4edefa1cf78abb7bdbb3ae4264"
+    }
+  ],
+  "verification": {
+    "passed": true,
+    "n_expected_events": 1538,
+    "counts": {
+      "extracted": 1201,
+      "not_extracted": 337,
+      "invalid": 0
+    },
+    "missing_raw_months": [],
+    "invalid_events": []
+  },
+  "disk": {
+    "raw_dir_bytes_before_download": 9075181770,
+    "raw_dir_bytes_after_extract": 10120405550,
+    "raw_dir_bytes_after_discard": 9075181770
+  },
+  "deletion": {
+    "performed": true,
+    "freed_bytes": 1045223780,
+    "deleted_files": [
+      "era5_2010_05.nc",
+      "era5_2010_06.nc",
+      "era5_2010_07.nc",
+      "era5_2010_08.nc",
+      "era5_2010_09.nc",
+      "era5_2010_10.nc",
+      "era5_2010_11.nc",
+      "era5_2011_06.nc",
+      "era5_2011_07.nc",
+      "era5_2011_08.nc",
+      "era5_2011_09.nc",
+      "era5_2011_10.nc",
+      "era5_2011_11.nc"
+    ]
+  },
+  "completed_at": "2026-07-12T02:30:38.083956+00:00"
+}

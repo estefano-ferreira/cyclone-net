@@ -1,0 +1,38 @@
+name: Deploy Platform to GitHub Pages
+
+# Publishes ONLY platform/site (the static Event Explorer).
+# There is deliberately NO build step in CI: the data artifacts under
+# platform/site/data/ are generated locally by platform/build/build_events.py
+# and versioned in the repo, so every published byte is locally auditable
+# (manifest.json carries the sha256 of each artifact). CI only publishes.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'platform/site/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: platform/site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -20,8 +20,6 @@ This module must obey the project architecture declared in config.yaml.
 No training artifact path is hardcoded outside the configuration.
 """
 
-import importlib
-import inspect
 import json
 import logging
 import random
@@ -236,10 +234,13 @@ def _build_loaders(cfg: Dict[str, Any]) -> tuple[DataLoader, DataLoader]:
 
 def _build_model(cfg: Dict[str, Any]) -> torch.nn.Module:
     """
-    Build the model robustly without relying on a missing factory module.
+    Build the released physics-guided model.
 
-    The model selection order prioritizes the physics-guided released model.
+    The model class is imported explicitly so the trained architecture is
+    deterministic and auditable — no dynamic discovery, no silent fallback.
     """
+    from src.models.cyclone_net_physics_guided import CycloneNetPhysicsGuided
+
     in_ch = int(
         cfg_get(
             cfg,
@@ -253,80 +254,9 @@ def _build_model(cfg: Dict[str, Any]) -> torch.nn.Module:
         in_ch += 1
     hidden = int(cfg_get(cfg, "model.hidden_channels", 32))
     dropout = float(cfg_get(cfg, "model.dropout", 0.10))
-    use_sta = bool(cfg_get(cfg, "model.use_sta", False))
 
-    def _pick_model_class(mod, prefer_keywords: list[str]) -> type[nn.Module]:
-        candidates: list[type[nn.Module]] = []
-        for name in dir(mod):
-            obj = getattr(mod, name, None)
-            if isinstance(obj, type) and issubclass(obj, nn.Module) and obj is not nn.Module:
-                candidates.append(obj)
-
-        if not candidates:
-            raise ImportError(f"No nn.Module subclasses found in module: {mod.__name__}")
-
-        def score(cls: type[nn.Module]) -> int:
-            n = cls.__name__.lower()
-            s = 0
-            for i, kw in enumerate(prefer_keywords):
-                if kw.lower() in n:
-                    s += (len(prefer_keywords) - i) * 10
-            if "cyclonenet" in n or "cyclone" in n:
-                s += 5
-            return s
-
-        candidates.sort(key=score, reverse=True)
-        return candidates[0]
-
-    def _instantiate(cls: type[nn.Module], kwargs: Dict[str, Any]) -> nn.Module:
-        sig = inspect.signature(cls.__init__)
-        accepted = set(sig.parameters.keys())
-        accepted.discard("self")
-        filtered = {k: v for k, v in kwargs.items() if k in accepted}
-        return cls(**filtered)
-
-    common_kwargs = {
-        "in_channels": in_ch,
-        "input_channels": in_ch,
-        "hidden_channels": hidden,
-        "dropout": dropout,
-        "use_sta": use_sta,
-        "cfg": cfg,
-        "config": cfg,
-    }
-
-    guided_modules = [
-        "src.models.cyclone_net_physics_guided",
-        "src.models.cyclone_net_physics_guided_true",
-        "src.models.cyclonenet_physics_guided",
-    ]
-
-    for module_name in guided_modules:
-        try:
-            mod = importlib.import_module(module_name)
-            cls = _pick_model_class(mod, prefer_keywords=["guided", "physics", "cyclonenet"])
-            logger.info("Using model class: %s.%s", module_name, cls.__name__)
-            return _instantiate(cls, common_kwargs)
-        except Exception:
-            continue
-
-    fallback_modules = [
-        "src.models.cyclone_net_ri_only",
-        "src.models.cyclonenet_ri_only",
-    ]
-
-    last_err: Optional[Exception] = None
-    for module_name in fallback_modules:
-        try:
-            mod = importlib.import_module(module_name)
-            cls = _pick_model_class(mod, prefer_keywords=["ri", "cyclonenet"])
-            logger.info("Using model class: %s.%s", module_name, cls.__name__)
-            return _instantiate(cls, common_kwargs)
-        except Exception as exc:
-            last_err = exc
-            continue
-
-    raise ImportError(f"Could not build a model. Last error: {last_err}")
+    logger.info("Using model class: src.models.cyclone_net_physics_guided.CycloneNetPhysicsGuided")
+    return CycloneNetPhysicsGuided(in_channels=in_ch, hidden_channels=hidden, dropout=dropout)
 
 
 def _build_optimizer(cfg: Dict[str, Any], model: torch.nn.Module) -> torch.optim.Optimizer:

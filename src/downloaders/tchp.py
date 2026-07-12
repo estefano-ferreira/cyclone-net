@@ -404,18 +404,15 @@ class TCHPDownloader:
             _ensure_dir(out_path.parent)
 
             dataset_id = str(cfg_get(self.cfg, "download.tchp.copernicus.dataset_id", ""))
-            username = cfg_get(self.cfg, "download.tchp.copernicus.username", None)
-            password = cfg_get(self.cfg, "download.tchp.copernicus.password", None)
 
             if not dataset_id:
                 raise ValueError("Missing download.tchp.copernicus.dataset_id in config.")
 
-            # Copernicus expects lon/lat in degrees (typically -180..180 and -90..90),
-            # but product conventions vary; user must ensure config matches.
+            # Credentials come EXCLUSIVELY from copernicusmarine's own store
+            # (`copernicusmarine login`) or COPERNICUSMARINE_SERVICE_* env vars —
+            # never from the project config, which is serialized into run
+            # snapshots and was the source of a credential leak.
             kwargs = {}
-            if username and password:
-                kwargs["username"] = str(username)
-                kwargs["password"] = str(password)
 
             copernicusmarine.subset(
                 dataset_id=dataset_id,

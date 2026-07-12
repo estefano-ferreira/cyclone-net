@@ -1,0 +1,86 @@
+{
+  "protocol": "H1 circularity control (same matched pairs)",
+  "seed": 42,
+  "n_permutations": 2000,
+  "audit": {
+    "n_pairs_input": 394,
+    "n_pairs_used": 245,
+    "dropped": {
+      "wind_history": 149,
+      "cube": 0
+    },
+    "trend_window": "t-24h to t-6h (strictly pre-onset)"
+  },
+  "test1_wind_trend_control": {
+    "model": "conditional logistic: onset ~ z(d_wind_trend) + z(d_pressure_trend)",
+    "beta_wind_trend": 0.9679375196208436,
+    "p_wind_trend": 0.0004997501249375312,
+    "beta_pressure_trend": -0.3161063073856065,
+    "p_pressure_trend": 0.022988505747126436,
+    "wind_trend_strata": [
+      {
+        "stratum": "Q1",
+        "n": 58,
+        "mean_dp": -0.4191163793103513,
+        "cliffs_delta_dp_vs_zero": 0.03448275862068967
+      },
+      {
+        "stratum": "Q2",
+        "n": 31,
+        "mean_dp": -0.6770766129032036,
+        "cliffs_delta_dp_vs_zero": 0.22580645161290325
+      },
+      {
+        "stratum": "Q3",
+        "n": 93,
+        "mean_dp": -1.2159543010752651,
+        "cliffs_delta_dp_vs_zero": 0.13978494623655918
+      },
+      {
+        "stratum": "Q4",
+        "n": 63,
+        "mean_dp": -1.9924007936507866,
+        "cliffs_delta_dp_vs_zero": 0.2698412698412698
+      }
+    ],
+    "raw_mean_diff_wind_trend_kt": 8.16326530612245,
+    "raw_mean_diff_pressure_trend_hPa": -1.158788265306118
+  },
+  "test2_temporal_lead": {
+    "per_lag_level_profile": {
+      "t+0h": {
+        "wind_mean_diff_kt": 0.9591836734693877,
+        "wind_cliffs_delta": 0.04246563931695127,
+        "pressure_mean_diff_hPa": 0.7328801020408152,
+        "pressure_cliffs_delta": -0.007580174927113703
+      },
+      "t-6h": {
+        "wind_mean_diff_kt": -1.653061224489796,
+        "wind_cliffs_delta": -0.04254893794252395,
+        "pressure_mean_diff_hPa": 1.441556122448982,
+        "pressure_cliffs_delta": 0.08723032069970846
+      },
+      "t-12h": {
+        "wind_mean_diff_kt": -5.020408163265306,
+        "wind_cliffs_delta": -0.13229487713452728,
+        "pressure_mean_diff_hPa": 1.6471377551020419,
+        "pressure_cliffs_delta": 0.08663057059558517
+      },
+      "t-18h": {
+        "wind_mean_diff_kt": -7.489795918367347,
+        "wind_cliffs_delta": -0.186438983756768,
+        "pressure_mean_diff_hPa": 2.519525510204077,
+        "pressure_cliffs_delta": 0.18149104539775093
+      },
+      "t-24h": {
+        "wind_mean_diff_kt": -9.816326530612244,
+        "wind_cliffs_delta": -0.2283381924198251,
+        "pressure_mean_diff_hPa": 2.6003443877551,
+        "pressure_cliffs_delta": 0.19253644314868804
+      }
+    },
+    "t24_model": "onset ~ z(d_wind_level_t24) + z(d_wind_trend) + z(d_pressure_level_t24)",
+    "beta_pressure_level_t24": 0.22646812105536132,
+    "p_pressure_level_t24": 0.12393803098450774
+  }
+}

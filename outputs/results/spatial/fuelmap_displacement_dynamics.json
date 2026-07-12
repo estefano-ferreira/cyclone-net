@@ -1,0 +1,55 @@
+{
+  "protocol": "FuelMap displacement dynamics (out-of-sample test split)",
+  "seed": 42,
+  "availability": {
+    "n_test_predictions": 489,
+    "n_used": 489,
+    "n_missing_meta_or_pred": 0,
+    "n_with_observed_dv24": 489,
+    "n_ri": 13,
+    "n_with_shear_channel": 363,
+    "underpowered_ri": false
+  },
+  "displacement_km": {
+    "median": 234.2839373050182,
+    "mean": 241.72948245579533,
+    "p10": 99.30563337428447,
+    "p90": 394.35308074282096,
+    "fraction_below_50km": 0.0408997955010225,
+    "note": "the 40x40px window spans roughly +/-5 degrees (~550 km half-width)"
+  },
+  "magnitude_vs_abs_dv24": {
+    "spearman_rho": -0.12987136849340994,
+    "p_value": 0.004018155849703081,
+    "n": 489
+  },
+  "ri_vs_nonri_displacement": {
+    "median_ri_km": 70.76082668519143,
+    "median_nonri_km": 238.24745418851035,
+    "median_difference_km": -167.4866275033189,
+    "p_value_one_sided_ri_larger": 1.0,
+    "n_ri": 13,
+    "n_nonri": 476
+  },
+  "directional_alignment": {
+    "bearing_sst_max": {
+      "n": 488,
+      "mean_resultant_length": 0.36580305961242987,
+      "mean_angular_difference_deg": 81.69166408581602,
+      "p_value_vs_shuffled_pairing": 9.999000099990002e-05
+    },
+    "bearing_rh_max": {
+      "n": 362,
+      "mean_resultant_length": 0.1436854017411938,
+      "mean_angular_difference_deg": 331.4141508233574,
+      "p_value_vs_shuffled_pairing": 0.0031996800319968005
+    },
+    "bearing_shear_min": {
+      "n": 362,
+      "mean_resultant_length": 0.19984811957104556,
+      "mean_angular_difference_deg": 167.83973483811337,
+      "p_value_vs_shuffled_pairing": 0.00019998000199980003
+    }
+  },
+  "verdict": "DYNAMIC SIGNAL: the FuelMap displacement correlates with intensification and/or points toward environmental structure."
+}

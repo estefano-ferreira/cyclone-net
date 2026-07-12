@@ -1,0 +1,16 @@
+{
+  "ri": {
+    "criterion": "dv24_kt >= 30.0",
+    "threshold_kt_per_24h": 30.0,
+    "reference": "Kaplan & DeMaria (2003), Wea. Forecasting"
+  },
+  "dv_convention": "forward deltas: dv_h = wind(t+h) - wind(t), knots",
+  "temporal_resolution": "6-hourly best-track fixes; no interpolation applied",
+  "source": {
+    "dataset": "IBTrACS v04r00 (ALL)",
+    "url": "https://www.ncei.noaa.gov/products/international-best-track-archive",
+    "doi": "10.25921/82ty-9e16",
+    "accessed": "2026-03-01T04:27:15.932443Z"
+  },
+  "note": "All values are historical observations from the best-track record, not predictions."
+}

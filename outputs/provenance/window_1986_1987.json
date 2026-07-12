@@ -1,0 +1,186 @@
+{
+  "window": [
+    1986,
+    1987
+  ],
+  "created_at": "2026-07-11T20:32:05.389854+00:00",
+  "status": "completed",
+  "estimate": {
+    "window": [
+      1986,
+      1987
+    ],
+    "n_events": 1034,
+    "months_needed": [
+      "1986-05",
+      "1986-06",
+      "1986-07",
+      "1986-08",
+      "1986-09",
+      "1986-10",
+      "1986-11",
+      "1987-05",
+      "1987-06",
+      "1987-07",
+      "1987-08",
+      "1987-09",
+      "1987-10",
+      "1987-11"
+    ],
+    "months_to_download": [
+      "1986-05",
+      "1986-06",
+      "1986-07",
+      "1986-08",
+      "1986-09",
+      "1986-10",
+      "1986-11",
+      "1987-05",
+      "1987-06",
+      "1987-07",
+      "1987-08",
+      "1987-09",
+      "1987-10",
+      "1987-11"
+    ],
+    "avg_month_mb_measured": 94.0,
+    "estimated_download_mb": 1316.7
+  },
+  "config_digest": {
+    "variables": [
+      "sea_surface_temperature",
+      "mean_sea_level_pressure",
+      "10m_u_component_of_wind",
+      "10m_v_component_of_wind",
+      "2m_temperature",
+      "2m_dewpoint_temperature"
+    ],
+    "grid": [
+      0.25,
+      0.25
+    ],
+    "spatial_subset": [
+      60,
+      -140,
+      0,
+      -20
+    ],
+    "offsets_hours": [
+      0,
+      -6,
+      -12,
+      -18,
+      -24
+    ],
+    "window_size_px": 40
+  },
+  "downloads": [
+    {
+      "file": "era5_1986_05.nc",
+      "size_bytes": 31426200,
+      "sha256": "3d6a59256ae60796805c11037b032486a0112e658e5a4eff9298dfca455f6242"
+    },
+    {
+      "file": "era5_1986_06.nc",
+      "size_bytes": 51432822,
+      "sha256": "ed9a92a2f998584bb3d3d99e33c65efa5325b24b89c7e92c44c3dce1e8c401b9"
+    },
+    {
+      "file": "era5_1986_07.nc",
+      "size_bytes": 76132039,
+      "sha256": "c1ab60ab4d3849089d2e892f7b0f161e16ad61fe38453fe5af6768b2ea5dc56a"
+    },
+    {
+      "file": "era5_1986_08.nc",
+      "size_bytes": 93475421,
+      "sha256": "1ea43aa8e4421c5c40eb8d0a0308b38d1f9c6cdf29869f4a15d73cd0ea6d5cf0"
+    },
+    {
+      "file": "era5_1986_09.nc",
+      "size_bytes": 97631295,
+      "sha256": "45968c9754f99edbf5d515ef24b1bf172f5be5c5fe94401a87ede4aec96945ce"
+    },
+    {
+      "file": "era5_1986_10.nc",
+      "size_bytes": 35768313,
+      "sha256": "3ab992c3e0c7bf2d271830e4215d9470e0eadf32cfda18259e5a2a6a26b28896"
+    },
+    {
+      "file": "era5_1986_11.nc",
+      "size_bytes": 13516065,
+      "sha256": "ecb7666cf59c5b6702514d1a20c25123b5f8f9e6fc79b873f542ffca16b885fe"
+    },
+    {
+      "file": "era5_1987_05.nc",
+      "size_bytes": 35718310,
+      "sha256": "0e329f974a3ed2ba42c3223249bda9babc47d51a0aaa4725f1b175f0f41fb077"
+    },
+    {
+      "file": "era5_1987_06.nc",
+      "size_bytes": 8986997,
+      "sha256": "330a2ecc6820786d24a37b38b203c41d16d21433e854f320e77703c72bd74db3"
+    },
+    {
+      "file": "era5_1987_07.nc",
+      "size_bytes": 84840423,
+      "sha256": "bb4bce39f5bfc48a602c6155eae416b1f384c4c3007bba7779732b8970b0b511"
+    },
+    {
+      "file": "era5_1987_08.nc",
+      "size_bytes": 114414395,
+      "sha256": "7878f6f815b01ee63ec9e35e19e92860349ea374af0c5862eef21999e1e43b76"
+    },
+    {
+      "file": "era5_1987_09.nc",
+      "size_bytes": 102119223,
+      "sha256": "2b0bc0af7bc54e289680010d404933e9fa973657b9f1aea69e96bb8834f2dbfb"
+    },
+    {
+      "file": "era5_1987_10.nc",
+      "size_bytes": 59990996,
+      "sha256": "10a477d8517d89efb3eaf821d36a9ad2806d8f5ab385671d96849259d81e926f"
+    },
+    {
+      "file": "era5_1987_11.nc",
+      "size_bytes": 13526777,
+      "sha256": "a7e9a03c78c6ee9215164781aa9030e769cb2abefa6d1caacd439baca162412d"
+    }
+  ],
+  "verification": {
+    "passed": true,
+    "n_expected_events": 1034,
+    "counts": {
+      "extracted": 838,
+      "not_extracted": 196,
+      "invalid": 0
+    },
+    "missing_raw_months": [],
+    "invalid_events": []
+  },
+  "disk": {
+    "raw_dir_bytes_before_download": 9075178675,
+    "raw_dir_bytes_after_extract": 9894157951,
+    "raw_dir_bytes_after_discard": 9075178675
+  },
+  "deletion": {
+    "performed": true,
+    "freed_bytes": 818979276,
+    "deleted_files": [
+      "era5_1986_05.nc",
+      "era5_1986_06.nc",
+      "era5_1986_07.nc",
+      "era5_1986_08.nc",
+      "era5_1986_09.nc",
+      "era5_1986_10.nc",
+      "era5_1986_11.nc",
+      "era5_1987_05.nc",
+      "era5_1987_06.nc",
+      "era5_1987_07.nc",
+      "era5_1987_08.nc",
+      "era5_1987_09.nc",
+      "era5_1987_10.nc",
+      "era5_1987_11.nc"
+    ]
+  },
+  "completed_at": "2026-07-11T20:48:37.318787+00:00"
+}

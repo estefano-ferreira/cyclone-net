@@ -14,6 +14,7 @@ paths:
   event_list: ./data/event_list_augmented.csv # IBTrACS-derived event list with RI labels
   normalized_dir: ./data/normalized # Normalization stats, splits, sanity reports
   splits_csv: ./data/normalized/splits.csv # Train/val/test splits by event_id
+  frozen_splits: ./data/normalized/frozen_splits.json # SID->split overrides (historical benchmark; wins over the hash)
   normalization_stats: ./data/normalized/normalization_stats.json # Mean/std per input channel (train only)
   sanity_report: ./data/normalized/sanity_report.json # Output of sanity gate
   valid_manifest: ./data/normalized/valid_events.csv # List of events that passed preprocessing
@@ -44,7 +45,7 @@ download:
     - 10m_v_component_of_wind
     - 2m_temperature
     - 2m_dewpoint_temperature
-  years: [2020, 2024] # Inclusive range of years
+  years: [1980, 2025] # Inclusive range of years (full archive; processed in windows — see run.py process-windows)
   months: [6, 7, 8, 9, 10, 11] # Atlantic hurricane season months
   days: ALL # Download all days
   times: ["00:00", "06:00", "12:00", "18:00"] # 6‑hourly synoptic times

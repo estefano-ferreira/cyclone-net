@@ -1,0 +1,25 @@
+{
+  "dataset_provenance": {
+    "n_events": 16780,
+    "n_ri_positives": 802,
+    "per_split": {
+      "test": {
+        "n": 2679,
+        "pos": 115
+      },
+      "train": {
+        "n": 11150,
+        "pos": 545
+      },
+      "val": {
+        "n": 2951,
+        "pos": 142
+      }
+    },
+    "event_id_scheme": "era5_{timestamp}_{SID} (v2)",
+    "coverage": "1980-2023 North Atlantic sector, 22 provenance-manifested windows",
+    "git_commit": "1b64c63",
+    "created": "2026-07-12T04:41:45.702481+00:00",
+    "purpose": "Full-archive retrain on the complete 1980-2023 dataset"
+  }
+}

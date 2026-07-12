@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — Page Not Found</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-elevated: #12161c;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-dim: #8b949e;
+      --accent: #58a6ff;
+      --danger: #e0301e;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .error-container {
+      text-align: center;
+      padding: 2rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      max-width: 500px;
+    }
+
+    .error-code {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: var(--danger);
+      margin: 0 0 0.5rem 0;
+      letter-spacing: -0.02em;
+    }
+
+    .error-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0 0 1rem 0;
+      color: var(--text);
+    }
+
+    .error-message {
+      color: var(--text-dim);
+      margin: 0 0 1.5rem 0;
+      line-height: 1.6;
+    }
+
+    .error-link {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.6rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .error-link:hover {
+      background: var(--border);
+      border-color: var(--accent);
+    }
+
+    .error-link:active {
+      transform: scale(0.98);
+    }
+
+    .error-footer {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+  <div class="error-container">
+    <div class="error-code">404</div>
+    <h1 class="error-title">Page Not Found</h1>
+    <p class="error-message">
+      The page you are looking for does not exist or has been moved.
+    </p>
+    <a href="./" class="error-link">Return to Event Explorer</a>
+    <div class="error-footer">
+      <p>CycloneNet Event Explorer</p>
+    </div>
+  </div>
+</body>
+</html>

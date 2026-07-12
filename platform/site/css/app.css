@@ -1,0 +1,354 @@
+/* CycloneNet Event Explorer — dark, sober, forensic aesthetic.
+   Near-black background, high-contrast text, one restrained accent. */
+
+:root {
+  --bg: #0d1117;
+  --bg-elevated: #12161c;
+  --bg-panel: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-dim: #8b949e;
+  --accent: #58a6ff;
+  --danger: #e0301e;
+  --danger-bg: #2a1414;
+  --warning: #f5a623;
+  --warning-bg: #2a2114;
+  --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+a { color: var(--accent); }
+code { font-family: var(--mono); font-size: 0.92em; }
+
+/* ---------------------------------------------------------------- header */
+
+#app-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+}
+
+#app-header h1 {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-sep { color: var(--text-dim); font-weight: 400; margin: 0 0.15rem; }
+
+.chip {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  cursor: help;
+  white-space: nowrap;
+}
+
+.sidebar-toggle-checkbox { display: none; }
+
+.sidebar-toggle-label {
+  display: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-dim);
+  user-select: none;
+}
+
+/* ---------------------------------------------------------------- banners */
+
+.banner {
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.banner-warning { background: var(--warning-bg); color: var(--warning); }
+.banner-fatal, .banner-integrity { background: var(--danger-bg); color: #ff6b57; }
+.banner-integrity strong { color: var(--danger); }
+
+/* ---------------------------------------------------------------- layout */
+
+#layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+#sidebar {
+  width: 320px;
+  flex-shrink: 0;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.section-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+}
+
+#main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+#map {
+  height: 52vh;
+  min-height: 300px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+
+#chart-container {
+  flex: 1;
+  min-height: 220px;
+  padding: 0.75rem;
+  position: relative;
+}
+
+#event-error:not(:empty) { border-bottom: 1px solid var(--border); }
+
+/* ---------------------------------------------------------------- event selector */
+
+#event-search {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.4rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+#event-search:focus { outline: 1px solid var(--accent); }
+
+#event-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.event-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.55rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.event-item:last-child { border-bottom: none; }
+.event-item:hover { background: rgba(88, 166, 255, 0.08); }
+.event-item.selected { background: rgba(88, 166, 255, 0.15); }
+
+.event-item-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.event-item-meta { color: var(--text-dim); font-family: var(--mono); font-size: 0.72rem; }
+
+.event-list-empty { padding: 0.5rem; color: var(--text-dim); font-size: 0.8rem; }
+
+.ri-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #0d1117;
+  background: #ffffff;
+  border-radius: 3px;
+  padding: 0.05rem 0.32rem;
+  letter-spacing: 0.02em;
+}
+
+/* ---------------------------------------------------------------- metadata */
+
+.placeholder { color: var(--text-dim); font-size: 0.82rem; }
+
+.meta-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  font-size: 0.8rem;
+}
+.meta-list dt { color: var(--text-dim); }
+.meta-list dd { margin: 0; }
+.mono { font-family: var(--mono); }
+
+/* ---------------------------------------------------------------- legend */
+
+.legend-categories { display: flex; flex-direction: column; gap: 0.25rem; }
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+}
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.legend-label { width: 2.4rem; flex-shrink: 0; color: var(--text); }
+.legend-range { color: var(--text-dim); }
+
+.legend-note {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.legend-halo {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  vertical-align: middle;
+  margin-right: 0.2rem;
+}
+.trend-up { color: #4fc47f; }
+.trend-down { color: #e0301e; }
+
+/* ---------------------------------------------------------------- fuelmap placeholder (hypothesis, inactive) */
+
+.hypothesis-section {
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  padding: 0.7rem;
+  opacity: 0.6;
+}
+.hypothesis-section p {
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  margin: 0;
+}
+.hypothesis-tag {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--warning);
+  border: 1px solid var(--warning);
+  border-radius: 3px;
+  padding: 0.05rem 0.3rem;
+  margin-left: 0.3rem;
+}
+
+/* ---------------------------------------------------------------- leaflet tooltip theming */
+
+.cn-leaflet-tooltip {
+  background: rgba(13, 17, 23, 0.95) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  font-size: 0.72rem !important;
+  padding: 0.35rem 0.5rem !important;
+}
+.cn-leaflet-tooltip::before { display: none !important; }
+
+.cn-tooltip-time { color: var(--text-dim); margin-bottom: 0.15rem; }
+.cn-tooltip-ri { color: var(--warning); font-weight: 600; margin-top: 0.15rem; }
+
+/* ---------------------------------------------------------------- footer */
+
+#app-footer {
+  border-top: 1px solid var(--border);
+  background: var(--bg-elevated);
+  padding: 0.6rem 1rem;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+#app-footer p { margin: 0.1rem 0; }
+
+/* ---------------------------------------------------------------- fatal notice (file:// case) */
+
+.fatal-notice {
+  max-width: 640px;
+  margin: 10vh auto;
+  padding: 1.5rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.fatal-notice h1 { font-size: 1.1rem; }
+.fatal-notice pre {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.6rem;
+  overflow-x: auto;
+}
+
+/* ---------------------------------------------------------------- responsive */
+
+@media (max-width: 860px) {
+  .sidebar-toggle-label { display: inline-block; }
+
+  #sidebar {
+    display: none;
+    position: fixed;
+    top: 48px;
+    left: 0;
+    bottom: 0;
+    width: 85vw;
+    max-width: 340px;
+    z-index: 500;
+    box-shadow: 4px 0 16px rgba(0,0,0,0.5);
+  }
+
+  #sidebar-toggle:checked ~ #app #sidebar {
+    display: flex;
+  }
+
+  #layout { position: relative; }
+}

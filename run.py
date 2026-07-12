@@ -300,6 +300,43 @@ def cmd_causal(args):
     logger.info("causal: done | evidence=%s", json.dumps(report.get("causal_evidence", {})))
 
 
+def cmd_download_era5pl(args):
+    cfg = ensure_normalized_paths(load_config("config.yaml"))
+    ensure_dirs(cfg)
+    if not bool(cfg_get(cfg, "download.pressure_levels.enabled", False)):
+        raise SystemExit("download.pressure_levels.enabled is false in config.yaml — "
+                         "enable it explicitly before downloading pressure-level data.")
+    results_dir = Path(cfg["paths"]["results_dir"])
+    save_run_snapshot(cfg, results_dir, "download-era5pl")
+    from src.downloaders.era5_pressure import ERA5PressureDownloader
+    ERA5PressureDownloader(cfg).download_required_batch()
+    logger.info("download-era5pl: done")
+
+
+def cmd_process_window(args):
+    cfg = ensure_normalized_paths(load_config("config.yaml"))
+    ensure_dirs(cfg)
+    results_dir = Path(cfg["paths"]["results_dir"])
+    save_run_snapshot(cfg, results_dir, "process-window")
+    from src.pipeline.windowed import process_window
+    manifest = process_window(cfg, int(args.start_year), int(args.end_year),
+                              delete_raw=not args.keep_raw)
+    logger.info("process-window: done | status=%s", manifest.get("status"))
+
+
+def cmd_process_windows(args):
+    cfg = ensure_normalized_paths(load_config("config.yaml"))
+    ensure_dirs(cfg)
+    results_dir = Path(cfg["paths"]["results_dir"])
+    save_run_snapshot(cfg, results_dir, "process-windows")
+    from src.pipeline.windowed import run_all_windows
+    manifests = run_all_windows(cfg, int(args.start_year), int(args.end_year),
+                                window_years=int(args.window_years),
+                                delete_raw=not args.keep_raw)
+    done = sum(1 for m in manifests if m.get("status") == "completed")
+    logger.info("process-windows: done | completed=%d/%d", done, len(manifests))
+
+
 def cmd_dataqa(args):
     cfg = ensure_normalized_paths(load_config("config.yaml"))
     ensure_dirs(cfg)
@@ -388,6 +425,27 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--channels", nargs="+", default=["sst_anom_K", "wind_mps"])
     sp.add_argument("--max-events", type=int, default=None, dest="max_events")
     sp.set_defaults(func=cmd_causal)
+
+    sp = sub.add_parser("download-era5pl",
+                        help="Download ERA5 pressure-level fields (shear + mid-level RH); "
+                             "gated by download.pressure_levels.enabled")
+    sp.set_defaults(func=cmd_download_era5pl)
+
+    sp = sub.add_parser("process-window",
+                        help="Windowed pipeline for ONE window: download ERA5, extract events, "
+                             "verify artifacts, then discard raw data (only if verification passes)")
+    sp.add_argument("--start-year", type=int, required=True)
+    sp.add_argument("--end-year", type=int, required=True)
+    sp.add_argument("--keep-raw", action="store_true", help="Skip the raw-discard step")
+    sp.set_defaults(func=cmd_process_window)
+
+    sp = sub.add_parser("process-windows",
+                        help="Run all windows from start to end (resumable via provenance manifests)")
+    sp.add_argument("--start-year", type=int, required=True)
+    sp.add_argument("--end-year", type=int, required=True)
+    sp.add_argument("--window-years", type=int, default=2)
+    sp.add_argument("--keep-raw", action="store_true")
+    sp.set_defaults(func=cmd_process_windows)
 
     sp = sub.add_parser("dataqa", help="Run artifact quality assurance")
     sp.add_argument("--split", default="test", choices=["train", "val", "test"])

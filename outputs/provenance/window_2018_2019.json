@@ -1,0 +1,186 @@
+{
+  "window": [
+    2018,
+    2019
+  ],
+  "created_at": "2026-07-12T03:35:51.679472+00:00",
+  "status": "completed",
+  "estimate": {
+    "window": [
+      2018,
+      2019
+    ],
+    "n_events": 1688,
+    "months_needed": [
+      "2018-05",
+      "2018-06",
+      "2018-07",
+      "2018-08",
+      "2018-09",
+      "2018-10",
+      "2018-11",
+      "2019-05",
+      "2019-06",
+      "2019-07",
+      "2019-08",
+      "2019-09",
+      "2019-10",
+      "2019-11"
+    ],
+    "months_to_download": [
+      "2018-05",
+      "2018-06",
+      "2018-07",
+      "2018-08",
+      "2018-09",
+      "2018-10",
+      "2018-11",
+      "2019-05",
+      "2019-06",
+      "2019-07",
+      "2019-08",
+      "2019-09",
+      "2019-10",
+      "2019-11"
+    ],
+    "avg_month_mb_measured": 94.0,
+    "estimated_download_mb": 1316.7
+  },
+  "config_digest": {
+    "variables": [
+      "sea_surface_temperature",
+      "mean_sea_level_pressure",
+      "10m_u_component_of_wind",
+      "10m_v_component_of_wind",
+      "2m_temperature",
+      "2m_dewpoint_temperature"
+    ],
+    "grid": [
+      0.25,
+      0.25
+    ],
+    "spatial_subset": [
+      60,
+      -140,
+      0,
+      -20
+    ],
+    "offsets_hours": [
+      0,
+      -6,
+      -12,
+      -18,
+      -24
+    ],
+    "window_size_px": 40
+  },
+  "downloads": [
+    {
+      "file": "era5_2018_05.nc",
+      "size_bytes": 40772399,
+      "sha256": "1d4da895e7150891620d2a64caf8848b3d0408c867c91b80826b1e5ee0441f6b"
+    },
+    {
+      "file": "era5_2018_06.nc",
+      "size_bytes": 89928935,
+      "sha256": "1fa8dc3cbd142d3d4188703092c8f0a7193ba498d5bc9ca0ef478bdcf68f9f46"
+    },
+    {
+      "file": "era5_2018_07.nc",
+      "size_bytes": 84937693,
+      "sha256": "5fa4ebbb86e5cdb456d728d9b0208c04942d58e4b1b233cfa45ea483c1c60be6"
+    },
+    {
+      "file": "era5_2018_08.nc",
+      "size_bytes": 101842067,
+      "sha256": "cac481c35175710253ae0f879f7e521f3d2158e81f8da40cf1420b7e66f5f691"
+    },
+    {
+      "file": "era5_2018_09.nc",
+      "size_bytes": 127971524,
+      "sha256": "1a23b536056acbfa910a0619c19e4c33b5b981552fc8a3386faa5bf703e8e96d"
+    },
+    {
+      "file": "era5_2018_10.nc",
+      "size_bytes": 111354014,
+      "sha256": "6c607531866e197f463ad93be7f5614ccc0aedf3f90850f05b62653317653457"
+    },
+    {
+      "file": "era5_2018_11.nc",
+      "size_bytes": 35960734,
+      "sha256": "6d87e8fb84a72353bb846eb3e66ef932b11dd64fa86c9a51b94bc87e9421d8ab"
+    },
+    {
+      "file": "era5_2019_05.nc",
+      "size_bytes": 6778023,
+      "sha256": "7793b2a93e20293fcd5f3bae0d4e1866ba6dd2166ef47999f0125a58568b5796"
+    },
+    {
+      "file": "era5_2019_06.nc",
+      "size_bytes": 27041903,
+      "sha256": "5b61638b8be9541870e7aebb134eb562d3255d7edf9acb278a9ed82306a976e0"
+    },
+    {
+      "file": "era5_2019_07.nc",
+      "size_bytes": 102541175,
+      "sha256": "706ee8c2001e7b70daa3e0ee6355de2cc855aae83d4009f6cdd936dc206d5962"
+    },
+    {
+      "file": "era5_2019_08.nc",
+      "size_bytes": 89644857,
+      "sha256": "07fbb3857ae9a5b644e8357a225ca99da80b816df15055decd2bf78693900f97"
+    },
+    {
+      "file": "era5_2019_09.nc",
+      "size_bytes": 123931679,
+      "sha256": "04b31fbe4c9f6f09b37df5361d69ffe9f39de872318b8e775b3e193ba1386b23"
+    },
+    {
+      "file": "era5_2019_10.nc",
+      "size_bytes": 102951804,
+      "sha256": "2d1faec831421d3e312453b629ef69ee10411227fca999a39484c73a36101cc6"
+    },
+    {
+      "file": "era5_2019_11.nc",
+      "size_bytes": 47547069,
+      "sha256": "8bcc3fd8479ee869b4eb5695a033ec13b323e4d8415b6c10004666646d3246d8"
+    }
+  ],
+  "verification": {
+    "passed": true,
+    "n_expected_events": 1688,
+    "counts": {
+      "extracted": 1444,
+      "not_extracted": 244,
+      "invalid": 0
+    },
+    "missing_raw_months": [],
+    "invalid_events": []
+  },
+  "disk": {
+    "raw_dir_bytes_before_download": 9075182023,
+    "raw_dir_bytes_after_extract": 10168385899,
+    "raw_dir_bytes_after_discard": 9075182023
+  },
+  "deletion": {
+    "performed": true,
+    "freed_bytes": 1093203876,
+    "deleted_files": [
+      "era5_2018_05.nc",
+      "era5_2018_06.nc",
+      "era5_2018_07.nc",
+      "era5_2018_08.nc",
+      "era5_2018_09.nc",
+      "era5_2018_10.nc",
+      "era5_2018_11.nc",
+      "era5_2019_05.nc",
+      "era5_2019_06.nc",
+      "era5_2019_07.nc",
+      "era5_2019_08.nc",
+      "era5_2019_09.nc",
+      "era5_2019_10.nc",
+      "era5_2019_11.nc"
+    ]
+  },
+  "completed_at": "2026-07-12T03:57:08.088832+00:00"
+}

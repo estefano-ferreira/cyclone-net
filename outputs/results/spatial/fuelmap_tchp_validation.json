@@ -1,0 +1,140 @@
+{
+  "protocol": "FuelMap x TCHP co-location with random-point and storm-center nulls",
+  "seed": 42,
+  "availability": {
+    "n_test_predictions": 2679,
+    "n_eligible": 226,
+    "n_eligible_ri": 8,
+    "note": "Public gridded TCHP exists from 2022 onward; earlier events cannot be validated."
+  },
+  "all_eligible": {
+    "subset": "all_eligible",
+    "n": 226,
+    "underpowered": false,
+    "median_fuel_to_tchp_km": 539.2591741034355,
+    "mean_fuel_to_tchp_km": 527.1198725660905,
+    "fraction_within_100km": 0.004424778761061947,
+    "fraction_within_2deg_222km": 0.05752212389380531,
+    "random_point_null": {
+      "observed_median_km": 539.2591741034355,
+      "null_median_km_mean": 634.943730417857,
+      "null_median_km_p2.5": 581.6336937042149,
+      "null_median_km_p97.5": 687.3895523062527,
+      "p_value_one_sided": 0.00029997000299970003,
+      "n_null_replicates": 10000
+    },
+    "vs_storm_center": {
+      "status": "ok",
+      "n_pairs": 226,
+      "mean_paired_difference_km": -6.518054896526349,
+      "median_fuel_km": 539.2591741034355,
+      "median_center_km": 561.0683627810566,
+      "fraction_fuel_closer": 0.46017699115044247,
+      "p_value_one_sided": 0.30196980301969806,
+      "n_permutations": 10000
+    }
+  },
+  "ri_only": {
+    "subset": "ri_only",
+    "n": 8,
+    "underpowered": true,
+    "median_fuel_to_tchp_km": 610.171348655998,
+    "mean_fuel_to_tchp_km": 585.1587919866008,
+    "fraction_within_100km": 0.0,
+    "fraction_within_2deg_222km": 0.0,
+    "random_point_null": {
+      "observed_median_km": 610.171348655998,
+      "null_median_km_mean": 643.10339980288,
+      "null_median_km_p2.5": 373.0516698136363,
+      "null_median_km_p97.5": 886.4919197959667,
+      "p_value_one_sided": 0.39476052394760525,
+      "n_null_replicates": 10000
+    },
+    "vs_storm_center": {
+      "status": "ok",
+      "n_pairs": 8,
+      "mean_paired_difference_km": 34.92480005524325,
+      "median_fuel_km": 610.171348655998,
+      "median_center_km": 516.1674726363781,
+      "fraction_fuel_closer": 0.375,
+      "p_value_one_sided": 0.8725127487251275,
+      "n_permutations": 10000
+    }
+  },
+  "three_way_skill": {
+    "status": "ok",
+    "distance_model_to_tchp": {
+      "n": 226,
+      "mean_km": 527.1198725660905,
+      "median_km": 539.2591741034355,
+      "std_km": 203.08679492674196,
+      "min_km": 99.07058807007641,
+      "max_km": 1105.6207403605833,
+      "p90_km": 776.8054750447054
+    },
+    "distance_physics_flux_to_tchp": {
+      "n": 226,
+      "mean_km": 586.079798181148,
+      "median_km": 584.0621743626918,
+      "std_km": 198.84914805503487,
+      "min_km": 54.71016109810258,
+      "max_km": 1418.1407287564448,
+      "p90_km": 779.546997624852
+    },
+    "distance_center_to_tchp": {
+      "n": 226,
+      "mean_km": 533.6379274626169,
+      "median_km": 561.0683627810566,
+      "std_km": 140.82117837927893,
+      "min_km": 105.58464091235864,
+      "max_km": 757.3051148506472,
+      "p90_km": 681.9995703599334
+    },
+    "skill_comparison": {
+      "status": "ok",
+      "n_paired": 226,
+      "model_mean_km": 527.1198725660905,
+      "center_baseline_mean_km": 533.6379274626169,
+      "physics_flux_mean_km": 586.079798181148,
+      "model_minus_center_km": -6.518054896526349,
+      "model_minus_physics_km": -58.95992561505759,
+      "fraction_model_beats_center": 0.46017699115044247,
+      "fraction_model_beats_physics": 0.6061946902654868,
+      "note": "Negative model_minus_* means the model is closer to the TCHP peak than that reference. The learned FuelMap demonstrates value only if it beats BOTH the storm-centre baseline and the physics-only flux peak."
+    },
+    "by_class": {
+      "ri": {
+        "n": 8,
+        "mean_km": 585.1587919866008,
+        "median_km": 610.171348655998,
+        "std_km": 148.47132507797062,
+        "min_km": 364.5471610892775,
+        "max_km": 758.6639216557653,
+        "p90_km": 757.9316748144987
+      },
+      "non_ri": {
+        "n": 218,
+        "mean_km": 524.9900039635029,
+        "median_km": 537.3922886273135,
+        "std_km": 204.5011017147647,
+        "min_km": 99.07058807007641,
+        "max_km": 1105.6207403605833,
+        "p90_km": 780.6089761614758
+      }
+    },
+    "coverage": {
+      "n_predictions": 2679,
+      "n_used": 226,
+      "n_metadata_missing": 0,
+      "n_without_tchp_peak": 2453,
+      "n_rejected_by_audit_status": 0,
+      "n_with_physics_flux": 226,
+      "accept_statuses": [
+        "ok",
+        "qc_flagged"
+      ]
+    },
+    "source": "tchp_peak from interim metadata (run.py preprocess-tchp); physics flux from cube channel total_heat_flux_Wpm2"
+  },
+  "interpretation_guard": "This analysis tests a plausible-correlate hypothesis. A small p-value means the FuelMap sits closer to the TCHP peak than the null; it does not establish that the model uses subsurface ocean heat causally."
+}

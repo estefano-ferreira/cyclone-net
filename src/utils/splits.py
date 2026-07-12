@@ -1,17 +1,37 @@
-"""Storm-level data splitting (scientific, leakage-safe, config-driven)."""
+"""Storm-level data splitting (scientific, leakage-safe, config-driven).
+
+Split assignment is HASH-DETERMINISTIC per storm: each SID's split depends
+only on sha256(SID), never on the composition of the dataset. Adding or
+removing storms can never move a pre-existing storm to another split — the
+property that keeps a frozen test benchmark valid as the archive grows.
+
+A frozen-override map (JSON, SID -> split) takes priority over the hash so
+historically assigned storms (in particular the frozen test benchmark) keep
+their original split even where the hash disagrees.
+
+There is NO label stratification (deliberate): stratification requires
+knowing the full label set, which reintroduces composition dependence. Class
+proportions per split are approximate and converge by the law of large
+numbers as the dataset grows; on small datasets they can deviate — measure,
+don't assume.
+"""
 
 from __future__ import annotations
 
 
+import hashlib
 import json
-import random
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, Optional
 
 import pandas as pd
 
 from src.utils.config import cfg_get
+
+# Resolution of the hash bucket in [0, 1). 1e8 buckets keep boundary-rounding
+# far below any realistic fraction granularity.
+_HASH_BUCKETS = 10**8
 
 
 @dataclass(frozen=True)
@@ -23,10 +43,13 @@ class SplitConfig:
     method: str
     persist: bool
     path: Path
+    frozen_map_path: Optional[Path] = None
 
     @staticmethod
     def from_config(cfg: Dict[str, Any]) -> "SplitConfig":
         method = str(cfg_get(cfg, "splits.method", "sid")).lower()
+        # NOTE: the seed no longer influences assignment (pure per-SID hash);
+        # it is kept for config compatibility and recorded in the summary.
         seed = int(cfg_get(cfg, "splits.seed", cfg_get(cfg, "training.seed", 42)))
         # Accept both the documented `*_frac` keys (config.yaml) and the short
         # `train/val/test` aliases so configuration is actually honoured.
@@ -35,7 +58,43 @@ class SplitConfig:
         test = float(cfg_get(cfg, "splits.test", cfg_get(cfg, "splits.test_frac", 0.15)))
         persist = bool(cfg_get(cfg, "splits.persist", True))
         path = Path(str(cfg_get(cfg, "paths.splits_csv", "./data/normalized/splits.csv"))).resolve()
-        return SplitConfig(train=train, val=val, test=test, seed=seed, method=method, persist=persist, path=path)
+        frozen = cfg_get(cfg, "paths.frozen_splits", "./data/normalized/frozen_splits.json")
+        frozen_path = Path(str(frozen)).resolve() if frozen else None
+        return SplitConfig(train=train, val=val, test=test, seed=seed, method=method,
+                           persist=persist, path=path, frozen_map_path=frozen_path)
+
+
+def hash_fraction(group_key: str) -> float:
+    """Stable position of a group key in [0, 1).
+
+    Depends ONLY on the key string (sha256), so it is invariant to dataset
+    composition, input order, process, platform, and Python hash randomization.
+    """
+    digest = hashlib.sha256(group_key.encode("utf-8")).hexdigest()
+    return (int(digest[:16], 16) % _HASH_BUCKETS) / _HASH_BUCKETS
+
+
+def assign_split(group_key: str, cfg: SplitConfig,
+                 frozen: Optional[Dict[str, str]] = None) -> str:
+    """Assign one storm to a split: frozen override first, then pure hash."""
+    if frozen:
+        pinned = frozen.get(group_key)
+        if pinned in ("train", "val", "test"):
+            return pinned
+    f = hash_fraction(group_key)
+    if f < cfg.train:
+        return "train"
+    if f < cfg.train + cfg.val:
+        return "val"
+    return "test"
+
+
+def load_frozen_map(path: Optional[Path]) -> Dict[str, str]:
+    """Load the SID -> split override map (empty when absent)."""
+    if path is None or not Path(path).exists():
+        return {}
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return {str(k): str(v) for k, v in data.items()}
 
 
 def _validate(cfg: SplitConfig) -> None:
@@ -47,55 +106,31 @@ def _validate(cfg: SplitConfig) -> None:
 
 
 def make_splits(metadata_csv: str | Path, cfg: SplitConfig) -> Dict[str, Any]:
+    """Assign every event to a split by its storm's hash (frozen map first).
+
+    Guarantees:
+      * one storm (SID) -> exactly one split (no storm-level leakage);
+      * a storm's split never changes when other storms are added/removed;
+      * frozen overrides (historical benchmark) win over the hash.
+    """
     _validate(cfg)
     df = pd.read_csv(metadata_csv)
     group_col = "sid" if cfg.method == "sid" else "storm_name"
-    label_col = "ri_label" if "ri_label" in df.columns else None
 
     if group_col not in df.columns:
         raise KeyError(f"Metadata missing column '{group_col}'")
-    groups_df = df[[group_col] + ([label_col] if label_col else [])].dropna(subset=[group_col]).copy()
-    groups_df[group_col] = groups_df[group_col].astype(str)
+    if "event_id" not in df.columns:
+        raise KeyError("metadata_csv must contain 'event_id'")
 
-    if label_col:
-        group_pos = groups_df.groupby(group_col)[label_col].max().to_dict()
-        positive_groups = [g for g, y in group_pos.items() if int(y) == 1]
-        negative_groups = [g for g, y in group_pos.items() if int(y) == 0]
-    else:
-        unique_groups = sorted(groups_df[group_col].unique().tolist())
-        positive_groups = []
-        negative_groups = unique_groups
+    frozen = load_frozen_map(cfg.frozen_map_path)
 
-    rng = random.Random(cfg.seed)
-    rng.shuffle(positive_groups)
-    rng.shuffle(negative_groups)
+    groups = sorted(df[group_col].dropna().astype(str).unique().tolist())
+    group_to_split = {g: assign_split(g, cfg, frozen) for g in groups}
+    n_frozen_used = sum(1 for g in groups if g in frozen)
 
-    def assign(groups: List[str]) -> Dict[str, List[str]]:
-        n = len(groups)
-        n_train = int(round(n * cfg.train))
-        n_val = int(round(n * cfg.val))
-        n_train = min(n_train, n)
-        n_val = min(n_val, max(0, n - n_train))
-        return {
-            "train": groups[:n_train],
-            "val": groups[n_train:n_train + n_val],
-            "test": groups[n_train + n_val:],
-        }
-
-    pos_assign = assign(positive_groups)
-    neg_assign = assign(negative_groups)
-    split_groups = {
-        split: sorted(pos_assign[split] + neg_assign[split])
-        for split in ["train", "val", "test"]
-    }
-
-    group_to_split = {g: split for split, groups in split_groups.items() for g in groups}
     out = df.copy()
     out["split"] = out[group_col].astype(str).map(group_to_split)
     out = out.dropna(subset=["split"]).copy()
-
-    if "event_id" not in out.columns:
-        raise KeyError("metadata_csv must contain 'event_id'")
 
     out_csv = out[["event_id", "split"]].copy()
     if cfg.persist:
@@ -104,10 +139,13 @@ def make_splits(metadata_csv: str | Path, cfg: SplitConfig) -> Dict[str, Any]:
 
     summary = {
         "group_col": group_col,
-        "seed": cfg.seed,
+        "method": "sid_hash",
+        "seed": cfg.seed,  # informational only — assignment ignores it
         "ratios": {"train": cfg.train, "val": cfg.val, "test": cfg.test},
         "counts": out_csv["split"].value_counts().to_dict(),
         "n_unique_groups": int(len(group_to_split)),
+        "n_frozen_overrides_applied": int(n_frozen_used),
+        "frozen_map": str(cfg.frozen_map_path) if cfg.frozen_map_path else None,
     }
     summary_path = cfg.path.with_suffix(".summary.json")
     if cfg.persist:

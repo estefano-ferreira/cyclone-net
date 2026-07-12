@@ -106,6 +106,36 @@ cyclone-net/
 
 ---
 
+## 🔐 Security / Credentials
+
+**Credentials never live in this repository — not in `config.yaml`, not in any
+tracked file.** The pipeline reads them exclusively from standard external
+credential stores:
+
+| Service | Where the credential lives | Setup |
+|---|---|---|
+| CDS (ERA5) | `~/.cdsapirc` | [CDS API how-to](https://cds.climate.copernicus.eu/api-how-to) |
+| Copernicus Marine (TCHP/SLA) | copernicusmarine's own store or `COPERNICUSMARINE_SERVICE_USERNAME`/`_PASSWORD` | run `copernicusmarine login` once |
+
+Defense in depth (see `security_layer/`):
+
+1. **Redaction at the source** — run snapshots (`run_snapshot.json`) redact
+   every credential-shaped value before touching disk
+   (`security_layer/secret_guard.redact_secrets`, applied in
+   `src/utils/snapshot.py`); the MCP `read_result` tool redacts on output too.
+2. **Pre-commit hook** — contributors MUST run
+   `bash security_layer/install_hook.sh` once per clone; commits containing
+   credential-shaped strings or forbidden files (`config.yaml`,
+   `run_snapshot.json`, `.cdsapirc`, `.netrc`, `.env`) are blocked.
+3. **CI enforcement** — `.github/workflows/security.yml` runs the same
+   scanner over all tracked files on every push/PR; the hook can be
+   bypassed locally, CI cannot.
+
+If a credential ever leaks: rotate it FIRST, then untrack/scrub
+(`git filter-repo` — on a fresh clone, never on a dirty working tree).
+
+---
+
 ## 🚀 Getting Started
 
 ### 1. Clone the repository

@@ -77,16 +77,13 @@ def download_ssh(cfg: dict, force: bool = False) -> List[Path]:
     lon_min = float(cfg_get(cfg, "download.ssh.box.lon_min", -100.0))
     lon_max = float(cfg_get(cfg, "download.ssh.box.lon_max", -15.0))
 
-    # Reuse the Copernicus Marine credentials already configured for TCHP.
-    username = cfg_get(cfg, "download.tchp.copernicus.username", None)
-    password = cfg_get(cfg, "download.tchp.copernicus.password", None)
-
+    # Credentials come EXCLUSIVELY from copernicusmarine's own store
+    # (`copernicusmarine login`) or COPERNICUSMARINE_SERVICE_* env vars —
+    # never from the project config (see security_layer/).
     ocean_dir = Path(cfg_get(cfg, "paths.ocean_dir", "./data/external/ocean")).resolve()
     ocean_dir.mkdir(parents=True, exist_ok=True)
 
     creds = {}
-    if username and password:
-        creds = {"username": str(username), "password": str(password)}
 
     out_files: List[Path] = []
     for year in years:

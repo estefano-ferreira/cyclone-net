@@ -1,0 +1,12 @@
+{
+  "seed": 42,
+  "device": "cpu",
+  "epochs": 40,
+  "best_val_loss": 6.259799890220165,
+  "best_val_auc": 0.8662909836065573,
+  "selected_threshold": 0.012952432967722416,
+  "checkpoint_dir": "C:\\Users\\Est\u00e9fano\\Documents\\Developer\\bmi.io\\Arquiteturas\\github\\cyclone-net\\models\\checkpoints",
+  "results_dir": "C:\\Users\\Est\u00e9fano\\Documents\\Developer\\bmi.io\\Arquiteturas\\github\\cyclone-net\\outputs\\results",
+  "best_auc_checkpoint": "C:\\Users\\Est\u00e9fano\\Documents\\Developer\\bmi.io\\Arquiteturas\\github\\cyclone-net\\models\\checkpoints\\best_auc_model.pt",
+  "best_loss_checkpoint": "C:\\Users\\Est\u00e9fano\\Documents\\Developer\\bmi.io\\Arquiteturas\\github\\cyclone-net\\models\\checkpoints\\best_model.pt"
+}

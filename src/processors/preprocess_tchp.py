@@ -136,6 +136,23 @@ class TCHPWindowResult:
 # Core scientific extraction
 # ----------------------------
 
+def _open_dataset_robust(path: Path) -> xr.Dataset:
+    """Open a NetCDF file with an engine chosen by its format signature.
+
+    Pure-Python engines are preferred (scipy for classic netCDF-3, h5netcdf
+    for netCDF-4/HDF5) because the netCDF-C default engine cannot open
+    non-ASCII filesystem paths on Windows. Falls back to xarray's default
+    engine for anything unrecognized.
+    """
+    with open(path, "rb") as f:
+        magic = f.read(4)
+    if magic.startswith(b"CDF"):
+        return xr.open_dataset(path, engine="scipy")
+    if magic.startswith(b"\x89HDF"):
+        return xr.open_dataset(path, engine="h5netcdf")
+    return xr.open_dataset(path)
+
+
 def load_tchp_window(
     tchp_path: Path,
     target_time: pd.Timestamp,
@@ -163,7 +180,7 @@ def load_tchp_window(
         var_candidates = ["tchp", "Tropical_Cyclone_Heat_Potential", "TCHP"]
 
     try:
-        ds = xr.open_dataset(tchp_path)
+        ds = _open_dataset_robust(tchp_path)
 
         # Time selection (nearest)
         # Always use tz-naive UTC to prevent timezone-indexing issues.

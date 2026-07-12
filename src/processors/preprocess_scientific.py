@@ -35,6 +35,7 @@ import ctypes
 import json
 import logging
 import os
+from collections import OrderedDict
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -174,6 +175,50 @@ def open_netcdf_safe(path: Path) -> xr.Dataset:
     raise RuntimeError(f"Unable to open NetCDF file: {path}")
 
 
+# Monthly-file cache: consecutive events reuse the same monthly NetCDFs
+# hundreds of times. `.load()` decompresses each file ONCE into memory;
+# per-timestep slicing then costs microseconds instead of ~90 ms of chunked
+# HDF5 reads. Evicted datasets are closed. Cache size covers the current
+# month's surface + pressure-level files with headroom for month boundaries.
+_MONTH_CACHE: "OrderedDict[str, xr.Dataset]" = OrderedDict()
+_MONTH_CACHE_MAX = 6
+
+
+def close_month_cache() -> None:
+    """Close every cached monthly dataset and release its file handle.
+
+    Required before deleting raw monthly files on Windows, where an open
+    handle blocks deletion (WinError 32).
+    """
+    while _MONTH_CACHE:
+        _, ds = _MONTH_CACHE.popitem(last=False)
+        try:
+            ds.close()
+        except Exception:
+            pass
+
+
+def open_month_cached(path: Path) -> xr.Dataset:
+    """Open (and fully load) a monthly NetCDF through the shared cache.
+
+    The returned dataset is shared across events — callers must NOT close it.
+    """
+    key = str(path)
+    if key in _MONTH_CACHE:
+        _MONTH_CACHE.move_to_end(key)
+        return _MONTH_CACHE[key]
+    ds = open_netcdf_safe(path)
+    ds.load()
+    _MONTH_CACHE[key] = ds
+    if len(_MONTH_CACHE) > _MONTH_CACHE_MAX:
+        _, old = _MONTH_CACHE.popitem(last=False)
+        try:
+            old.close()
+        except Exception:
+            pass
+    return ds
+
+
 def find_time_name(ds: xr.Dataset) -> str | None:
     for name in ["time", "valid_time", "Time", "TIME"]:
         if name in ds.coords or name in ds.dims or name in ds.variables:
@@ -248,8 +293,18 @@ def extract_window_by_index(field_2d: np.ndarray, i: int, j: int, size: int) -> 
     return pad_or_crop_2d(field_2d[i0:i1, j0:j1], (size, size))
 
 
-def to_event_id(dt: datetime) -> str:
-    return f"era5_{dt.strftime('%Y_%m_%d_%H%M')}"
+def to_event_id(dt: datetime, sid: str) -> str:
+    """Unique event identifier: timestamp + storm ID.
+
+    The SID component is REQUIRED: concurrent storms share timestamps, and a
+    timestamp-only identifier silently overwrote one storm's artifacts with
+    another's (64% of 1980-2023 best-track rows share their timestamp with
+    another active storm).
+    """
+    sid_clean = str(sid).strip()
+    if not sid_clean:
+        raise ValueError(f"event at {dt} has no SID — cannot build a unique event_id")
+    return f"era5_{dt.strftime('%Y_%m_%d_%H%M')}_{sid_clean}"
 
 
 def month_file(raw_dir: Path, dt: datetime) -> Path:
@@ -307,9 +362,9 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
     qc_cfg = cfg_get(cfg, "data.qc", {})
 
     dt0: datetime = row["dt"].to_pydatetime()
-    event_id = to_event_id(dt0)
-
     sid = str(row.get("sid", "")) if pd.notna(row.get("sid", "")) else ""
+    event_id = to_event_id(dt0, sid)
+
     storm_name = str(row.get("storm_name", row.get("name", ""))) if pd.notna(row.get("storm_name", row.get("name", ""))) else ""
     basin = str(row.get("basin", "")) if pd.notna(row.get("basin", "")) else ""
     lat0 = float(row["lat"])
@@ -362,7 +417,7 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
             return False
 
         source_files.append(nc_path.name)
-        ds = open_netcdf_safe(nc_path)
+        ds = open_month_cached(nc_path)
         try:
             ds_t, time_name, time_idx, selected_time = select_time_slice(ds, dt)
             if era5_time_name is None:
@@ -466,7 +521,7 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
 
             timestamps.append(dt.strftime("%Y-%m-%d %H:%M"))
         finally:
-            ds.close()
+            pass  # dataset lives in the shared monthly cache; never close here
 
     t_steps = len(offsets_hours)
     if len(set(era5_selected_times)) != t_steps:
@@ -476,6 +531,29 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
     base_channels = ["sst_K", "mslp_Pa", "u10_mps", "v10_mps"]
     derived_channels = [diag_to_channel[d] for d in diag_channels]
     all_channels = base_channels + derived_channels
+
+    # Optional pressure-level channels (vertical wind shear, mid-level RH).
+    # Appended at the END of the channel list so existing artifacts and every
+    # name-indexed consumer remain valid. All-or-nothing per event: if any
+    # timestep lacks pressure-level data the cube stays surface-only.
+    pl_units: Dict[str, str] = {}
+    if bool(cfg_get(cfg, "download.pressure_levels.enabled", False)):
+        from src.processors.pressure_channels import extract_pressure_volume
+
+        pl = extract_pressure_volume(
+            raw_dir=raw_dir,
+            dt0=dt0,
+            offsets_hours=offsets_hours,
+            lat0=lat0,
+            lon0=lon0,
+            window_size_px=window_size_px,
+            cfg=cfg,
+        )
+        if pl is not None:
+            pl_volume, pl_names, pl_units = pl
+            cube = np.concatenate([cube, pl_volume], axis=-1).astype(np.float32)
+            all_channels = all_channels + pl_names
+
     if cube.shape[-1] != len(all_channels):
         raise ValueError(f"Metadata/channel mismatch for {event_id}: cube has {cube.shape[-1]}, metadata has {len(all_channels)}.")
 
@@ -493,13 +571,13 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
         "sensible_heat_flux_Wpm2": "W m-2",
         "total_heat_flux_Wpm2": "W m-2",
     }
+    units.update(pl_units)
 
-    out_dir.mkdir(parents=True, exist_ok=True)
-    np.save(out_dir / f"{event_id}.npy", cube)
-    np.save(out_dir / f"{event_id}_lats.npy", lats_win.astype(np.float32))
-    np.save(out_dir / f"{event_id}_lons.npy", lons_win.astype(np.float32))
-
-    fuel_saved = False
+    # Compute the fuel-potential prior BEFORE any file is written: every QC
+    # rejection must leave ZERO artifacts on disk. Writing early produced
+    # partial artifact sets (cube without metadata) whenever a later check
+    # raised — caught by the windowed-processing verification gate.
+    fuel_array: np.ndarray | None = None
     if all(v is not None for v in total_heat_vol):
         heat_arr = np.stack(total_heat_vol, axis=2).astype(np.float32)
         heat_norm = np.zeros_like(heat_arr, dtype=np.float32)
@@ -511,8 +589,7 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
                 heat_norm[:, :, t] = (slab - slab_min) / (slab_max - slab_min)
         if nan_fraction(heat_norm) > float(qc_cfg.get("max_nan_fraction_fuel_prior", 0.20)):
             raise ValueError(f"Fuel prior NaN fraction too high for {event_id}.")
-        np.save(out_dir / f"{event_id}_fuel_potential.npy", heat_norm)
-        fuel_saved = True
+        fuel_array = heat_norm
     elif len(sst_anom_vol) == t_steps and len(wind_vol) == t_steps and len(div_vol) == t_steps:
         prior = build_fuel_potential(
             sst_anom_K=np.stack(sst_anom_vol, axis=2).astype(np.float32),
@@ -526,8 +603,16 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
         )
         if nan_fraction(prior) > float(qc_cfg.get("max_nan_fraction_fuel_prior", 0.20)):
             raise ValueError(f"Fuel prior NaN fraction too high for {event_id}.")
-        np.save(out_dir / f"{event_id}_fuel_potential.npy", prior.astype(np.float32))
-        fuel_saved = True
+        fuel_array = prior.astype(np.float32)
+    fuel_saved = fuel_array is not None
+
+    # All validations passed — now (and only now) persist the artifact set.
+    out_dir.mkdir(parents=True, exist_ok=True)
+    np.save(out_dir / f"{event_id}.npy", cube)
+    np.save(out_dir / f"{event_id}_lats.npy", lats_win.astype(np.float32))
+    np.save(out_dir / f"{event_id}_lons.npy", lons_win.astype(np.float32))
+    if fuel_array is not None:
+        np.save(out_dir / f"{event_id}_fuel_potential.npy", fuel_array)
 
     meta = EventMeta(
         event_id=event_id,
@@ -578,6 +663,7 @@ def run_preprocess(cfg: Dict[str, Any]) -> None:
                 skipped += 1
         except Exception as exc:
             failed += 1
-            event_id = to_event_id(row["dt"].to_pydatetime()) if pd.notna(row.get("dt")) else "unknown"
+            event_id = (to_event_id(row["dt"].to_pydatetime(), str(row.get("sid", "")))
+                        if pd.notna(row.get("dt")) and pd.notna(row.get("sid")) else "unknown")
             logger.error("Event %s failed: %s", event_id, exc, exc_info=True)
     logger.info("Preprocessing complete. OK=%d | SKIPPED=%d | FAILED=%d", ok, skipped, failed)

@@ -1,0 +1,18 @@
+Vendored third-party libraries for the CycloneNet Event Explorer.
+Downloaded from unpkg.com on 2026-07-11. No CDN references at runtime -- all
+assets below are served locally from platform/site/vendor/.
+
+leaflet/leaflet.js        Leaflet 1.9.4  (https://unpkg.com/leaflet@1.9.4/dist/leaflet.js)
+leaflet/leaflet.css       Leaflet 1.9.4  (https://unpkg.com/leaflet@1.9.4/dist/leaflet.css)
+leaflet/images/*.png      Leaflet 1.9.4  (https://unpkg.com/leaflet@1.9.4/dist/images/)
+                          - layers.png, layers-2x.png, marker-icon.png,
+                            marker-icon-2x.png, marker-shadow.png
+
+chartjs/chart.umd.js      Chart.js 4.4.4 (https://unpkg.com/chart.js@4.4.4/dist/chart.umd.js)
+                          UMD build, includes bundled chart.js core (no
+                          separate Moment/date-fns adapter needed; the app
+                          uses numeric/ISO time parsing without an adapter).
+
+Licenses: Leaflet is BSD-2-Clause (c) Vladimir Agafonkin / CloudMade.
+Chart.js is MIT (c) Chart.js Contributors. Full license text is embedded in
+each library's repository; not duplicated here.

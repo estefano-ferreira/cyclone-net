@@ -82,6 +82,7 @@ def build_event_list(
     basin_filter: Optional[str] = None,
     min_wind_kt: Optional[float] = None,
     year_range: Optional[Tuple[int, int]] = None,
+    bbox: Optional[Tuple[float, float, float, float]] = None,
     ri_threshold_kt_24h: float = 30.0,
 ) -> None:
     """Build the CycloneNet event list from IBTrACS.
@@ -93,11 +94,17 @@ def build_event_list(
     out_csv
         Destination path for the standardized event list.
     basin_filter
-        Optional substring filter for basin names/codes.
+        Optional substring filter for basin names/codes. NOTE: pandas parses
+        the literal string "NA" (North Atlantic) as a missing value when
+        reading IBTrACS, so prefer ``bbox`` for Atlantic selection.
     min_wind_kt
         Optional minimum best-track wind threshold in knots.
     year_range
         Optional inclusive year range (start_year, end_year).
+    bbox
+        Optional (N, W, S, E) bounding box in degrees; events whose center
+        falls outside are dropped. Should match ``download.spatial_subset``
+        so the event list only contains extractable events.
     ri_threshold_kt_24h
         RI threshold in knots over 24 hours.
 
@@ -183,6 +190,15 @@ def build_event_list(
     if min_wind_kt is not None:
         out = out[out["wind_kt"] >= float(min_wind_kt)].copy()
 
+    # Optional spatial bounding-box filter (N, W, S, E) — keeps the event list
+    # consistent with the ERA5 download area so every listed event is extractable.
+    if bbox is not None:
+        north, west, south, east = (float(v) for v in bbox)
+        out = out[
+            (out["lat"] <= north) & (out["lat"] >= south)
+            & (out["lon"] >= west) & (out["lon"] <= east)
+        ].copy()
+
     # Optional inclusive year filter.
     if year_range is not None:
         start_year, end_year = year_range
@@ -261,12 +277,18 @@ def run_prepare(cfg: dict, force: bool = False) -> None:
     if year_range_cfg is not None and len(year_range_cfg) == 2:
         year_range = (int(year_range_cfg[0]), int(year_range_cfg[1]))
 
+    bbox_cfg = cfg_get(cfg, "download.spatial_subset", None)
+    bbox: Optional[Tuple[float, float, float, float]] = None
+    if bbox_cfg is not None and len(bbox_cfg) == 4:
+        bbox = tuple(float(v) for v in bbox_cfg)  # (N, W, S, E)
+
     build_event_list(
         ibtracs_csv=Path(ibtracs_path),
         out_csv=out_csv,
         basin_filter=basin_filter,
         min_wind_kt=min_wind_kt,
         year_range=year_range,
+        bbox=bbox,
         ri_threshold_kt_24h=ri_threshold,
     )
 

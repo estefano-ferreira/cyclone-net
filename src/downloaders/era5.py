@@ -78,11 +78,10 @@ class ERA5Downloader:
                 "SSL verification disabled for CDS API. This is insecure and should only be used for testing."
             )
 
-        self.c = cdsapi.Client(
-            url=cfg["download"]["cds_api"]["url"],
-            key=cfg["download"]["cds_api"]["key"],
-            session=session,
-        )
+        # Credentials come EXCLUSIVELY from ~/.cdsapirc (cdsapi's standard
+        # credential file) — never from the project config, which is
+        # serialized into run snapshots and was the source of a key leak.
+        self.c = cdsapi.Client(session=session)
 
         self.raw_dir = Path(cfg["paths"]["raw_data"]).resolve()
         self.raw_dir.mkdir(parents=True, exist_ok=True)
@@ -207,3 +206,16 @@ class ERA5Downloader:
                         logger.info(f"Finished: {result.name}")
                 except Exception as e:
                     logger.error(f"Error downloading a batch: {e}")
+
+        # Sequential mop-up pass: parallel submission can exceed the CDS
+        # per-user concurrent-job quota, which fails jobs with an opaque
+        # 400 on the results endpoint. Retrying the stragglers one at a
+        # time (fresh jobs, no concurrency) reliably recovers them.
+        missing = [(int(y), int(m), g) for (y, m), g in groups
+                   if self.find_existing_monthly_file(int(y), int(m)) is None]
+        if missing:
+            logger.warning("Sequential mop-up for %d month(s) that failed in parallel.", len(missing))
+            for year, month, group in missing:
+                self._download_month(year, month,
+                                     sorted(group["day"].unique()),
+                                     sorted(group["hour"].unique()))

@@ -1,0 +1,106 @@
+{
+  "protocol": "RI precursors, 4 pre-registered hypotheses, matched pairs, sign-flip permutation null, Bonferroni x4 on primaries",
+  "seed": 42,
+  "audit": {
+    "n_ri_positive_points": 1875,
+    "n_ri_onsets": 583,
+    "n_matched_pairs": 583,
+    "n_unmatched_onsets": 0,
+    "n_pairs_with_artifacts": 394,
+    "n_missing_artifacts": {
+      "onset": 108,
+      "control": 81
+    },
+    "n_pairs_h1_mslp": 394,
+    "n_pairs_h2_shear": 5,
+    "n_pairs_h3_sst": 394,
+    "n_pairs_h4_rh_mid": 5,
+    "note": "shear/rh_mid channels exist only for 2020-2023 events (pressure-level coverage)"
+  },
+  "results": {
+    "H1_pressure_fall": {
+      "n_pairs": 394,
+      "physics": "storms already deepening faster in the prior 24h",
+      "primary": {
+        "quantity": "24h fall (t0 minus t-24), onset minus control",
+        "mean_paired_diff": -1.6078013959390838,
+        "p_signflip": 9.999000099990002e-05
+      },
+      "p_bonferroni_x4": 0.00039996000399960006,
+      "per_lag_descriptive": {
+        "t+0h": {
+          "mean_paired_diff": 0.7354108502538064,
+          "cliffs_delta": 0.01917081089438017,
+          "p_signflip": 0.0755924407559244
+        },
+        "t-6h": {
+          "mean_paired_diff": 1.4176157994923875,
+          "cliffs_delta": 0.11176531216985751,
+          "p_signflip": 0.0007999200079992001
+        },
+        "t-12h": {
+          "mean_paired_diff": 1.5556630710659896,
+          "cliffs_delta": 0.11615862299981963,
+          "p_signflip": 0.00029997000299970003
+        },
+        "t-18h": {
+          "mean_paired_diff": 2.297961611675125,
+          "cliffs_delta": 0.2003916617279497,
+          "p_signflip": 9.999000099990002e-05
+        },
+        "t-24h": {
+          "mean_paired_diff": 2.34321224619289,
+          "cliffs_delta": 0.2056932670256899,
+          "p_signflip": 9.999000099990002e-05
+        }
+      }
+    },
+    "H2_shear": {
+      "status": "underpowered",
+      "n_pairs": 5
+    },
+    "H3_sst": {
+      "n_pairs": 394,
+      "physics": "warmer water sustains intensification",
+      "primary": {
+        "quantity": "level at t-24h",
+        "mean_paired_diff": 1.4452549026114205,
+        "cliffs_delta": 0.5332654796567806,
+        "p_signflip": 9.999000099990002e-05
+      },
+      "p_bonferroni_x4": 0.00039996000399960006,
+      "per_lag_descriptive": {
+        "t+0h": {
+          "mean_paired_diff": 1.4321151388988247,
+          "cliffs_delta": 0.5349532324976165,
+          "p_signflip": 9.999000099990002e-05
+        },
+        "t-6h": {
+          "mean_paired_diff": 1.440241663088053,
+          "cliffs_delta": 0.5352624391249452,
+          "p_signflip": 9.999000099990002e-05
+        },
+        "t-12h": {
+          "mean_paired_diff": 1.4430133298590138,
+          "cliffs_delta": 0.5337292895977737,
+          "p_signflip": 9.999000099990002e-05
+        },
+        "t-18h": {
+          "mean_paired_diff": 1.4451993293685808,
+          "cliffs_delta": 0.5328145533252596,
+          "p_signflip": 9.999000099990002e-05
+        },
+        "t-24h": {
+          "mean_paired_diff": 1.4452549026114205,
+          "cliffs_delta": 0.5332654796567806,
+          "p_signflip": 9.999000099990002e-05
+        }
+      }
+    },
+    "H4_rh_mid": {
+      "status": "underpowered",
+      "n_pairs": 5
+    }
+  },
+  "interpretation_guard": "Hypothesis-GENERATING observational analysis. Detected signals are not confirmed precursors and do not imply causality; per-lag secondary results are descriptive and not multiplicity-corrected."
+}

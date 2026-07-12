@@ -17,6 +17,10 @@ import xarray as xr
 
 from .git import get_git_revision_short_hash
 
+# Redaction comes from the security layer: the config is redacted BEFORE
+# serialization so credentials can never reach a run snapshot on disk.
+from security_layer.secret_guard import redact_secrets
+
 
 def get_versions() -> Dict[str, str]:
     """Return versions of key libraries and Python environment."""
@@ -38,7 +42,7 @@ def save_run_snapshot(cfg: Dict[str, Any], run_dir: Path, command: str) -> None:
         "command": command,
         "timestamp": datetime.now().isoformat(),
         "git_commit": get_git_revision_short_hash(),
-        "config": cfg,
+        "config": redact_secrets(cfg),
         "versions": get_versions(),
         "cwd": str(Path.cwd()),
     }

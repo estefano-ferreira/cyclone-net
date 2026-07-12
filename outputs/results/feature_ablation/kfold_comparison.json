@@ -1,0 +1,81 @@
+{
+  "protocol": "StratifiedGroupKFold by SID, paired A/B, dev set only (test untouched)",
+  "seed": 42,
+  "n_splits": 5,
+  "availability": {
+    "n_dev_events": 840,
+    "n_used": 829,
+    "n_missing_artifact": 0,
+    "n_without_pressure_channels": 11,
+    "n_positives_used": 35,
+    "n_storms_used": 73,
+    "n_features": {
+      "surface_only": 48,
+      "with_pressure": 56
+    }
+  },
+  "pr_auc": {
+    "A_surface_mean": 0.0911902704469692,
+    "A_surface_std": 0.032414118038727666,
+    "B_with_pressure_mean": 0.10542717532680382,
+    "B_with_pressure_std": 0.055967310500597556,
+    "diff_mean_B_minus_A": 0.0142369048798346,
+    "diff_std": 0.04361614046776274,
+    "folds_B_better": 3,
+    "n_valid_folds": 5
+  },
+  "per_fold": [
+    {
+      "fold": 0,
+      "n_test": 164,
+      "n_pos_test": 5,
+      "A_surface_pr_auc": 0.06875960061443931,
+      "A_surface_roc_auc": 0.6767295597484277,
+      "B_with_pressure_pr_auc": 0.061708791208791205,
+      "B_with_pressure_roc_auc": 0.7106918238993711,
+      "diff_pr_auc_B_minus_A": -0.0070508094056481035
+    },
+    {
+      "fold": 1,
+      "n_test": 166,
+      "n_pos_test": 7,
+      "A_surface_pr_auc": 0.13131115352253675,
+      "A_surface_roc_auc": 0.8050314465408805,
+      "B_with_pressure_pr_auc": 0.2015126764195087,
+      "B_with_pressure_roc_auc": 0.9092542677448338,
+      "diff_pr_auc_B_minus_A": 0.07020152289697196
+    },
+    {
+      "fold": 2,
+      "n_test": 167,
+      "n_pos_test": 9,
+      "A_surface_pr_auc": 0.11462974742666066,
+      "A_surface_roc_auc": 0.5759493670886076,
+      "B_with_pressure_pr_auc": 0.07098697559384443,
+      "B_with_pressure_roc_auc": 0.5843881856540084,
+      "diff_pr_auc_B_minus_A": -0.04364277183281623
+    },
+    {
+      "fold": 3,
+      "n_test": 165,
+      "n_pos_test": 7,
+      "A_surface_pr_auc": 0.05198883236606435,
+      "A_surface_roc_auc": 0.5614828209764918,
+      "B_with_pressure_pr_auc": 0.09205779966105372,
+      "B_with_pressure_roc_auc": 0.7188065099457503,
+      "diff_pr_auc_B_minus_A": 0.04006896729498937
+    },
+    {
+      "fold": 4,
+      "n_test": 167,
+      "n_pos_test": 7,
+      "A_surface_pr_auc": 0.08926201830514498,
+      "A_surface_roc_auc": 0.7071428571428572,
+      "B_with_pressure_pr_auc": 0.10086963375082099,
+      "B_with_pressure_roc_auc": 0.7116071428571429,
+      "diff_pr_auc_B_minus_A": 0.011607615445676012
+    }
+  ],
+  "chance_level_pr_auc": 0.04221954161640531,
+  "interpretation_guard": "With ~33 positives in the development set, per-fold PR-AUC rests on 6-8 positives; treat differences smaller than the fold-to-fold std as indistinguishable from noise."
+}

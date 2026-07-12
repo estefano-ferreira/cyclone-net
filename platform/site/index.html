@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CycloneNet — Event Explorer</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-checkbox">
+
+<div id="app">
+
+  <header id="app-header">
+    <h1>CycloneNet <span class="header-sep">/</span> Event Explorer</h1>
+    <span id="build-chip" class="chip" title="data build version — full provenance in footer">loading…</span>
+    <label for="sidebar-toggle" class="sidebar-toggle-label" aria-label="Toggle sidebar">&#9776;</label>
+  </header>
+
+  <div id="banner-area"></div>
+
+  <div id="layout">
+
+    <aside id="sidebar">
+      <section id="event-selector-section">
+        <label for="event-search" class="section-label">Search events</label>
+        <input id="event-search" type="text" placeholder="Name or year…" autocomplete="off">
+        <ul id="event-list"><li class="event-list-empty">Loading…</li></ul>
+      </section>
+
+      <section id="metadata-section">
+        <h2 class="section-label">Event</h2>
+        <div id="metadata-panel"><p class="placeholder">Select an event to inspect its track.</p></div>
+      </section>
+
+      <section id="legend-section">
+        <h2 class="section-label">Legend</h2>
+        <div id="legend-content"></div>
+      </section>
+
+      <section id="fuelmap-section" class="hypothesis-section">
+        <h2 class="section-label">FuelMap overlay <span class="hypothesis-tag">hypothesis</span></h2>
+        <p>Model-derived hypothesis layer for future work &mdash; NOT externally validated.
+        Not included in V0. Reserved architectural slot.</p>
+      </section>
+    </aside>
+
+    <main id="main-area">
+      <div id="map"></div>
+      <div id="event-error"></div>
+      <div id="chart-container">
+        <canvas id="intensity-chart"></canvas>
+      </div>
+    </main>
+
+  </div>
+
+  <footer id="app-footer"></footer>
+
+</div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/chartjs/chart.umd.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

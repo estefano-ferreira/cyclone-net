@@ -1,0 +1,24 @@
+{
+  "dataset_provenance": {
+    "n_events": 2515,
+    "n_ri_positives": 96,
+    "per_split": {
+      "test": {
+        "n": 489,
+        "pos": 13
+      },
+      "train": {
+        "n": 1774,
+        "pos": 75
+      },
+      "val": {
+        "n": 252,
+        "pos": 8
+      }
+    },
+    "event_id_scheme": "era5_{timestamp}_{SID} (v2: concurrent-storm collision fixed)",
+    "git_commit": "1b64c63",
+    "created": "2026-07-11T19:59:41.797207+00:00",
+    "purpose": "DIAGNOSTIC retrain: measures whether the expanded dataset helps; not the final model"
+  }
+}

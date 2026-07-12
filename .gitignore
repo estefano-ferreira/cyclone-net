@@ -40,3 +40,14 @@ Thumbs.db
 .env
 .secrets
 config.yaml
+
+# Snapshots de execução (serializam a config, incluindo credenciais)
+run_snapshot.json
+
+# Cache de testes
+.pytest_cache/
+
+# Ambiente de desenvolvimento assistido (orientações locais — nunca publicar)
+CLAUDE.md
+.claude/
+.mcp.json
