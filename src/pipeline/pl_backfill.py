@@ -85,6 +85,11 @@ logger = logging.getLogger(__name__)
 # specifically the PL-append verification gate, not a download/extract gate.
 MANIFEST_STATUS_VERIFICATION_FAILED = "verification_failed"
 
+# Window had pl_unavailable/failed events (e.g. CDS queue-limit rejections
+# left PL raw incomplete). Never "completed": a completed manifest would make
+# the resume skip those events permanently.
+MANIFEST_STATUS_INCOMPLETE = "incomplete_pl_data"
+
 
 # ---------------------------------------------------------------------------
 # Small helpers (deliberately duplicated from windowed.py rather than
@@ -515,6 +520,20 @@ def backfill_window(cfg: Dict[str, Any], year_start: int, year_end: int, *,
         manifest_path(cfg, year_start, year_end).write_text(json.dumps(manifest, indent=2), encoding="utf-8")
         logger.error("PL backfill window %d-%d FAILED verification -- PL raw kept. Manifest: %s",
                     year_start, year_end, manifest_path(cfg, year_start, year_end))
+        return manifest
+
+    # Completeness gate: any pl_unavailable/failed event means this window's
+    # PL raw was incomplete (e.g. CDS queue-limit rejections during download).
+    # Keep the raw files and leave the manifest non-completed so the resume
+    # re-runs this window; already-appended events are idempotently skipped.
+    n_incomplete = outcome_counts.get("pl_unavailable", 0) + outcome_counts.get("failed", 0)
+    if n_incomplete > 0:
+        manifest["status"] = MANIFEST_STATUS_INCOMPLETE
+        manifest["deletion"] = {"performed": False, "freed_bytes": 0, "deleted_files": []}
+        manifest_path(cfg, year_start, year_end).write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+        logger.error("PL backfill window %d-%d INCOMPLETE (%d unavailable/failed events) -- "
+                     "PL raw kept, window will be retried on resume. Manifest: %s",
+                     year_start, year_end, n_incomplete, manifest_path(cfg, year_start, year_end))
         return manifest
 
     # Deletion -- only after verification passed. Release cached NetCDF
