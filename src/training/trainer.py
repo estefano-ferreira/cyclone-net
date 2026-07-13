@@ -35,6 +35,7 @@ from sklearn.metrics import f1_score, roc_auc_score
 from torch.utils.data import DataLoader
 
 from src.utils.config import cfg_get
+from src.utils.paths import rel_to_root
 
 logger = logging.getLogger(__name__)
 
@@ -585,10 +586,10 @@ def train(cfg: Dict[str, Any]) -> Dict[str, Any]:
         "best_val_loss": best_val_loss,
         "best_val_auc": None if best_val_auc == float("-inf") else best_val_auc,
         "selected_threshold": float(selected_threshold),
-        "checkpoint_dir": str(ckpt_dir),
-        "results_dir": str(results_dir),
-        "best_auc_checkpoint": str(best_auc_path),
-        "best_loss_checkpoint": str(best_loss_path),
+        "checkpoint_dir": rel_to_root(ckpt_dir),
+        "results_dir": rel_to_root(results_dir),
+        "best_auc_checkpoint": rel_to_root(best_auc_path),
+        "best_loss_checkpoint": rel_to_root(best_loss_path),
     }
 
     with summary_path.open("w", encoding="utf-8") as f:

@@ -1,0 +1,214 @@
+{
+  "window": [
+    2014,
+    2015
+  ],
+  "created_at": "2026-07-13T16:05:58.092143+00:00",
+  "status": "completed",
+  "config_digest": {
+    "wind_levels": [
+      850,
+      200
+    ],
+    "rh_levels": [
+      700,
+      600,
+      500
+    ],
+    "offsets_hours": [
+      0,
+      -6,
+      -12,
+      -18,
+      -24
+    ],
+    "window_size_px": 40
+  },
+  "n_events_in_window": 1269,
+  "outcome_counts": {
+    "appended": 1269
+  },
+  "per_event_csv": "outputs/provenance/pl_window_2014_2015_outcomes.csv",
+  "pl_downloads": [
+    {
+      "file": "era5pl_wind_2014_05.nc",
+      "size_bytes": 26198068,
+      "sha256": "135e8bddb0e69ca6f038fd06215dbdb3c7497d37459c22231dbd1f38af57f353"
+    },
+    {
+      "file": "era5pl_wind_2014_06.nc",
+      "size_bytes": 60274912,
+      "sha256": "6922d84f4c06be655ed33e66cf957a9fe301df85eddcc596162840aab2b45ac4"
+    },
+    {
+      "file": "era5pl_wind_2014_07.nc",
+      "size_bytes": 90698221,
+      "sha256": "c67c92d370e4b81faef5b02d1cd085798b058b9237fc937e1a9cb1e713beb0bc"
+    },
+    {
+      "file": "era5pl_wind_2014_08.nc",
+      "size_bytes": 106173732,
+      "sha256": "7d54f2637a4157bde1db7c3c8f47a99c56f9c7fc928ae7b1c25f20fcce84094f"
+    },
+    {
+      "file": "era5pl_wind_2014_09.nc",
+      "size_bytes": 112647203,
+      "sha256": "fe7acaa5a836afa16dc5a04053a44908e047f7c5d72ee905a90baec556144b97"
+    },
+    {
+      "file": "era5pl_wind_2014_10.nc",
+      "size_bytes": 109186845,
+      "sha256": "a85b139877496fc9925156277bb0443adb66eea8eb68f5d926a6d59f106fc3ca"
+    },
+    {
+      "file": "era5pl_wind_2014_11.nc",
+      "size_bytes": 14871059,
+      "sha256": "53f71eb9c740d781ad08b1b0419a5feeecfbd344a8e46af684fd1c8da7bdf58d"
+    },
+    {
+      "file": "era5pl_rh_2014_05.nc",
+      "size_bytes": 20171274,
+      "sha256": "eb64289e95d0709c68dbad46f69d8afbdcc10cd4e38ee8829744b208903927d7"
+    },
+    {
+      "file": "era5pl_rh_2014_06.nc",
+      "size_bytes": 45699046,
+      "sha256": "7a75edbe9f7a493a84b24c72c21deec43de8ad07f63a07e1045d0960a64d85fc"
+    },
+    {
+      "file": "era5pl_rh_2014_07.nc",
+      "size_bytes": 68415371,
+      "sha256": "b2beaced782e976572e763b2f9f214abd69e497a73287fd6655aa07816d43bf7"
+    },
+    {
+      "file": "era5pl_rh_2014_08.nc",
+      "size_bytes": 79368653,
+      "sha256": "00bf21af3038f071d13ed1c3f9e006a39501c59ffb817304ac572f1b9871a11e"
+    },
+    {
+      "file": "era5pl_rh_2014_09.nc",
+      "size_bytes": 85576859,
+      "sha256": "2cefcd6a2773be34bc73140d270f4e74ef5d9746ee690632898a5d60455810c6"
+    },
+    {
+      "file": "era5pl_rh_2014_10.nc",
+      "size_bytes": 82791924,
+      "sha256": "b7ffad0108e7d0f9beb2bf291c1b2c9128d1be6626b2c097aa7f77e7df5ae6ac"
+    },
+    {
+      "file": "era5pl_rh_2014_11.nc",
+      "size_bytes": 11676948,
+      "sha256": "e1c2318406ed9f6fea29f7b321d0e9bc76eea555bc870fc50d014a950a55c6a1"
+    },
+    {
+      "file": "era5pl_wind_2015_05.nc",
+      "size_bytes": 37262611,
+      "sha256": "8e2393dd35fd510310386df458f84b8e386dd2c4131ef189e9c2a9a27345ffec"
+    },
+    {
+      "file": "era5pl_wind_2015_06.nc",
+      "size_bytes": 71717578,
+      "sha256": "7497c493b09b1146c3166a6154f643736e139450cb197745edf4e3ea2b5f47f0"
+    },
+    {
+      "file": "era5pl_wind_2015_07.nc",
+      "size_bytes": 79562775,
+      "sha256": "df114481a219f6f768b16fe37fdec28ea9d7bdbfc64a0aac71ac62cd65ac84f3"
+    },
+    {
+      "file": "era5pl_wind_2015_08.nc",
+      "size_bytes": 68120550,
+      "sha256": "a97cc336977d8c3220f956b4a29aca290d70ec40c2e02981cc5d8c09d941b086"
+    },
+    {
+      "file": "era5pl_wind_2015_09.nc",
+      "size_bytes": 109804629,
+      "sha256": "345c437bf5bc958fdc6e804973c08768e8a86eb3779f165534d9b13b8118a278"
+    },
+    {
+      "file": "era5pl_wind_2015_10.nc",
+      "size_bytes": 78916206,
+      "sha256": "5b582793ca9dc55037423d83d88e72592b5d68dfadaa22d75d1964170ce1a0eb"
+    },
+    {
+      "file": "era5pl_wind_2015_11.nc",
+      "size_bytes": 59605756,
+      "sha256": "13dd095e913873b94ab8e70219bc297a839df40eb098202027915acc7a0b8ec9"
+    },
+    {
+      "file": "era5pl_rh_2015_05.nc",
+      "size_bytes": 28590666,
+      "sha256": "121b19abe4fc222fcf317ca6a3a991b8e9b9d62c6614d2ad51b3ff6310bc2bc4"
+    },
+    {
+      "file": "era5pl_rh_2015_06.nc",
+      "size_bytes": 53902203,
+      "sha256": "1ca463d2ef7e4d0509d578b4b6a09dcbac5191c075be0e9efcf807793fedcb4e"
+    },
+    {
+      "file": "era5pl_rh_2015_07.nc",
+      "size_bytes": 59375994,
+      "sha256": "50ae97db2f6cd4b87d557465d15460cc39a154c1b4f37d52798cfcd15a9c7d36"
+    },
+    {
+      "file": "era5pl_rh_2015_08.nc",
+      "size_bytes": 51220006,
+      "sha256": "3eb4118f5c2b0b8f9f36cbc820b330cb38274ff2e4041f3f3fdbb33afbbdeacf"
+    },
+    {
+      "file": "era5pl_rh_2015_09.nc",
+      "size_bytes": 82898792,
+      "sha256": "d5ee60986f0302c16d114f4cae3b3309223d8e393a02ddc4f5c31744e9db1166"
+    },
+    {
+      "file": "era5pl_rh_2015_10.nc",
+      "size_bytes": 59999224,
+      "sha256": "6443bf98157dfcb043ba0dae5405c5e6d6da5f39309b4dd517d53d65779acb99"
+    },
+    {
+      "file": "era5pl_rh_2015_11.nc",
+      "size_bytes": 46105090,
+      "sha256": "fc186bb111d0a96d30720fe76f96f0e0ff5cc4e2b6fe56ce50678127d3a57422"
+    }
+  ],
+  "verification": {
+    "passed": true,
+    "n_appended_checked": 1269,
+    "problems": []
+  },
+  "deletion": {
+    "performed": true,
+    "freed_bytes": 1800832195,
+    "deleted_files": [
+      "era5pl_wind_2014_05.nc",
+      "era5pl_wind_2014_06.nc",
+      "era5pl_wind_2014_07.nc",
+      "era5pl_wind_2014_08.nc",
+      "era5pl_wind_2014_09.nc",
+      "era5pl_wind_2014_10.nc",
+      "era5pl_wind_2014_11.nc",
+      "era5pl_rh_2014_05.nc",
+      "era5pl_rh_2014_06.nc",
+      "era5pl_rh_2014_07.nc",
+      "era5pl_rh_2014_08.nc",
+      "era5pl_rh_2014_09.nc",
+      "era5pl_rh_2014_10.nc",
+      "era5pl_rh_2014_11.nc",
+      "era5pl_wind_2015_05.nc",
+      "era5pl_wind_2015_06.nc",
+      "era5pl_wind_2015_07.nc",
+      "era5pl_wind_2015_08.nc",
+      "era5pl_wind_2015_09.nc",
+      "era5pl_wind_2015_10.nc",
+      "era5pl_wind_2015_11.nc",
+      "era5pl_rh_2015_05.nc",
+      "era5pl_rh_2015_06.nc",
+      "era5pl_rh_2015_07.nc",
+      "era5pl_rh_2015_08.nc",
+      "era5pl_rh_2015_09.nc",
+      "era5pl_rh_2015_10.nc",
+      "era5pl_rh_2015_11.nc"
+    ]
+  },
+  "completed_at": "2026-07-13T16:32:21.483653+00:00"
+}

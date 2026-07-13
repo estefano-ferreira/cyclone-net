@@ -21,5 +21,17 @@
     "SI": "South Indian",
     "SP": "South Pacific",
     "SA": "South Atlantic"
+  },
+  "env": {
+    "source": "ERA5 reanalysis, via per-event preprocessed cubes (src/processors/preprocess_scientific.py): single-level SST always; 850/200 hPa wind (deep-layer shear) and 700/600/500 hPa RH (mid-level moisture) only for events processed after the pressure-level backfill.",
+    "spatial_definition": "Arithmetic mean over the FULL 40x40 pixel window centered on the storm's best-track position at that timestamp (~10 deg x 10 deg at ERA5's 0.25 deg resolution). Not a point value.",
+    "temporal_definition": "t0 only: index 0 of the cube's time axis, i.e. the ERA5 analysis nearest the best-track fix's own timestamp. Not a lead/lag composite.",
+    "properties": {
+      "env_sst_c": "sea surface temperature, degrees Celsius (cube channel sst_K, K, minus 273.15)",
+      "env_shear_mps": "850-200 hPa deep-layer vector wind shear magnitude, m s-1 (cube channel shear_850_200_mps)",
+      "env_rh_pct": "mid-level (700/600/500 hPa) relative humidity, percent (cube channel rh_mid)"
+    },
+    "null_meaning": "null means unavailable for this point: no processed cube for that event_id, the channel doesn't exist in that cube (pre-backfill events lack shear/RH), or the computed patch mean was non-finite (NaN/Inf). It never means zero.",
+    "epistemic_note": "These are ERA5 reanalysis-derived diagnostics, NOT direct point measurements and NOT model predictions. They describe atmosphere/ocean state around the storm at that time. Their relationship to the storm's subsequent behavior (e.g. RI) is a hypothesis under test, not an established cause \u2014 see project errata."
   }
 }

@@ -94,6 +94,13 @@ def _fake_extract_ones(*_args, **_kwargs):
     return vol, [pressure_channels.SHEAR_CHANNEL, pressure_channels.RH_CHANNEL], dict(pressure_channels.PL_UNITS)
 
 
+def _per_event_csv_path(cfg: dict, manifest: dict) -> Path:
+    """per_event_csv is recorded project-root-relative (bare filename when the
+    provenance dir lies outside the repo, as in these tmp_path tests)."""
+    prov_dir = Path(cfg["paths"]["results_dir"]).parent / "provenance"
+    return prov_dir / Path(manifest["per_event_csv"]).name
+
+
 @pytest.fixture
 def no_network(monkeypatch):
     """Stub out the only function that would reach real CDS credentials/network.
@@ -127,7 +134,7 @@ def test_idempotent_skip_leaves_event_untouched(tmp_path, no_network):
     assert manifest["status"] == "completed"
     assert manifest["outcome_counts"] == {"skipped_already_present": 1}
 
-    df = pd.read_csv(manifest["per_event_csv"])
+    df = pd.read_csv(_per_event_csv_path(cfg, manifest))
     assert df.loc[df["event_id"] == event_id, "outcome"].iloc[0] == "skipped_already_present"
 
 
@@ -160,7 +167,7 @@ def test_atomicity_on_extract_exception(tmp_path, monkeypatch, no_network):
     assert manifest["deletion"]["deleted_files"] == []
     assert manifest["deletion"]["freed_bytes"] == 0
 
-    df = pd.read_csv(manifest["per_event_csv"])
+    df = pd.read_csv(_per_event_csv_path(cfg, manifest))
     row = df.loc[df["event_id"] == event_id].iloc[0]
     assert row["outcome"] == "failed"
 
@@ -190,7 +197,7 @@ def test_append_correctness(tmp_path, monkeypatch, no_network):
     assert new_meta["units"][pressure_channels.RH_CHANNEL] == "%"
     assert new_meta["cube_shape"] == [H, W, T, 14]
 
-    df = pd.read_csv(manifest["per_event_csv"])
+    df = pd.read_csv(_per_event_csv_path(cfg, manifest))
     row = df.loc[df["event_id"] == event_id].iloc[0]
     assert row["outcome"] == "appended"
     assert row["n_channels_before"] == 12
