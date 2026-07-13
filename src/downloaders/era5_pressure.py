@@ -93,8 +93,14 @@ class ERA5PressureDownloader:
         for filename, job in self._jobs_for_month(year, month):
             filepath = self.raw_dir / filename
             if filepath.exists():
-                logger.info("File %s already exists. Skipping.", filename)
-                continue
+                if filepath.stat().st_size > 0:
+                    logger.info("File %s already exists. Skipping.", filename)
+                    continue
+                # Empty shell left by an interrupted download (hard kill
+                # before the exception handler could unlink) -- exists is
+                # not enough, the skip must not reuse an invalid file.
+                logger.warning("File %s exists but is empty -- re-downloading.", filename)
+                filepath.unlink()
 
             request = {
                 "product_type": "reanalysis",
@@ -114,6 +120,8 @@ class ERA5PressureDownloader:
                     self.c.retrieve(self.dataset, request, filepath.as_posix())
                     if not filepath.exists():
                         raise RuntimeError("File missing after download.")
+                    if filepath.stat().st_size == 0:
+                        raise RuntimeError("File empty after download.")
                     written.append(filepath)
                     break
                 except Exception as exc:

@@ -103,7 +103,9 @@ class ERA5Downloader:
 
     def find_existing_monthly_file(self, year: int, month: int) -> Optional[Path]:
         pattern = f"era5_{year}_{month:02d}*.nc"
-        matches = sorted(self.raw_dir.glob(pattern))
+        # Zero-byte files are empty shells left by an interrupted download --
+        # they must not satisfy the skip-if-exists check.
+        matches = sorted(p for p in self.raw_dir.glob(pattern) if p.stat().st_size > 0)
         return matches[0] if matches else None
 
     def _download_month(
@@ -148,11 +150,12 @@ class ERA5Downloader:
                     request,
                     filepath.as_posix(),
                 )
-                if filepath.exists():
-                    logger.info(f"Downloaded {filename}")
-                    return filepath
-                else:
+                if not filepath.exists():
                     raise RuntimeError("File missing after download.")
+                if filepath.stat().st_size == 0:
+                    raise RuntimeError("File empty after download.")
+                logger.info(f"Downloaded {filename}")
+                return filepath
             except Exception as e:
                 logger.error(f"Attempt {attempt} failed: {e}")
                 if filepath.exists():
