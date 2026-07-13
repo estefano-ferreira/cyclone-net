@@ -1,0 +1,467 @@
+{
+  "generated_at": "2026-07-13T18:02:32.004149+00:00",
+  "config_path": "config.yaml",
+  "interim_dir": "data/interim",
+  "pl_channels_checked": [
+    "shear_850_200_mps",
+    "rh_mid"
+  ],
+  "total_events": 16780,
+  "counts_per_split": {
+    "train": 11150,
+    "val": 2951,
+    "test": 2679
+  },
+  "dev_splits": [
+    "train",
+    "val"
+  ],
+  "dev_total_events": 14101,
+  "dev_events_with_pl": 14101,
+  "dev_events_without_pl": 0,
+  "dev_missing_artifact": 0,
+  "per_year_per_split_dev_only": {
+    "1980": {
+      "train": {
+        "with_pl": 220,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 11,
+        "without_pl": 0
+      }
+    },
+    "1981": {
+      "train": {
+        "with_pl": 262,
+        "without_pl": 0
+      }
+    },
+    "1982": {
+      "train": {
+        "with_pl": 183,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 55,
+        "without_pl": 0
+      }
+    },
+    "1983": {
+      "train": {
+        "with_pl": 225,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 22,
+        "without_pl": 0
+      }
+    },
+    "1984": {
+      "train": {
+        "with_pl": 270,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 43,
+        "without_pl": 0
+      }
+    },
+    "1985": {
+      "train": {
+        "with_pl": 301,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 81,
+        "without_pl": 0
+      }
+    },
+    "1986": {
+      "train": {
+        "with_pl": 189,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 52,
+        "without_pl": 0
+      }
+    },
+    "1987": {
+      "train": {
+        "with_pl": 158,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 78,
+        "without_pl": 0
+      }
+    },
+    "1988": {
+      "train": {
+        "with_pl": 125,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 67,
+        "without_pl": 0
+      }
+    },
+    "1989": {
+      "train": {
+        "with_pl": 222,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 65,
+        "without_pl": 0
+      }
+    },
+    "1990": {
+      "train": {
+        "with_pl": 395,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 157,
+        "without_pl": 0
+      }
+    },
+    "1991": {
+      "train": {
+        "with_pl": 189,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 58,
+        "without_pl": 0
+      }
+    },
+    "1992": {
+      "train": {
+        "with_pl": 379,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 154,
+        "without_pl": 0
+      }
+    },
+    "1993": {
+      "train": {
+        "with_pl": 155,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 16,
+        "without_pl": 0
+      }
+    },
+    "1994": {
+      "train": {
+        "with_pl": 143,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 87,
+        "without_pl": 0
+      }
+    },
+    "1995": {
+      "train": {
+        "with_pl": 237,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 108,
+        "without_pl": 0
+      }
+    },
+    "1996": {
+      "train": {
+        "with_pl": 178,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 45,
+        "without_pl": 0
+      }
+    },
+    "1997": {
+      "train": {
+        "with_pl": 194,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 26,
+        "without_pl": 0
+      }
+    },
+    "1998": {
+      "train": {
+        "with_pl": 276,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 19,
+        "without_pl": 0
+      }
+    },
+    "1999": {
+      "train": {
+        "with_pl": 205,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 29,
+        "without_pl": 0
+      }
+    },
+    "2000": {
+      "train": {
+        "with_pl": 155,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 110,
+        "without_pl": 0
+      }
+    },
+    "2001": {
+      "train": {
+        "with_pl": 200,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 40,
+        "without_pl": 0
+      }
+    },
+    "2002": {
+      "train": {
+        "with_pl": 78,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 136,
+        "without_pl": 0
+      }
+    },
+    "2003": {
+      "train": {
+        "with_pl": 386,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 54,
+        "without_pl": 0
+      }
+    },
+    "2004": {
+      "train": {
+        "with_pl": 266,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 83,
+        "without_pl": 0
+      }
+    },
+    "2005": {
+      "train": {
+        "with_pl": 320,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 50,
+        "without_pl": 0
+      }
+    },
+    "2006": {
+      "train": {
+        "with_pl": 308,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 17,
+        "without_pl": 0
+      }
+    },
+    "2007": {
+      "train": {
+        "with_pl": 148,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 31,
+        "without_pl": 0
+      }
+    },
+    "2008": {
+      "train": {
+        "with_pl": 222,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 75,
+        "without_pl": 0
+      }
+    },
+    "2009": {
+      "train": {
+        "with_pl": 310,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 74,
+        "without_pl": 0
+      }
+    },
+    "2010": {
+      "train": {
+        "with_pl": 154,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 142,
+        "without_pl": 0
+      }
+    },
+    "2011": {
+      "train": {
+        "with_pl": 161,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 194,
+        "without_pl": 0
+      }
+    },
+    "2012": {
+      "train": {
+        "with_pl": 355,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 47,
+        "without_pl": 0
+      }
+    },
+    "2013": {
+      "train": {
+        "with_pl": 171,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 69,
+        "without_pl": 0
+      }
+    },
+    "2014": {
+      "train": {
+        "with_pl": 260,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 81,
+        "without_pl": 0
+      }
+    },
+    "2015": {
+      "train": {
+        "with_pl": 324,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 32,
+        "without_pl": 0
+      }
+    },
+    "2016": {
+      "train": {
+        "with_pl": 401,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 44,
+        "without_pl": 0
+      }
+    },
+    "2017": {
+      "train": {
+        "with_pl": 287,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 80,
+        "without_pl": 0
+      }
+    },
+    "2018": {
+      "train": {
+        "with_pl": 548,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 85,
+        "without_pl": 0
+      }
+    },
+    "2019": {
+      "train": {
+        "with_pl": 298,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 93,
+        "without_pl": 0
+      }
+    },
+    "2020": {
+      "train": {
+        "with_pl": 331,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 93,
+        "without_pl": 0
+      }
+    },
+    "2021": {
+      "train": {
+        "with_pl": 364,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 61,
+        "without_pl": 0
+      }
+    },
+    "2022": {
+      "train": {
+        "with_pl": 168,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 23,
+        "without_pl": 0
+      }
+    },
+    "2023": {
+      "train": {
+        "with_pl": 429,
+        "without_pl": 0
+      },
+      "val": {
+        "with_pl": 64,
+        "without_pl": 0
+      }
+    }
+  },
+  "gate_pass": true,
+  "gate_verdict": "PASS: all 14101 dev-set (train+val) events have both PL channels (shear_850_200_mps, rh_mid).",
+  "offending_event_ids_sample": [],
+  "offending_event_ids_sample_truncated_at_20": false,
+  "offending_per_year_missing_counts": {},
+  "test_split_policy": "The frozen test split is never opened for content by this script: only its event COUNT (from splits.csv, an assignment table with no channel/label content) is reported in counts_per_split; no data/interim/{event_id}.json belonging to a test-split event is ever read."
+}

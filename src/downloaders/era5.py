@@ -27,6 +27,58 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logger = logging.getLogger(__name__)
 
 
+def usable_netcdf(path: Path) -> bool:
+    """True only if ``path`` is a readable NetCDF file.
+
+    A hard kill mid-download can leave an empty OR truncated (>0 bytes but
+    unopenable) file behind, so existence and size are not enough for a
+    skip-if-exists decision. Cheap size gate first; the netCDF open only
+    reads the header.
+
+    Path-encoding caveat: the netCDF C library on Windows cannot open
+    absolute paths containing non-ASCII characters (this machine's user dir
+    does; same known issue documented in tchp.py). A cwd-relative form of
+    the path usually avoids the non-ASCII prefix, so it is tried first; if
+    the library cannot see the file under ANY representable path
+    (FileNotFoundError, not a content error), fall back to the NetCDF/HDF5
+    magic bytes rather than wrongly condemning a good file.
+    """
+    import os
+
+    try:
+        if path.stat().st_size == 0:
+            return False
+    except OSError:
+        return False
+
+    import netCDF4
+
+    candidates = []
+    try:
+        candidates.append(os.path.relpath(path))
+    except ValueError:  # different drive: no relative form exists
+        pass
+    candidates.append(str(path))
+
+    for candidate in candidates:
+        try:
+            with netCDF4.Dataset(candidate):
+                return True
+        except (FileNotFoundError, PermissionError):
+            continue  # path-encoding artifact -- try the next form
+        except Exception:
+            return False  # file was reachable but is not a valid NetCDF
+
+    # Unreachable under any representable path: judge by magic bytes only
+    # (Python's own IO handles non-ASCII paths fine; only the C lib fails).
+    try:
+        with open(path, "rb") as f:
+            head = f.read(8)
+    except OSError:
+        return False
+    return head.startswith(b"CDF") or head.startswith(b"\x89HDF")
+
+
 def generate_required_timestamps(
     event_list_csv: Path,
     out_csv: Path,
@@ -103,9 +155,9 @@ class ERA5Downloader:
 
     def find_existing_monthly_file(self, year: int, month: int) -> Optional[Path]:
         pattern = f"era5_{year}_{month:02d}*.nc"
-        # Zero-byte files are empty shells left by an interrupted download --
-        # they must not satisfy the skip-if-exists check.
-        matches = sorted(p for p in self.raw_dir.glob(pattern) if p.stat().st_size > 0)
+        # An interrupted download can leave an empty OR truncated file on
+        # disk; neither may satisfy the skip-if-exists check.
+        matches = sorted(p for p in self.raw_dir.glob(pattern) if usable_netcdf(p))
         return matches[0] if matches else None
 
     def _download_month(

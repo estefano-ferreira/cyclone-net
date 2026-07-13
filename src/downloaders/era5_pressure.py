@@ -25,6 +25,7 @@ import requests
 import urllib3
 from tqdm import tqdm
 
+from src.downloaders.era5 import usable_netcdf
 from src.utils.config import cfg_get
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -93,13 +94,15 @@ class ERA5PressureDownloader:
         for filename, job in self._jobs_for_month(year, month):
             filepath = self.raw_dir / filename
             if filepath.exists():
-                if filepath.stat().st_size > 0:
+                if usable_netcdf(filepath):
                     logger.info("File %s already exists. Skipping.", filename)
                     continue
-                # Empty shell left by an interrupted download (hard kill
-                # before the exception handler could unlink) -- exists is
-                # not enough, the skip must not reuse an invalid file.
-                logger.warning("File %s exists but is empty -- re-downloading.", filename)
+                # Empty or truncated shell left by an interrupted download
+                # (hard kill before the exception handler could unlink) --
+                # existence is not enough, the skip must not reuse an
+                # unreadable file.
+                logger.warning("File %s exists but is not a readable NetCDF -- re-downloading.",
+                               filename)
                 filepath.unlink()
 
             request = {

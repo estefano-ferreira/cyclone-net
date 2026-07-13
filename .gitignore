@@ -44,6 +44,16 @@ config.yaml
 # Snapshots de execução (serializam a config, incluindo credenciais)
 run_snapshot.json
 
+# Política de outputs/: JSONs de EVIDÊNCIA são versionados (audit, census,
+# summaries/OOF da ablação); artefatos de run (checkpoints, stats escopadas,
+# splits por fold) são locais. A re-inclusão exige re-incluir os diretórios
+# (!**/) antes dos arquivos.
+outputs/results/feature_ablation_cnn/**
+!outputs/results/feature_ablation_cnn/**/
+!outputs/results/feature_ablation_cnn/**/summary.json
+!outputs/results/feature_ablation_cnn/**/oof_predictions.csv
+!outputs/results/feature_ablation_cnn/aggregate_*.json
+
 # Cache de testes
 .pytest_cache/
 
