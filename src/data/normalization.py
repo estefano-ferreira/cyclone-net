@@ -45,6 +45,7 @@ import numpy as np
 import pandas as pd
 
 from src.utils.config import cfg_get, load_config
+from src.utils.paths import rel_to_root
 
 try:
     from tqdm import tqdm
@@ -507,8 +508,8 @@ def build_training_manifests(
         "n_events_total": int(len(df)),
         "n_events_valid": int(len(valid_df)),
         "n_events_rejected": int(len(rejected_df)),
-        "valid_manifest": str(valid_manifest_path),
-        "rejected_manifest": str(rejected_manifest_path),
+        "valid_manifest": rel_to_root(valid_manifest_path),
+        "rejected_manifest": rel_to_root(rejected_manifest_path),
         "core_channels": core_channels,
         "thresholds": {
             "sst_range_K": list(thresholds.sst_range_K),
@@ -654,8 +655,8 @@ def compute_norm_stats_from_splits(
             "used_events": used_events,
             "skipped_events": skipped_events,
             "skipped_reasons": skipped_reasons,
-            "splits_csv": str(splits_csv),
-            "interim_dir": str(interim_dir),
+            "splits_csv": rel_to_root(splits_csv),
+            "interim_dir": rel_to_root(interim_dir),
         },
     }
 

@@ -72,6 +72,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from src.baselines.tabular_lr import extract_features_from_cube  # noqa: E402
 from src.processors.pressure_channels import RH_CHANNEL, SHEAR_CHANNEL  # noqa: E402
 from src.utils.config import cfg_get, load_config  # noqa: E402
+from src.utils.paths import rel_to_root  # noqa: E402
 
 PL_CHANNELS = [SHEAR_CHANNEL, RH_CHANNEL]
 GATE_FILENAME = "pl_gate_census.json"
@@ -393,7 +394,7 @@ def main() -> None:
         "seed": args.seed,
         "n_splits": args.n_splits,
         "n_boot": args.n_boot,
-        "config_path": str(config_path),
+        "config_path": rel_to_root(config_path),
         "config_digest_sha256": _config_digest(config_path),
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "availability": audit,

@@ -62,6 +62,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.processors.pressure_channels import RH_CHANNEL, SHEAR_CHANNEL  # noqa: E402
 from src.utils.config import cfg_get, load_config  # noqa: E402
+from src.utils.paths import rel_to_root  # noqa: E402
 
 PL_CHANNELS = [SHEAR_CHANNEL, RH_CHANNEL]
 DEV_SPLITS = ("train", "val")
@@ -178,8 +179,8 @@ def build_census(cfg: Dict[str, Any], config_path: Path) -> Dict[str, Any]:
 
     census = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "config_path": str(config_path),
-        "interim_dir": str(Path(cfg_get(cfg, "paths.interim_data", "./data/interim")).resolve()),
+        "config_path": rel_to_root(config_path),
+        "interim_dir": rel_to_root(Path(cfg_get(cfg, "paths.interim_data", "./data/interim"))),
         "pl_channels_checked": PL_CHANNELS,
         "total_events": int(len(df)),
         "counts_per_split": per_split_counts,

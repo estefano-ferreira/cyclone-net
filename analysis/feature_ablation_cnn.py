@@ -85,6 +85,7 @@ from analysis.feature_ablation_kfold import (  # noqa: E402
     load_dev_events,
 )
 from src.utils.config import cfg_get, load_config  # noqa: E402
+from src.utils.paths import rel_to_root  # noqa: E402
 
 ARM_A_NAME = "A_current"
 ARM_B_NAME = "B_with_pressure"
@@ -371,8 +372,8 @@ def run_execute(cfg: Dict[str, Any], config_path: Path, events_df: pd.DataFrame,
                     "arm": arm_name, "channels": arm_channels,
                     "elapsed_sec": elapsed_sec, "pr_auc": pr_auc, "roc_auc": roc_auc,
                     "train_summary": train_summary,
-                    "normalization_stats_path": str(norm_stats_path),
-                    "checkpoints_dir": str(arm_dir / "checkpoints"),
+                    "normalization_stats_path": rel_to_root(norm_stats_path),
+                    "checkpoints_dir": rel_to_root(arm_dir / "checkpoints"),
                 }
                 (arm_dir / "ablation_eval.json").write_text(json.dumps(arm_result, indent=2), encoding="utf-8")
                 fold_row["arms"][arm_name] = {k: v for k, v in arm_result.items() if k != "train_summary"}
@@ -390,6 +391,18 @@ def run_execute(cfg: Dict[str, Any], config_path: Path, events_df: pd.DataFrame,
         b_pool = np.array([oof_b[e] for e in common_ids])
         groups_pool = np.array([sid_by_event[e] for e in common_ids])
 
+        # Persist the raw OOF predictions: this is what makes phased
+        # (one-seed-per-night) execution aggregatable later -- the final
+        # pre-registered verdict needs raw scores, not per-seed aggregates.
+        oof_csv = run_dir / f"seed{seed}" / "oof_predictions.csv"
+        pd.DataFrame({
+            "event_id": common_ids,
+            "sid": groups_pool,
+            "y": y_pool,
+            "prob_A": a_pool,
+            "prob_B": b_pool,
+        }).to_csv(oof_csv, index=False)
+
         bootstrap = cluster_bootstrap_ci(y_pool, a_pool, b_pool, groups_pool,
                                          seed=seed, n_boot=args.n_boot)
         pooled = {
@@ -404,12 +417,13 @@ def run_execute(cfg: Dict[str, Any], config_path: Path, events_df: pd.DataFrame,
             "per_fold": fold_rows,
             "pooled_oof": pooled,
             "cluster_bootstrap_by_sid": bootstrap,
+            "oof_predictions_csv": rel_to_root(oof_csv),
         }
 
     summary = {
         "run_id": run_id,
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "config_path": str(config_path),
+        "config_path": rel_to_root(config_path),
         "arms": arms,
         "folds": args.folds,
         "epochs": args.epochs,
@@ -419,10 +433,95 @@ def run_execute(cfg: Dict[str, Any], config_path: Path, events_df: pd.DataFrame,
         "n_positives": int(events_df["ri_label"].sum()),
         "n_storms": int(events_df["sid"].nunique()),
         "per_seed": per_seed_results,
-        "run_dir": str(run_dir),
+        "run_dir": rel_to_root(run_dir),
     }
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     return summary
+
+
+# ---------------------------------------------------------------------------
+# Cross-seed aggregation (the pre-registered final verdict for phased runs).
+# ---------------------------------------------------------------------------
+
+def aggregate_across_seeds(oof_csvs: Sequence[Path], n_boot: int = 10_000,
+                           boot_seed: int = 42, ci: float = 0.95) -> Dict[str, Any]:
+    """Pre-registered final metric over phased per-seed runs.
+
+    Point estimate: mean over seeds of (PR-AUC_B - PR-AUC_A), each computed
+    on that seed's pooled OOF predictions. CI: paired cluster bootstrap by
+    SID -- ONE shared storm resampling per replicate, the per-seed deltas
+    recomputed on the resampled events and averaged across seeds, so
+    within-storm correlation AND cross-seed pairing stay intact. Single-class
+    draws are skipped and counted, same convention as cluster_bootstrap_ci.
+    """
+    frames = [pd.read_csv(Path(p)) for p in oof_csvs]
+    if not frames:
+        raise ValueError("no oof_predictions.csv given")
+
+    base = frames[0].sort_values("event_id").reset_index(drop=True)
+    y = base["y"].to_numpy(dtype=np.float64)
+    groups = base["sid"].astype(str).to_numpy()
+    a_mat: List[np.ndarray] = []
+    b_mat: List[np.ndarray] = []
+    for i, f in enumerate(frames):
+        f = f.sort_values("event_id").reset_index(drop=True)
+        if not (f["event_id"].to_numpy() == base["event_id"].to_numpy()).all():
+            raise ValueError(f"oof csv #{i} covers a different event set -- "
+                             "all seeds must share the same dev events")
+        if not np.array_equal(f["y"].to_numpy(dtype=np.float64), y):
+            raise ValueError(f"oof csv #{i} labels disagree with the first csv")
+        a_mat.append(f["prob_A"].to_numpy(dtype=np.float64))
+        b_mat.append(f["prob_B"].to_numpy(dtype=np.float64))
+
+    deltas_point = [float(average_precision_score(y, b) - average_precision_score(y, a))
+                    for a, b in zip(a_mat, b_mat)]
+
+    rng = np.random.default_rng(boot_seed)
+    unique_groups = np.unique(groups)
+    group_to_idx = {g: np.where(groups == g)[0] for g in unique_groups}
+    draws: List[float] = []
+    n_skipped = 0
+    for _ in range(n_boot):
+        sampled = rng.choice(unique_groups, size=len(unique_groups), replace=True)
+        idx = np.concatenate([group_to_idx[g] for g in sampled])
+        yb = y[idx]
+        if len(np.unique(yb)) < 2:
+            n_skipped += 1
+            continue
+        rep = [average_precision_score(yb, b[idx]) - average_precision_score(yb, a[idx])
+               for a, b in zip(a_mat, b_mat)]
+        draws.append(float(np.mean(rep)))
+
+    arr = np.asarray(draws, dtype=np.float64)
+    alpha = (1.0 - ci) / 2.0
+    result: Dict[str, Any] = {
+        "method": "cross_seed_mean_delta_pr_auc__cluster_bootstrap_by_sid",
+        "n_seeds": len(frames),
+        "oof_csvs": [rel_to_root(Path(p)) for p in oof_csvs],
+        "n_events": int(len(y)),
+        "n_storms": int(len(unique_groups)),
+        "per_seed_delta_pr_auc": deltas_point,
+        "delta_pr_auc_mean_across_seeds": float(np.mean(deltas_point)),
+        "ci_level": ci,
+        "n_boot_requested": n_boot,
+        "n_boot_used": int(arr.size),
+        "n_boot_skipped_single_class": n_skipped,
+        "delta_pr_auc_ci_low": float(np.quantile(arr, alpha)) if arr.size else None,
+        "delta_pr_auc_ci_high": float(np.quantile(arr, 1.0 - alpha)) if arr.size else None,
+    }
+    lo, hi = result["delta_pr_auc_ci_low"], result["delta_pr_auc_ci_high"]
+    if lo is None:
+        result["verdict"] = "INCONCLUSIVE: insufficient valid bootstrap draws to compute a CI."
+    elif lo > 0:
+        result["verdict"] = (f"CI [{lo:.4f}, {hi:.4f}] excludes zero (positive): shear/rh add "
+                             "quantified skill (report the delta and CI; do not oversell).")
+    elif hi < 0:
+        result["verdict"] = (f"CI [{lo:.4f}, {hi:.4f}] excludes zero (NEGATIVE): investigate "
+                             "before reporting (pre-registered branch).")
+    else:
+        result["verdict"] = (f"CI [{lo:.4f}, {hi:.4f}] includes zero: NULL -- the added "
+                             "channels do not add detectable skill at this resolution/regime.")
+    return result
 
 
 def main() -> None:
@@ -443,6 +542,10 @@ def main() -> None:
     parser.add_argument("--require-gate", action=argparse.BooleanOptionalAction, default=True,
                         help="Refuse to run unless outputs/results/pl_gate_census.json reports "
                              "gate_pass=true (default: on). Use --no-require-gate to bypass.")
+    parser.add_argument("--aggregate", nargs="+", default=None, metavar="PATH",
+                        help="Per-seed run dirs (searched recursively) or oof_predictions.csv "
+                             "paths. Computes the pre-registered cross-seed verdict from saved "
+                             "OOF predictions and exits -- no training, no gate needed.")
     args = parser.parse_args()
     args.seeds = [int(s.strip()) for s in str(args.seeds).split(",") if s.strip()]
 
@@ -450,6 +553,24 @@ def main() -> None:
     if not config_path.is_absolute():
         config_path = (PROJECT_ROOT / config_path).resolve()
     cfg = load_config(str(config_path))
+
+    if args.aggregate:
+        csvs: List[Path] = []
+        for a in args.aggregate:
+            p = Path(a)
+            csvs.extend(sorted(p.rglob("oof_predictions.csv")) if p.is_dir() else [p])
+        if not csvs:
+            print("No oof_predictions.csv found under the given paths.")
+            sys.exit(1)
+        result = aggregate_across_seeds(csvs, n_boot=args.n_boot)
+        out_dir = Path(cfg_get(cfg, "paths.results_dir", "./outputs/results")).resolve() / "feature_ablation_cnn"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / f"aggregate_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.json"
+        out_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
+        print(json.dumps(result, indent=2))
+        print(f"\nFINAL VERDICT: {result['verdict']}")
+        print(f"report: {out_path}")
+        return
 
     enforce_gate(cfg, args.require_gate)
 

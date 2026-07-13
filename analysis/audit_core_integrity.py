@@ -74,6 +74,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.processors.pressure_channels import RH_CHANNEL, SHEAR_CHANNEL  # noqa: E402
 from src.utils.config import load_config, cfg_get  # noqa: E402
+from src.utils.paths import rel_to_root  # noqa: E402
 from src.utils.splits import SplitConfig, hash_fraction, assign_split, load_frozen_map  # noqa: E402
 
 logger = logging.getLogger("audit_core_integrity")
@@ -288,8 +289,8 @@ def check_label_integrity(cfg: Dict[str, Any], paths: Dict[str, Path]) -> Dict[s
     raw_path = paths["raw_ibtracs"]
     if not event_list_path.exists() or not raw_path.exists():
         return {"status": "FAIL", "evidence": {"error": "required CSVs missing",
-                                                "event_list_path": str(event_list_path),
-                                                "raw_ibtracs_path": str(raw_path)}}
+                                                "event_list_path": rel_to_root(event_list_path),
+                                                "raw_ibtracs_path": rel_to_root(raw_path)}}
 
     pipeline_df = pd.read_csv(event_list_path, low_memory=False)
     pipeline_df["timestamp"] = pd.to_datetime(pipeline_df["timestamp"], errors="coerce")
