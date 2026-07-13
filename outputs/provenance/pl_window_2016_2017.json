@@ -1,0 +1,238 @@
+{
+  "window": [
+    2016,
+    2017
+  ],
+  "created_at": "2026-07-13T16:32:21.492448+00:00",
+  "status": "completed",
+  "config_digest": {
+    "wind_levels": [
+      850,
+      200
+    ],
+    "rh_levels": [
+      700,
+      600,
+      500
+    ],
+    "offsets_hours": [
+      0,
+      -6,
+      -12,
+      -18,
+      -24
+    ],
+    "window_size_px": 40
+  },
+  "n_events_in_window": 1509,
+  "outcome_counts": {
+    "appended": 1509
+  },
+  "per_event_csv": "outputs/provenance/pl_window_2016_2017_outcomes.csv",
+  "pl_downloads": [
+    {
+      "file": "era5pl_wind_2016_01.nc",
+      "size_bytes": 36527814,
+      "sha256": "afcacff39739f3fe58cd577b3afdc9b3db3a8a183ff2a9d48276108bde048ca5"
+    },
+    {
+      "file": "era5pl_wind_2016_05.nc",
+      "size_bytes": 18898736,
+      "sha256": "843f798d057ac1c29fa5f0730b1ac7d1be19158a0e9f5996140fd480edce58e8"
+    },
+    {
+      "file": "era5pl_wind_2016_06.nc",
+      "size_bytes": 41496253,
+      "sha256": "6ecaa65e545d15f4f28d3e42e5f3f7c1cfc5355f791d0298921ae64445aaef90"
+    },
+    {
+      "file": "era5pl_wind_2016_07.nc",
+      "size_bytes": 112879533,
+      "sha256": "ea6714b842d54edb49c098c07d8a1150449880409a08b0b61a3c208a3fa07f85"
+    },
+    {
+      "file": "era5pl_wind_2016_08.nc",
+      "size_bytes": 94339396,
+      "sha256": "9c493f10f0f05404ca3dfaf050ef139d158b85aeeb98c57d73ad9966d2320acf"
+    },
+    {
+      "file": "era5pl_wind_2016_09.nc",
+      "size_bytes": 106005007,
+      "sha256": "3f1a093e708a2c8b4e32a5616f616c90ea725e104a865bca127ee0fec7dadc4b"
+    },
+    {
+      "file": "era5pl_wind_2016_10.nc",
+      "size_bytes": 97675421,
+      "sha256": "adbc67bbb1805dc5b75cb6f9e36a664055abf0b225ea6433c57f0882db6ef033"
+    },
+    {
+      "file": "era5pl_wind_2016_11.nc",
+      "size_bytes": 48603607,
+      "sha256": "44a5e4f915e0e02a287a634d786580e3926e259c6a67b7520ddf679084353861"
+    },
+    {
+      "file": "era5pl_rh_2016_01.nc",
+      "size_bytes": 28449044,
+      "sha256": "5dfcac8b4cf5d776a9e036649f85f752b94b6731b6abe0572b8a9cc9022a5c4f"
+    },
+    {
+      "file": "era5pl_rh_2016_05.nc",
+      "size_bytes": 14759014,
+      "sha256": "88d1a57d539e8dd941bb757f1079472be08ac02caf175f8749ab73c55788b23c"
+    },
+    {
+      "file": "era5pl_rh_2016_06.nc",
+      "size_bytes": 31415451,
+      "sha256": "ec547ea28562b20e1126ba9ca1a15561e43cffcf13696328bafe0b4b31ccef96"
+    },
+    {
+      "file": "era5pl_rh_2016_07.nc",
+      "size_bytes": 84759964,
+      "sha256": "073a7d487ac0a438e379c1c81c1fed72798230ed0c974544ce08cfea66f7d23c"
+    },
+    {
+      "file": "era5pl_rh_2016_08.nc",
+      "size_bytes": 71104832,
+      "sha256": "c7541e2dd55642ae5943e9b1016df875f27bf7a19f40192caac09575950fc9f5"
+    },
+    {
+      "file": "era5pl_rh_2016_09.nc",
+      "size_bytes": 79981361,
+      "sha256": "d45821ab08f57f08edc95aff878a315d7d17031e1b61d2e128762a6d9e7a1f54"
+    },
+    {
+      "file": "era5pl_rh_2016_10.nc",
+      "size_bytes": 74303090,
+      "sha256": "40cef416e5b6caad883b589994c0111985d36f10dce78b4f2df8722057a66c9b"
+    },
+    {
+      "file": "era5pl_rh_2016_11.nc",
+      "size_bytes": 37453940,
+      "sha256": "d04e81ce06ee9155cedd5535a488f42910ce81f01d60185a992019489e8a21a0"
+    },
+    {
+      "file": "era5pl_wind_2017_04.nc",
+      "size_bytes": 22246104,
+      "sha256": "cd98752b06bd9396621db01880d909df5eabdf0b0f0c3b0b7a83439213515613"
+    },
+    {
+      "file": "era5pl_wind_2017_05.nc",
+      "size_bytes": 14883602,
+      "sha256": "aaf81ee38130295d1999a7073ef85a5470b869b86302578be705c0aea74b7614"
+    },
+    {
+      "file": "era5pl_wind_2017_06.nc",
+      "size_bytes": 60726022,
+      "sha256": "cfe8aba99f08d8443c74291dc28a84349af4bb08fd33e30b82f498c1669f65b5"
+    },
+    {
+      "file": "era5pl_wind_2017_07.nc",
+      "size_bytes": 101593506,
+      "sha256": "ef042f6171af318efc520c8886d4343abfef9ce585c865f674275ebca9710cb0"
+    },
+    {
+      "file": "era5pl_wind_2017_08.nc",
+      "size_bytes": 109801660,
+      "sha256": "9ae4d09e750f316ed731d70d2979f110966293e8a2d4c8ea196e7db7f3237b6e"
+    },
+    {
+      "file": "era5pl_wind_2017_09.nc",
+      "size_bytes": 113665987,
+      "sha256": "d4f49282e8068b9b007a56aa7fbd789a47788bb55859c34097770542664f6d2c"
+    },
+    {
+      "file": "era5pl_wind_2017_10.nc",
+      "size_bytes": 60411582,
+      "sha256": "d841946848d081f4d584d27488c3ec2cefcb84b94d974fc5cbd7e86c06fac3d2"
+    },
+    {
+      "file": "era5pl_wind_2017_11.nc",
+      "size_bytes": 18710937,
+      "sha256": "50fcae1b3a711d52683faa59f691b2b57d2875bbc604295d051eccf9f6a87499"
+    },
+    {
+      "file": "era5pl_rh_2017_04.nc",
+      "size_bytes": 17538895,
+      "sha256": "8db749386af59936b19c2d3751815e8c446a19f85d2fcb26c21f85d2539de239"
+    },
+    {
+      "file": "era5pl_rh_2017_05.nc",
+      "size_bytes": 11616522,
+      "sha256": "eb87f3792c9b004a1e81ecfd6bcb013526a7987bea9adfed7d7e4a927ea5b479"
+    },
+    {
+      "file": "era5pl_rh_2017_06.nc",
+      "size_bytes": 45654863,
+      "sha256": "dffda88623a7719862ddcab85cc129bc0072e08cd20414cdfc4dc26e5230d6f1"
+    },
+    {
+      "file": "era5pl_rh_2017_07.nc",
+      "size_bytes": 76866137,
+      "sha256": "760db837756e14e6a8b3fc165f2e22b7e7cb977f978a52ca1d0612e3ebd761e9"
+    },
+    {
+      "file": "era5pl_rh_2017_08.nc",
+      "size_bytes": 82867172,
+      "sha256": "bd6e38ccd0dfb4c27b918751cd06e82fbbed06f27b0cc3787fd6eb57e771f07f"
+    },
+    {
+      "file": "era5pl_rh_2017_09.nc",
+      "size_bytes": 85483573,
+      "sha256": "982582df4301bbdf7178a92ea1967cec4347d942ecc2800291c0e7b4277ff9a3"
+    },
+    {
+      "file": "era5pl_rh_2017_10.nc",
+      "size_bytes": 45696946,
+      "sha256": "0493f837acc1d0108727b7f6bfc55b5d68466483e45c7c2339e1ea02a329b946"
+    },
+    {
+      "file": "era5pl_rh_2017_11.nc",
+      "size_bytes": 14655233,
+      "sha256": "50c898e9de824b75045a1db46e4450587f4a0d0e14f7abd69f64df19f26951a4"
+    }
+  ],
+  "verification": {
+    "passed": true,
+    "n_appended_checked": 1509,
+    "problems": []
+  },
+  "deletion": {
+    "performed": true,
+    "freed_bytes": 1861071204,
+    "deleted_files": [
+      "era5pl_wind_2016_01.nc",
+      "era5pl_wind_2016_05.nc",
+      "era5pl_wind_2016_06.nc",
+      "era5pl_wind_2016_07.nc",
+      "era5pl_wind_2016_08.nc",
+      "era5pl_wind_2016_09.nc",
+      "era5pl_wind_2016_10.nc",
+      "era5pl_wind_2016_11.nc",
+      "era5pl_rh_2016_01.nc",
+      "era5pl_rh_2016_05.nc",
+      "era5pl_rh_2016_06.nc",
+      "era5pl_rh_2016_07.nc",
+      "era5pl_rh_2016_08.nc",
+      "era5pl_rh_2016_09.nc",
+      "era5pl_rh_2016_10.nc",
+      "era5pl_rh_2016_11.nc",
+      "era5pl_wind_2017_04.nc",
+      "era5pl_wind_2017_05.nc",
+      "era5pl_wind_2017_06.nc",
+      "era5pl_wind_2017_07.nc",
+      "era5pl_wind_2017_08.nc",
+      "era5pl_wind_2017_09.nc",
+      "era5pl_wind_2017_10.nc",
+      "era5pl_wind_2017_11.nc",
+      "era5pl_rh_2017_04.nc",
+      "era5pl_rh_2017_05.nc",
+      "era5pl_rh_2017_06.nc",
+      "era5pl_rh_2017_07.nc",
+      "era5pl_rh_2017_08.nc",
+      "era5pl_rh_2017_09.nc",
+      "era5pl_rh_2017_10.nc",
+      "era5pl_rh_2017_11.nc"
+    ]
+  },
+  "completed_at": "2026-07-13T17:03:26.402223+00:00"
+}

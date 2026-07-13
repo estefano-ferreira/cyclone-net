@@ -1,0 +1,226 @@
+{
+  "window": [
+    2012,
+    2013
+  ],
+  "created_at": "2026-07-13T15:30:28.152267+00:00",
+  "status": "completed",
+  "config_digest": {
+    "wind_levels": [
+      850,
+      200
+    ],
+    "rh_levels": [
+      700,
+      600,
+      500
+    ],
+    "offsets_hours": [
+      0,
+      -6,
+      -12,
+      -18,
+      -24
+    ],
+    "window_size_px": 40
+  },
+  "n_events_in_window": 1341,
+  "outcome_counts": {
+    "appended": 1341
+  },
+  "per_event_csv": "outputs/provenance/pl_window_2012_2013_outcomes.csv",
+  "pl_downloads": [
+    {
+      "file": "era5pl_wind_2012_05.nc",
+      "size_bytes": 71420043,
+      "sha256": "3be46204d95a607d4606fa7ca19dd7aae8c56bdb6be3ec51ad7707c912566228"
+    },
+    {
+      "file": "era5pl_wind_2012_06.nc",
+      "size_bytes": 56715812,
+      "sha256": "a7a562471a1cf92928b3ece505a3525c534f987a40084f5cc7ae82dc60c05313"
+    },
+    {
+      "file": "era5pl_wind_2012_07.nc",
+      "size_bytes": 60392949,
+      "sha256": "a079900ddde90198f6e7cc018be73394d95a3b0a335553fd808dd49b78c58f9c"
+    },
+    {
+      "file": "era5pl_wind_2012_08.nc",
+      "size_bytes": 116687315,
+      "sha256": "e6d8b393ea6a5cd577de6b2b58b06a9f9191cf4f7f808bfa7f60bbbde83b49ab"
+    },
+    {
+      "file": "era5pl_wind_2012_09.nc",
+      "size_bytes": 113341613,
+      "sha256": "bdb4def602b2e97a4bbe569962317c0c5d598a86e4bb1d4fc6cc198e6daf501b"
+    },
+    {
+      "file": "era5pl_wind_2012_10.nc",
+      "size_bytes": 113317244,
+      "sha256": "d3ea1a11756ea0195dd164cc6da02071fb1aa1e6c83d5a20b4b2ab915a50681f"
+    },
+    {
+      "file": "era5pl_wind_2012_11.nc",
+      "size_bytes": 14918403,
+      "sha256": "08513d41413133ba116647b50d4c31a3668cb02506f12295d40f2c1fa394967a"
+    },
+    {
+      "file": "era5pl_rh_2012_05.nc",
+      "size_bytes": 54216500,
+      "sha256": "7563df81efcc0c8860a869494bafcec1fa42510f437a45e08d02aa89472b4974"
+    },
+    {
+      "file": "era5pl_rh_2012_06.nc",
+      "size_bytes": 42941828,
+      "sha256": "22a600a193dd4b685c85447bf56d90caeb8f3cfcccc0c47c4838f998922b48e0"
+    },
+    {
+      "file": "era5pl_rh_2012_07.nc",
+      "size_bytes": 45422938,
+      "sha256": "ab7d2565b4c37cb128dab9c337c081029577587eda24c9fa2896c7c27028da7a"
+    },
+    {
+      "file": "era5pl_rh_2012_08.nc",
+      "size_bytes": 88239046,
+      "sha256": "0c9d55e628bca457705fb96c6629956ac5d9b589cb7b5547d95a3dd3edf890ee"
+    },
+    {
+      "file": "era5pl_rh_2012_09.nc",
+      "size_bytes": 86135701,
+      "sha256": "f58f1a1e62dac23f9fa2aa52117b008b4601fd191eba340e44e130274e37b64e"
+    },
+    {
+      "file": "era5pl_rh_2012_10.nc",
+      "size_bytes": 85644724,
+      "sha256": "0e93f030601bc6a2ee37cb3dfa8780169fe37de2cd6e4d7f6a5d2858b91ca2e9"
+    },
+    {
+      "file": "era5pl_rh_2012_11.nc",
+      "size_bytes": 11734984,
+      "sha256": "3acb0339582da5f6f9163dc5ff01ca9be65e037978190720c710e450545b555a"
+    },
+    {
+      "file": "era5pl_wind_2013_05.nc",
+      "size_bytes": 22601210,
+      "sha256": "99be464c4245753574baeb7c4a486139fce8977dc65a691e6712dd29898f996e"
+    },
+    {
+      "file": "era5pl_wind_2013_06.nc",
+      "size_bytes": 60130927,
+      "sha256": "fd3b7195b305b0a2d4869440226bca5f616aac003cde0aec0d8dc5b8933eeb84"
+    },
+    {
+      "file": "era5pl_wind_2013_07.nc",
+      "size_bytes": 71781083,
+      "sha256": "5c499a10c59155b476a521ef677d0e6555429a928b69acf86475140c8cc6c580"
+    },
+    {
+      "file": "era5pl_wind_2013_08.nc",
+      "size_bytes": 106014636,
+      "sha256": "1c3b3ece1decc9721272e67e439e4b7bf3503be1c053ccbbb6501734466fa182"
+    },
+    {
+      "file": "era5pl_wind_2013_09.nc",
+      "size_bytes": 79536059,
+      "sha256": "c737f5b4d21ce80eb4ecb06a844d6e89e3286290bd28afc18285501b1fb5ed3f"
+    },
+    {
+      "file": "era5pl_wind_2013_10.nc",
+      "size_bytes": 112616383,
+      "sha256": "e73d719a551d0f647424b06bb9ff5cc14b32eb1fb24a63c0c2f91190e5da61da"
+    },
+    {
+      "file": "era5pl_wind_2013_11.nc",
+      "size_bytes": 30246994,
+      "sha256": "526f05b4816eb1adec19f219a83b9f0e416e8dab9777a4e02148f1404ddb8f8a"
+    },
+    {
+      "file": "era5pl_wind_2013_12.nc",
+      "size_bytes": 14847232,
+      "sha256": "22ccd929400f68caf8058f66f67822b1e753da3c2febf1d0b1a2490a27512dd9"
+    },
+    {
+      "file": "era5pl_rh_2013_05.nc",
+      "size_bytes": 17602644,
+      "sha256": "3b126c9699bd2be0722972ca2eb22767315f05f2a0f89282df4d1f736d62be43"
+    },
+    {
+      "file": "era5pl_rh_2013_06.nc",
+      "size_bytes": 45440315,
+      "sha256": "1041e729a5c15bba515cec7a044fcf847eab77dc8d3a7948a96c0bb006d45991"
+    },
+    {
+      "file": "era5pl_rh_2013_07.nc",
+      "size_bytes": 54203637,
+      "sha256": "a282faf502c5c088f2d0274c97357647674d286c468e8fd66d59dd8ecc06f304"
+    },
+    {
+      "file": "era5pl_rh_2013_08.nc",
+      "size_bytes": 79891539,
+      "sha256": "1367748d9990d12d5fb3e54e26a955b80bd20cfaff92cb4ba2e1ab9635506bf0"
+    },
+    {
+      "file": "era5pl_rh_2013_09.nc",
+      "size_bytes": 59929984,
+      "sha256": "87fe3a6a44b06a8ec71dcb0049462879e10a201214a25f324a2963c43b9ee8ff"
+    },
+    {
+      "file": "era5pl_rh_2013_10.nc",
+      "size_bytes": 85646412,
+      "sha256": "90b6b33e70e2d08f751e99ef7adf71128f4cf8b0bba956df932b8e5d3908e5e3"
+    },
+    {
+      "file": "era5pl_rh_2013_11.nc",
+      "size_bytes": 23115021,
+      "sha256": "de28d4eef2d7e4710eec9e24e86e161ef31cabddfa060ba5866f89b62c150da9"
+    },
+    {
+      "file": "era5pl_rh_2013_12.nc",
+      "size_bytes": 11707647,
+      "sha256": "5d2fc1c11b00dbaf9f2aea0f66b18af1a8667e8e1588f3f5476116cc6c0306e4"
+    }
+  ],
+  "verification": {
+    "passed": true,
+    "n_appended_checked": 1341,
+    "problems": []
+  },
+  "deletion": {
+    "performed": true,
+    "freed_bytes": 1836440823,
+    "deleted_files": [
+      "era5pl_wind_2012_05.nc",
+      "era5pl_wind_2012_06.nc",
+      "era5pl_wind_2012_07.nc",
+      "era5pl_wind_2012_08.nc",
+      "era5pl_wind_2012_09.nc",
+      "era5pl_wind_2012_10.nc",
+      "era5pl_wind_2012_11.nc",
+      "era5pl_rh_2012_05.nc",
+      "era5pl_rh_2012_06.nc",
+      "era5pl_rh_2012_07.nc",
+      "era5pl_rh_2012_08.nc",
+      "era5pl_rh_2012_09.nc",
+      "era5pl_rh_2012_10.nc",
+      "era5pl_rh_2012_11.nc",
+      "era5pl_wind_2013_05.nc",
+      "era5pl_wind_2013_06.nc",
+      "era5pl_wind_2013_07.nc",
+      "era5pl_wind_2013_08.nc",
+      "era5pl_wind_2013_09.nc",
+      "era5pl_wind_2013_10.nc",
+      "era5pl_wind_2013_11.nc",
+      "era5pl_wind_2013_12.nc",
+      "era5pl_rh_2013_05.nc",
+      "era5pl_rh_2013_06.nc",
+      "era5pl_rh_2013_07.nc",
+      "era5pl_rh_2013_08.nc",
+      "era5pl_rh_2013_09.nc",
+      "era5pl_rh_2013_10.nc",
+      "era5pl_rh_2013_11.nc",
+      "era5pl_rh_2013_12.nc"
+    ]
+  },
+  "completed_at": "2026-07-13T16:05:58.081782+00:00"
+}
