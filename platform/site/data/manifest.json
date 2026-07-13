@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "build_version": "2c7eedf+2026-07-12T22:35:24.034625Z",
+  "build_version": "8d066ab+2026-07-13T15:06:42.249720Z",
   "generated_by": "platform/build/build_events.py",
   "source_provenance": {
     "dataset": "IBTrACS v04r00 (ALL)",
@@ -1510,12 +1510,12 @@
   ],
   "artifacts": {
     "events_index.json": {
-      "sha256": "5c35f3e4225c5be965b176f5781a94c443c8b94b2dd734dcff57fefba5ed2f51",
+      "sha256": "bc5eae022426c4584f97616b0adf6d8d244b7a0acd298a9db218754f507464ac",
       "bytes": 276851
     },
     "definitions.json": {
-      "sha256": "f3be853b8b6be327d9662c50749c152997b7c0aa0548c9e57a2e14f2f2ba8417",
-      "bytes": 616
+      "sha256": "a2827e1e3082fa0df476662a85eedd989f5b5ac8b78d68d014d00a99bd8736c5",
+      "bytes": 844
     },
     "events/1980161N09249.geojson": {
       "sha256": "84bc1141b7dbb2334ddc485d57c56c4699057db567b8301551a884daccec768b",
