@@ -39,6 +39,13 @@
         <div id="metadata-panel"><p class="placeholder">Select an event to inspect its track.</p></div>
       </section>
 
+      <section id="env-section">
+        <h2 class="section-label">Environmental conditions at this point</h2>
+        <p class="env-subtitle-chip">(ERA5 reanalysis / IBTrACS &mdash; observed/processed values, not predictions)</p>
+        <div id="env-panel"><p class="placeholder">Select an event to inspect its environment.</p></div>
+        <p class="env-footnote">Shown alongside RI markers as fact; the conditions&rarr;RI relationship is a hypothesis under test, not an established cause.</p>
+      </section>
+
       <section id="legend-section">
         <h2 class="section-label">Legend</h2>
         <div id="legend-content"></div>
@@ -59,6 +66,10 @@
       <div id="map"></div>
       <div id="event-error"></div>
       <div id="chart-container">
+        <label id="chart-time-toggle-row" class="chart-time-toggle-row" for="relative-time-toggle" hidden>
+          <input type="checkbox" id="relative-time-toggle">
+          <span>Relative time (h from track start)</span>
+        </label>
         <canvas id="intensity-chart"></canvas>
       </div>
     </main>

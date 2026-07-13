@@ -16,10 +16,12 @@ import math
 import hashlib
 import shutil
 import subprocess
+import argparse
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -96,13 +98,151 @@ def sanitize(obj: Any) -> Any:
     return obj
 
 
-def build_events():
-    """Main build process."""
+# ---------------------------------------------------------------------
+# Basin fix: data/event_list_augmented.csv has an EMPTY basin for every
+# North Atlantic row (~16,602 rows). Root cause: an earlier upstream read of
+# IBTrACS used pandas' default NA-parsing, which silently turns the literal
+# basin code "NA" into a missing value -- "EP" (non-empty, not an NA-alias)
+# survived untouched. Fixed here at build time by joining basin from the
+# RAW IBTrACS file (read-only; never touches data/interim/).
+# ---------------------------------------------------------------------
+
+def load_basin_lookup(raw_ibtracs_path: Path) -> Dict[str, str]:
+    """SID -> basin code, read from the raw IBTrACS CSV.
+
+    keep_default_na=False is essential: it stops pandas from parsing the
+    literal string "NA" (North Atlantic) as a missing value. skiprows=[1]
+    drops IBTrACS's units row (line 2 of the file, right after the header).
+    Returns {} (fix disabled, existing augmented-CSV basin used as-is) if
+    the raw file isn't present -- this must never be a hard requirement.
+    """
+    if not raw_ibtracs_path.exists():
+        return {}
+    try:
+        df_raw = pd.read_csv(raw_ibtracs_path, keep_default_na=False, skiprows=[1], usecols=["SID", "BASIN"])
+    except (ValueError, OSError):
+        return {}
+    df_raw = df_raw.drop_duplicates(subset="SID", keep="first")
+    return dict(zip(df_raw["SID"], df_raw["BASIN"]))
+
+
+def resolve_basin(existing_basin: Any, sid: str, basin_lookup: Dict[str, str]) -> Any:
+    """Fill in basin from the raw-IBTrACS lookup when the augmented CSV's
+    value is empty/NaN; otherwise keep the augmented CSV's value untouched.
+    Falls back to `existing_basin` unchanged if `sid` isn't in the lookup
+    (e.g. raw file absent) -- never raises, never invents a basin.
+    """
+    if isinstance(existing_basin, str) and existing_basin.strip():
+        return existing_basin
+    return basin_lookup.get(sid, existing_basin)
+
+
+# ---------------------------------------------------------------------
+# --with-env: per-track-point environmental values from per-event cubes.
+#
+# OPT-IN. When the --with-env flag is absent, none of this is touched and
+# the build's output is byte-identical to a build without this feature.
+# ---------------------------------------------------------------------
+
+# ERA5 cube channel name -> geojson point property name.
+ENV_CHANNEL_PROPS = {
+    "sst_K": "env_sst_c",
+    "shear_850_200_mps": "env_shear_mps",
+    "rh_mid": "env_rh_pct",
+}
+
+
+def env_event_id(sid: str, timestamp_dt) -> str:
+    """Candidate interim event_id for a track point.
+
+    Mirrors src/processors/preprocess_scientific.py::to_event_id exactly:
+    era5_{YYYY_MM_DD_HHMM}_{SID}. Kept as a pure function (no filesystem
+    access) so it is trivially unit-testable.
+    """
+    return f"era5_{timestamp_dt.strftime('%Y_%m_%d_%H%M')}_{sid}"
+
+
+def compute_env_values(interim_dir: Path, event_id: str) -> Dict[str, Optional[float]]:
+    """Look up the per-event cube (if present) and compute t0 patch-mean
+    environmental values for one track point.
+
+    Returns {"env_sst_c": ..., "env_shear_mps": ..., "env_rh_pct": ...} with
+    None for any value that is unavailable: missing cube/metadata, channel
+    absent from this event's cube, or a non-finite (NaN/Inf) computed mean.
+
+    The .npy is opened read-only via mmap and its handle is explicitly
+    closed (and the array dereferenced) before returning, so nothing lingers
+    open on disk — this build only ever READS interim/ and must never hold
+    a file open past the single point it's computing.
+    """
+    result: Dict[str, Optional[float]] = {prop: None for prop in ENV_CHANNEL_PROPS.values()}
+
+    json_path = interim_dir / f"{event_id}.json"
+    npy_path = interim_dir / f"{event_id}.npy"
+    if not json_path.exists() or not npy_path.exists():
+        return result
+
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            meta = json.load(f)
+    except (OSError, ValueError):
+        return result
+
+    channels = meta.get("channels", [])
+
+    cube = None
+    try:
+        cube = np.load(npy_path, mmap_mode="r")
+        if cube.ndim != 4 or cube.shape[2] < 1:
+            return result
+        t0 = cube[:, :, 0, :]  # (H, W, C) slice at t0 (cube axis order H, W, T, C)
+
+        for channel_name, prop_name in ENV_CHANNEL_PROPS.items():
+            if channel_name not in channels:
+                continue
+            idx = channels.index(channel_name)
+            mean_val = float(np.mean(t0[:, :, idx]))
+            if not math.isfinite(mean_val):
+                continue
+            if channel_name == "sst_K":
+                mean_val -= 273.15  # Kelvin -> Celsius
+            result[prop_name] = round(mean_val, 2)
+    finally:
+        if cube is not None:
+            mmap_obj = getattr(cube, "_mmap", None)
+            if mmap_obj is not None:
+                mmap_obj.close()
+            del cube
+
+    return result
+
+
+def build_events(
+    with_env: bool = False,
+    *,
+    augmented_csv: Optional[Path] = None,
+    config_file: Optional[Path] = None,
+    tmp_dir: Optional[Path] = None,
+    final_dir: Optional[Path] = None,
+    interim_dir: Optional[Path] = None,
+    raw_ibtracs_csv: Optional[Path] = None,
+):
+    """Main build process.
+
+    All path parameters default to the real project layout (unchanged
+    behavior for the normal CLI invocation); they are overridable so tests
+    can point the whole build at synthetic tmp_path fixtures without ever
+    touching data/ or platform/site/data/.
+
+    with_env=False (the default) must produce byte-identical output to the
+    build before this feature existed: no env_* properties are added to any
+    point, and definitions.json gets no "env" block.
+    """
     # Paths
-    augmented_csv = PROJECT_ROOT / "data" / "event_list_augmented.csv"
-    config_file = PROJECT_ROOT / "config.yaml"
-    tmp_dir = PROJECT_ROOT / "platform" / "site" / "data_build_tmp"
-    final_dir = PROJECT_ROOT / "platform" / "site" / "data"
+    augmented_csv = augmented_csv or (PROJECT_ROOT / "data" / "event_list_augmented.csv")
+    config_file = config_file or (PROJECT_ROOT / "config.yaml")
+    tmp_dir = tmp_dir or (PROJECT_ROOT / "platform" / "site" / "data_build_tmp")
+    final_dir = final_dir or (PROJECT_ROOT / "platform" / "site" / "data")
     events_dir = tmp_dir / "events"
 
     # Clean tmp dir if it exists
@@ -115,6 +255,13 @@ def build_events():
     with open(config_file) as f:
         config = yaml.safe_load(f)
     ri_threshold = config["labels"]["ri_threshold_kt_24h"]
+
+    resolved_interim_dir = None
+    if with_env:
+        resolved_interim_dir = interim_dir or (PROJECT_ROOT / config["paths"]["interim_data"]).resolve()
+
+    raw_ibtracs_csv = raw_ibtracs_csv or (PROJECT_ROOT / "data" / "raw" / "ibtracs.ALL.list.v04r00.csv")
+    basin_lookup = load_basin_lookup(raw_ibtracs_csv)
 
     # Read augmented event list
     df = pd.read_csv(augmented_csv)
@@ -161,9 +308,10 @@ def build_events():
         has_ri = int((sid_data["ri_label"] == 1).any())
         n_points = len(sid_data)
 
-        # Get storm name and basin from first row
+        # Get storm name and basin from first row (basin filled from the
+        # raw IBTrACS lookup when the augmented CSV's own value is empty).
         name = sid_data["storm_name"].iloc[0]
-        basin = sid_data["basin"].iloc[0]
+        basin = resolve_basin(sid_data["basin"].iloc[0], sid, basin_lookup)
 
         event_info = {
             "sid": sid,
@@ -212,22 +360,28 @@ def build_events():
                 trend = "steady"
 
             # Build point feature
+            properties = {
+                "t": row["timestamp_dt"].isoformat() + "Z",
+                "wind_kt": row["wind_kt_rounded"],
+                "pressure_mb": row["pressure_mb_rounded"],
+                "dv6_kt": row["dv6_kt"],
+                "dv12_kt": row["dv12_kt_rounded"],
+                "dv24_kt": row["dv24_kt_rounded"],
+                "ri_candidate": bool(row["ri_label"] == 1),
+                "trend": trend
+            }
+
+            if with_env:
+                event_id = env_event_id(sid, row["timestamp_dt"])
+                properties.update(compute_env_values(resolved_interim_dir, event_id))
+
             point_feature = {
                 "type": "Feature",
                 "geometry": {
                     "type": "Point",
                     "coordinates": [lon, lat]
                 },
-                "properties": {
-                    "t": row["timestamp_dt"].isoformat() + "Z",
-                    "wind_kt": row["wind_kt_rounded"],
-                    "pressure_mb": row["pressure_mb_rounded"],
-                    "dv6_kt": row["dv6_kt"],
-                    "dv12_kt": row["dv12_kt_rounded"],
-                    "dv24_kt": row["dv24_kt_rounded"],
-                    "ri_candidate": bool(row["ri_label"] == 1),
-                    "trend": trend
-                }
+                "properties": properties
             }
             points.append(point_feature)
 
@@ -271,8 +425,56 @@ def build_events():
             "doi": "10.25921/82ty-9e16",
             "accessed": get_ibtracs_mtime()
         },
-        "note": "All values are historical observations from the best-track record, not predictions."
+        "note": "All values are historical observations from the best-track record, not predictions.",
+        "basin_names": {
+            "NA": "North Atlantic",
+            "EP": "Eastern North Pacific",
+            "WP": "Western North Pacific",
+            "NI": "North Indian",
+            "SI": "South Indian",
+            "SP": "South Pacific",
+            "SA": "South Atlantic"
+        }
     }
+
+    if with_env:
+        window_px = int(config.get("data", {}).get("window_size_px", 40))
+        definitions["env"] = {
+            "source": (
+                "ERA5 reanalysis, via per-event preprocessed cubes "
+                "(src/processors/preprocess_scientific.py): single-level SST always; "
+                "850/200 hPa wind (deep-layer shear) and 700/600/500 hPa RH (mid-level "
+                "moisture) only for events processed after the pressure-level backfill."
+            ),
+            "spatial_definition": (
+                f"Arithmetic mean over the FULL {window_px}x{window_px} pixel window "
+                "centered on the storm's best-track position at that timestamp "
+                "(~10 deg x 10 deg at ERA5's 0.25 deg resolution). Not a point value."
+            ),
+            "temporal_definition": (
+                "t0 only: index 0 of the cube's time axis, i.e. the ERA5 analysis nearest "
+                "the best-track fix's own timestamp. Not a lead/lag composite."
+            ),
+            "properties": {
+                "env_sst_c": "sea surface temperature, degrees Celsius (cube channel sst_K, K, minus 273.15)",
+                "env_shear_mps": "850-200 hPa deep-layer vector wind shear magnitude, m s-1 (cube channel shear_850_200_mps)",
+                "env_rh_pct": "mid-level (700/600/500 hPa) relative humidity, percent (cube channel rh_mid)"
+            },
+            "null_meaning": (
+                "null means unavailable for this point: no processed cube for that "
+                "event_id, the channel doesn't exist in that cube (pre-backfill events "
+                "lack shear/RH), or the computed patch mean was non-finite (NaN/Inf). "
+                "It never means zero."
+            ),
+            "epistemic_note": (
+                "These are ERA5 reanalysis-derived diagnostics, NOT direct point "
+                "measurements and NOT model predictions. They describe atmosphere/ocean "
+                "state around the storm at that time. Their relationship to the storm's "
+                "subsequent behavior (e.g. RI) is a hypothesis under test, not an "
+                "established cause — see project errata."
+            )
+        }
+
     definitions_path = tmp_dir / "definitions.json"
     with open(definitions_path, "w", newline="\n") as f:
         json.dump(sanitize(definitions), f, indent=2, allow_nan=False)
@@ -362,8 +564,21 @@ def build_events():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Build static forensic web platform data from pipeline outputs.")
+    parser.add_argument(
+        "--with-env",
+        action="store_true",
+        default=False,
+        help=(
+            "Embed per-track-point environmental values (env_sst_c, env_shear_mps, "
+            "env_rh_pct) read from per-event ERA5 cubes under data/interim/. OFF by "
+            "default: without this flag the build output is byte-identical to a build "
+            "without this feature."
+        ),
+    )
+    args = parser.parse_args()
     try:
-        build_events()
+        build_events(with_env=args.with_env)
         print("\nBuild completed successfully!")
     except Exception as e:
         print(f"\nBuild failed: {e}")

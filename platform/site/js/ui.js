@@ -183,6 +183,23 @@ function renderEventList(query) {
 // Metadata panel
 // ---------------------------------------------------------------------
 
+// SID -> basin code (e.g. "NA") -> display name, from definitions.basin_names.
+// Populated once at boot via setBasinNames(); see js/app.js.
+let basinNames = {};
+
+/** Register the basin code -> display name map (definitions.basin_names). */
+export function setBasinNames(map) {
+  basinNames = map || {};
+}
+
+/** "North Atlantic (NA)"; "—" for an empty or unrecognized code. */
+function fmtBasin(code) {
+  if (!code) return '—';
+  const name = basinNames[code];
+  if (!name) return '—';
+  return `${escapeHtml(name)} (${escapeHtml(code)})`;
+}
+
 function fmtPeriodDate(iso) {
   if (!iso) return '—';
   return iso.replace('T', ' ').replace('Z', ' UTC');
@@ -202,7 +219,7 @@ function fmtDuration(startIso, endIso) {
 function metaRowsHtml(meta) {
   return `
       <dt>SID</dt><dd class="mono">${escapeHtml(meta.sid)}</dd>
-      <dt>Basin</dt><dd>${meta.basin != null ? escapeHtml(meta.basin) : '—'}</dd>
+      <dt>Basin</dt><dd>${fmtBasin(meta.basin)}</dd>
       <dt>Period</dt><dd>${fmtPeriodDate(meta.start)} &ndash; ${fmtPeriodDate(meta.end)}</dd>
       <dt>Duration</dt><dd>${fmtDuration(meta.start, meta.end)}</dd>
       <dt>Max wind</dt><dd>${meta.max_wind_kt != null ? meta.max_wind_kt + ' kt' : '—'}</dd>
@@ -246,6 +263,124 @@ export function renderMetadataCompare(metaA, metaB) {
         <dl class="meta-list">${metaRowsHtml(metaB)}</dl>
       </div>
     </div>`;
+}
+
+// ---------------------------------------------------------------------
+// Relative-time toggle (compare-mode intensity chart)
+//
+// Only meaningful/visible when the chart is showing two events: absolute
+// calendar time separates storms from different years into disconnected
+// clumps, so this switches the chart to hours-since-each-storm's-own-track-
+// start instead. Single mode never shows this control.
+// ---------------------------------------------------------------------
+
+/** Wire the toggle's change event to onToggle(checked). Call once at boot. */
+export function setupRelativeTimeToggle(onToggle) {
+  const checkbox = $('relative-time-toggle');
+  if (!checkbox) return;
+  checkbox.addEventListener('change', () => onToggle(checkbox.checked));
+}
+
+/** Show/hide the toggle row; hiding also force-unchecks it (visual reset —
+ * the chart's own time mode is reset independently by chart.js::renderChart). */
+export function setRelativeTimeToggleVisible(visible) {
+  const row = $('chart-time-toggle-row');
+  if (row) row.hidden = !visible;
+  if (!visible) {
+    const checkbox = $('relative-time-toggle');
+    if (checkbox) checkbox.checked = false;
+  }
+}
+
+// ---------------------------------------------------------------------
+// Environmental conditions panel
+//
+// Shows facts only (pressure + reanalysis-derived env_* values) for the
+// currently hovered track point, "sticky" to the last-hovered point once
+// the mouse leaves (never resets to a blank/placeholder state just because
+// the cursor moved off a marker). Slot-A only by design: compare mode's
+// slot B keeps its own map/chart cross-highlight working untouched, this
+// panel just doesn't track it (see build task notes — avoids overbuilding
+// a per-slot env UI for a feature nobody asked to compare side by side).
+// Backward compatible: geojsons built without --with-env simply lack the
+// env_* keys on every point, which this panel detects and reports plainly.
+// ---------------------------------------------------------------------
+
+const ENV_KEYS = ['env_sst_c', 'env_shear_mps', 'env_rh_pct'];
+
+let envPointsA = [];
+let envLastIndex = null; // sticky last-hovered/last-selected index into envPointsA
+
+function eventHasEnvKeys(points) {
+  return points.some((p) => ENV_KEYS.some((k) => k in p));
+}
+
+function envValueHtml(value, unit) {
+  if (value === null || value === undefined) {
+    return `<span class="env-na" title="not available for this point (no processed cube or channel)">&mdash;</span>`;
+  }
+  return `${escapeHtml(String(value))}${unit}`;
+}
+
+/**
+ * Register the point-properties arrays backing the env panel. Call this
+ * whenever the selected event(s) change (single mode: pointsB omitted).
+ * Resets the sticky index to the storm's most recent point so the panel
+ * shows something meaningful before the user hovers anything.
+ */
+export function setEnvPointsSource(pointsA, _pointsB = []) {
+  envPointsA = pointsA || [];
+  envLastIndex = envPointsA.length ? envPointsA.length - 1 : null;
+  renderEnvPanel();
+}
+
+/** Clear the panel back to its pre-selection placeholder (no event chosen). */
+export function clearEnvPanel() {
+  envPointsA = [];
+  envLastIndex = null;
+  renderEnvPanel();
+}
+
+/**
+ * Feed of the existing map/chart cross-hover plumbing. Slot 'B' hovers are
+ * intentionally ignored here (see module note above); a null index (mouse
+ * left the marker/point) is ALSO ignored so the panel stays on the last
+ * real point instead of collapsing to a placeholder mid-inspection.
+ */
+export function updateEnvPanel(slot, index) {
+  if (slot !== 'A') return;
+  if (index === null || index === undefined) return;
+  envLastIndex = index;
+  renderEnvPanel();
+}
+
+function renderEnvPanel() {
+  const container = $('env-panel');
+  if (!container) return;
+
+  if (!envPointsA.length) {
+    container.innerHTML = '<p class="placeholder">Select an event to inspect its environment.</p>';
+    return;
+  }
+
+  if (!eventHasEnvKeys(envPointsA)) {
+    container.innerHTML = '<p class="env-quiet">Environmental values not included in this data build.</p>';
+    return;
+  }
+
+  const p = envLastIndex !== null ? envPointsA[envLastIndex] : undefined;
+  if (!p) {
+    container.innerHTML = '<p class="placeholder">Hover a track point to inspect.</p>';
+    return;
+  }
+
+  container.innerHTML = `
+    <dl class="env-list">
+      <dt>Pressure</dt><dd>${envValueHtml(p.pressure_mb, ' mb')}</dd>
+      <dt>SST</dt><dd>${envValueHtml(p.env_sst_c, ' &deg;C')}</dd>
+      <dt>Deep-layer shear (850&ndash;200 hPa)</dt><dd>${envValueHtml(p.env_shear_mps, ' m/s')}</dd>
+      <dt>Mid-level RH</dt><dd>${envValueHtml(p.env_rh_pct, '%')}</dd>
+    </dl>`;
 }
 
 // ---------------------------------------------------------------------

@@ -1,0 +1,226 @@
+{
+  "window": [
+    1984,
+    1985
+  ],
+  "created_at": "2026-07-12T22:48:13.426977+00:00",
+  "status": "completed",
+  "config_digest": {
+    "wind_levels": [
+      850,
+      200
+    ],
+    "rh_levels": [
+      700,
+      600,
+      500
+    ],
+    "offsets_hours": [
+      0,
+      -6,
+      -12,
+      -18,
+      -24
+    ],
+    "window_size_px": 40
+  },
+  "n_events_in_window": 1397,
+  "outcome_counts": {
+    "appended": 1397
+  },
+  "per_event_csv": "C:\\Users\\Est\u00e9fano\\Documents\\Developer\\bmi.io\\Arquiteturas\\github\\cyclone-net\\outputs\\provenance\\pl_window_1984_1985_outcomes.csv",
+  "pl_downloads": [
+    {
+      "file": "era5pl_wind_1984_05.nc",
+      "size_bytes": 30011560,
+      "sha256": "cfeed67c6101ceae3e7e60797af53204b37fe5ac003399ef738cf09b39278641"
+    },
+    {
+      "file": "era5pl_wind_1984_06.nc",
+      "size_bytes": 113287139,
+      "sha256": "96581cfbf0be2fd2b51b8053daf07ffa4b67cc66badda7782f5717bbadee83c6"
+    },
+    {
+      "file": "era5pl_wind_1984_07.nc",
+      "size_bytes": 75376737,
+      "sha256": "e0bc4e76f97b5a8cf0442c48cadc21c7d94e2da5fd5820d30066d4aaa56d4f9c"
+    },
+    {
+      "file": "era5pl_wind_1984_08.nc",
+      "size_bytes": 91490867,
+      "sha256": "36beefee7da3fdf4dd49ff3d0c4105a6f1437e2637d6862842a58f84a182e72f"
+    },
+    {
+      "file": "era5pl_wind_1984_09.nc",
+      "size_bytes": 113505487,
+      "sha256": "06fa6326e5b5104db4625f75402d3238d69084481a8ac9881f26740eb2aa6083"
+    },
+    {
+      "file": "era5pl_wind_1984_10.nc",
+      "size_bytes": 70989681,
+      "sha256": "b363a1a6e558f8feb26a0ec2cd5fd51d6a6feed14e4acc8d7ea5ee44a03f1cda"
+    },
+    {
+      "file": "era5pl_wind_1984_11.nc",
+      "size_bytes": 63627497,
+      "sha256": "8e5efc4c3127df720c3c68957dd8d94d5b54df4b1d373622c1d3e9aea7e696ec"
+    },
+    {
+      "file": "era5pl_wind_1984_12.nc",
+      "size_bytes": 44124949,
+      "sha256": "4b0165f4e45d81f5d7d5a189e6dfbb57310d34a20b398eab422bfaeb1459c58b"
+    },
+    {
+      "file": "era5pl_rh_1984_05.nc",
+      "size_bytes": 22727899,
+      "sha256": "dd1ca3db23f1ff85a20e625462a522b0cf8f6b03022f692dcd3b4cd1910f3631"
+    },
+    {
+      "file": "era5pl_rh_1984_06.nc",
+      "size_bytes": 85037960,
+      "sha256": "2b39b3ee1d1f49f9f739120195dedbebd071878e362ce8b3073ccce8ac74d179"
+    },
+    {
+      "file": "era5pl_rh_1984_07.nc",
+      "size_bytes": 56305837,
+      "sha256": "78fda07ff2d6db16a96b46b0a33e6ac5f370e87cc58614127fac6e04e7d7296b"
+    },
+    {
+      "file": "era5pl_rh_1984_08.nc",
+      "size_bytes": 67941046,
+      "sha256": "b57514ea502616b438212d32a7b6a25a331173d4f5788e617f769329c459f0ec"
+    },
+    {
+      "file": "era5pl_rh_1984_09.nc",
+      "size_bytes": 84866273,
+      "sha256": "4d08fa353add16c89d781b48b26985071a0ce7b37f5f50169b61746d2838b334"
+    },
+    {
+      "file": "era5pl_rh_1984_10.nc",
+      "size_bytes": 53719752,
+      "sha256": "93dc2cd569b5e5f79fd34f072e63f8350976d9f34741249caacd3605d32ba862"
+    },
+    {
+      "file": "era5pl_rh_1984_11.nc",
+      "size_bytes": 48188627,
+      "sha256": "754bb086a681874e9b287b8eab07283064d0a12c4c573e992648dd22a8e49155"
+    },
+    {
+      "file": "era5pl_rh_1984_12.nc",
+      "size_bytes": 34175738,
+      "sha256": "e3a57ed877ed8b186fd51639c905c8ee27175a0c29d6dad9e00028500410dc24"
+    },
+    {
+      "file": "era5pl_wind_1985_06.nc",
+      "size_bytes": 60444736,
+      "sha256": "41d1d3bc4e39339076f6419e2a20dd7d18b232507ff780a51e2200e87f8731ce"
+    },
+    {
+      "file": "era5pl_wind_1985_07.nc",
+      "size_bytes": 102000719,
+      "sha256": "dd80cbf758e1f4d6affac4af3f6676edec52beaa7ab89d43411de2be8118c86d"
+    },
+    {
+      "file": "era5pl_wind_1985_08.nc",
+      "size_bytes": 117180857,
+      "sha256": "15b7edc66bb0b7bf039185e7795d2a0c5642372e40836dcea0a23a6231420c8d"
+    },
+    {
+      "file": "era5pl_wind_1985_09.nc",
+      "size_bytes": 113823977,
+      "sha256": "5341b7320a6f81235a407934ca1b431b68f7d3f05fe6cd9a6e62a90061a607d1"
+    },
+    {
+      "file": "era5pl_wind_1985_10.nc",
+      "size_bytes": 60161102,
+      "sha256": "cb0f67409298b6478f0cce4c86e70ccad2619a56ea9d502f31cbf73095163abe"
+    },
+    {
+      "file": "era5pl_wind_1985_11.nc",
+      "size_bytes": 44966310,
+      "sha256": "cffbc248070df1596004db8ffd1cdb15826e98f7c15e2e4681a9c0252788c97a"
+    },
+    {
+      "file": "era5pl_wind_1985_12.nc",
+      "size_bytes": 7257702,
+      "sha256": "c23db9232e6b4827fdab78ffd196a5d442c21a03bef118aece9e37e30382d528"
+    },
+    {
+      "file": "era5pl_rh_1985_06.nc",
+      "size_bytes": 45060730,
+      "sha256": "96407ef8c72358326bae9ff3a393ece857659b6cd7a0317c77267461e3780920"
+    },
+    {
+      "file": "era5pl_rh_1985_07.nc",
+      "size_bytes": 75986636,
+      "sha256": "bed1a045014f1e4058a5ccbd0ef34adebe339903f67f7e4ac982bb3d8750c211"
+    },
+    {
+      "file": "era5pl_rh_1985_08.nc",
+      "size_bytes": 87583918,
+      "sha256": "004c7bad7dc99bd79db55be95295b5f2cae65bfe6edd799c046418a11b28a7ed"
+    },
+    {
+      "file": "era5pl_rh_1985_09.nc",
+      "size_bytes": 85094609,
+      "sha256": "fb95ba316380b3d552b6540e866fe3a638d21349109b374f2f7f0f710a552516"
+    },
+    {
+      "file": "era5pl_rh_1985_10.nc",
+      "size_bytes": 45689390,
+      "sha256": "a0651b0d198cf35cad07c2f678476f6e4aed6bbfdfe2ab4771a8e60743d4110f"
+    },
+    {
+      "file": "era5pl_rh_1985_11.nc",
+      "size_bytes": 34085847,
+      "sha256": "b25657d4a4c3500453f985fb5a4e26f953aac815bf3ea2646370966948051864"
+    },
+    {
+      "file": "era5pl_rh_1985_12.nc",
+      "size_bytes": 5699904,
+      "sha256": "8918c2d0f4f68816be1bea14652833f82b1ce54218be5b94caabea56ccdce7d3"
+    }
+  ],
+  "verification": {
+    "passed": true,
+    "n_appended_checked": 1397,
+    "problems": []
+  },
+  "deletion": {
+    "performed": true,
+    "freed_bytes": 1940413486,
+    "deleted_files": [
+      "era5pl_wind_1984_05.nc",
+      "era5pl_wind_1984_06.nc",
+      "era5pl_wind_1984_07.nc",
+      "era5pl_wind_1984_08.nc",
+      "era5pl_wind_1984_09.nc",
+      "era5pl_wind_1984_10.nc",
+      "era5pl_wind_1984_11.nc",
+      "era5pl_wind_1984_12.nc",
+      "era5pl_rh_1984_05.nc",
+      "era5pl_rh_1984_06.nc",
+      "era5pl_rh_1984_07.nc",
+      "era5pl_rh_1984_08.nc",
+      "era5pl_rh_1984_09.nc",
+      "era5pl_rh_1984_10.nc",
+      "era5pl_rh_1984_11.nc",
+      "era5pl_rh_1984_12.nc",
+      "era5pl_wind_1985_06.nc",
+      "era5pl_wind_1985_07.nc",
+      "era5pl_wind_1985_08.nc",
+      "era5pl_wind_1985_09.nc",
+      "era5pl_wind_1985_10.nc",
+      "era5pl_wind_1985_11.nc",
+      "era5pl_wind_1985_12.nc",
+      "era5pl_rh_1985_06.nc",
+      "era5pl_rh_1985_07.nc",
+      "era5pl_rh_1985_08.nc",
+      "era5pl_rh_1985_09.nc",
+      "era5pl_rh_1985_10.nc",
+      "era5pl_rh_1985_11.nc",
+      "era5pl_rh_1985_12.nc"
+    ]
+  },
+  "completed_at": "2026-07-12T23:31:10.762157+00:00"
+}

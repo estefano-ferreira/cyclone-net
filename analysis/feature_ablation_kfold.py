@@ -23,20 +23,40 @@ Design (fairness and leakage controls):
       B) the same 12 + [shear_850_200_mps, rh_mid]
   * Only events whose cube contains BOTH pressure channels are compared,
     so A and B see exactly the same events.
+  * Gate: refuses to run (unless --no-require-gate) until
+    outputs/results/pl_gate_census.json reports gate_pass=true, i.e. the
+    dev set has complete PL-channel coverage (see analysis/pl_gate_census.py).
 
-Primary metric: PR-AUC (average precision) per fold; the paired per-fold
-difference (B - A) with mean, std, and sign counts is the decision quantity.
+Uncertainty quantification (paired):
+  * Per-fold paired deltas (B - A) for PR-AUC and ROC-AUC (as before).
+  * Pooled out-of-fold (OOF) predictions per arm (every dev event gets
+    exactly one held-out prediction per arm, from whichever fold contained
+    it in its test partition) -> event-level paired comparison with a
+    CLUSTER bootstrap by SID: storms (not events) are resampled with
+    replacement, so within-storm correlation does not leak into the CI.
+    10,000 draws by default, seeded from --seed. Reports delta PR-AUC and
+    delta ROC-AUC with 95% CI, plus both arms' absolute pooled metrics with
+    the same CIs. A CI crossing zero is reported mechanically as an honest
+    null — no cheerleading language.
+
+No threshold selection anywhere: only ranking metrics (PR-AUC, ROC-AUC).
 
 Usage:
     python analysis/feature_ablation_kfold.py [--n-splits 5] [--seed 42]
+                                               [--config config.yaml]
+                                               [--n-boot 10000]
+                                               [--require-gate | --no-require-gate]
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -54,7 +74,48 @@ from src.processors.pressure_channels import RH_CHANNEL, SHEAR_CHANNEL  # noqa: 
 from src.utils.config import cfg_get, load_config  # noqa: E402
 
 PL_CHANNELS = [SHEAR_CHANNEL, RH_CHANNEL]
+GATE_FILENAME = "pl_gate_census.json"
 
+
+# ---------------------------------------------------------------------------
+# Gate: shared by feature_ablation_kfold, feature_ablation_cnn, ri_precursors.
+# ---------------------------------------------------------------------------
+
+def load_gate_census(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Load outputs/results/pl_gate_census.json, or None if absent."""
+    path = Path(cfg_get(cfg, "paths.results_dir", "./outputs/results")).resolve() / GATE_FILENAME
+    if not path.exists():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def enforce_gate(cfg: Dict[str, Any], require_gate: bool) -> None:
+    """Refuse to proceed (sys.exit(1)) unless the PL-coverage gate passed.
+
+    Bypassed only by explicit --no-require-gate, which prints a loud warning
+    so a bypassed run is never mistaken for a gated one.
+    """
+    if not require_gate:
+        print("WARNING: --no-require-gate: PL-channel coverage gate check was SKIPPED. "
+              "Results are NOT protected against partial-coverage bias.")
+        return
+
+    census = load_gate_census(cfg)
+    if census is None:
+        print(f"GATE FAIL: {GATE_FILENAME} not found under paths.results_dir. "
+              "Run: python analysis/pl_gate_census.py first.")
+        sys.exit(1)
+    if not bool(census.get("gate_pass", False)):
+        print(f"GATE FAIL: {GATE_FILENAME} reports gate_pass=false "
+              f"({census.get('gate_verdict', 'no verdict recorded')}).")
+        sys.exit(1)
+    print(f"GATE PASS: {GATE_FILENAME} confirms complete dev-set PL coverage "
+          f"(generated_at={census.get('generated_at')}).")
+
+
+# ---------------------------------------------------------------------------
+# Data loading / feature construction (unchanged fairness controls).
+# ---------------------------------------------------------------------------
 
 def load_dev_events(cfg) -> pd.DataFrame:
     """Development events = train + val splits with their RI labels.
@@ -120,7 +181,7 @@ def build_feature_matrices(cfg, dev: pd.DataFrame):
         "n_features": {"surface_only": len(names_a or []), "with_pressure": len(names_b or [])},
     }
     return (np.asarray(rows_a, dtype=np.float64), np.asarray(rows_b, dtype=np.float64),
-            np.asarray(y, dtype=int), np.asarray(groups), audit)
+            np.asarray(y, dtype=int), np.asarray(groups), audit, used_ids)
 
 
 def make_estimator():
@@ -131,15 +192,127 @@ def make_estimator():
     )
 
 
+# ---------------------------------------------------------------------------
+# Paired cluster (by-SID) bootstrap.
+# ---------------------------------------------------------------------------
+
+def cluster_bootstrap_ci(
+    y: np.ndarray,
+    prob_a: np.ndarray,
+    prob_b: np.ndarray,
+    groups: np.ndarray,
+    seed: int = 42,
+    n_boot: int = 10_000,
+    ci: float = 0.95,
+) -> Dict[str, Any]:
+    """Paired cluster bootstrap over storms (SID), on pooled predictions.
+
+    Resamples unique groups (storms) WITH replacement (n_boot draws); each
+    draw's event set is the union of all events belonging to the sampled
+    storms (a storm sampled k times contributes its events k times). This
+    keeps within-storm correlation intact instead of pretending events are
+    i.i.d.
+
+    Draws where the resampled label vector has only one class are skipped
+    (PR-AUC/ROC-AUC undefined) and counted in ``n_boot_skipped_single_class``
+    — an expected occurrence with ~35 positive storms, not a bug.
+
+    Returns mean / 95% CI (or the requested ``ci``) for both arms' absolute
+    PR-AUC/ROC-AUC and their paired deltas (B - A).
+    """
+    y = np.asarray(y)
+    prob_a = np.asarray(prob_a)
+    prob_b = np.asarray(prob_b)
+    groups = np.asarray(groups)
+
+    rng = np.random.default_rng(seed)
+    unique_groups = np.unique(groups)
+    n_groups = len(unique_groups)
+    group_to_idx = {g: np.where(groups == g)[0] for g in unique_groups}
+
+    keys = ["a_pr_auc", "b_pr_auc", "a_roc_auc", "b_roc_auc", "delta_pr_auc", "delta_roc_auc"]
+    draws: Dict[str, List[float]] = {k: [] for k in keys}
+    n_skipped = 0
+
+    for _ in range(n_boot):
+        sampled_groups = rng.choice(unique_groups, size=n_groups, replace=True)
+        idx = np.concatenate([group_to_idx[g] for g in sampled_groups])
+        yb = y[idx]
+        if len(np.unique(yb)) < 2:
+            n_skipped += 1
+            continue
+        pa = prob_a[idx]
+        pb = prob_b[idx]
+        a_pr = average_precision_score(yb, pa)
+        b_pr = average_precision_score(yb, pb)
+        a_roc = roc_auc_score(yb, pa)
+        b_roc = roc_auc_score(yb, pb)
+        draws["a_pr_auc"].append(a_pr)
+        draws["b_pr_auc"].append(b_pr)
+        draws["a_roc_auc"].append(a_roc)
+        draws["b_roc_auc"].append(b_roc)
+        draws["delta_pr_auc"].append(b_pr - a_pr)
+        draws["delta_roc_auc"].append(b_roc - a_roc)
+
+    alpha = (1.0 - ci) / 2.0
+    out: Dict[str, Any] = {
+        "method": "cluster_bootstrap_by_sid",
+        "seed": seed,
+        "ci_level": ci,
+        "n_boot_requested": n_boot,
+        "n_boot_used": n_boot - n_skipped,
+        "n_boot_skipped_single_class": n_skipped,
+        "n_groups": int(n_groups),
+    }
+    for k in keys:
+        arr = np.asarray(draws[k], dtype=np.float64)
+        if arr.size == 0:
+            out[k] = {"mean": None, "ci_low": None, "ci_high": None}
+            continue
+        out[k] = {
+            "mean": float(arr.mean()),
+            "ci_low": float(np.quantile(arr, alpha)),
+            "ci_high": float(np.quantile(arr, 1.0 - alpha)),
+        }
+    return out
+
+
+def _mechanical_verdict(name: str, ci_stats: Dict[str, Any]) -> str:
+    """State whether a delta's CI crosses zero -- mechanically, no cheerleading."""
+    lo, hi = ci_stats.get("ci_low"), ci_stats.get("ci_high")
+    if lo is None or hi is None:
+        return f"{name}: insufficient valid bootstrap draws to compute a CI."
+    if lo <= 0.0 <= hi:
+        return (f"{name} 95% CI [{lo:.4f}, {hi:.4f}] includes zero: the null "
+                "hypothesis of no difference cannot be rejected.")
+    return f"{name} 95% CI [{lo:.4f}, {hi:.4f}] excludes zero."
+
+
+def _config_digest(config_path: Path) -> str:
+    return hashlib.sha256(config_path.read_bytes()).hexdigest()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--n-splits", type=int, default=5)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--n-boot", type=int, default=10_000)
+    parser.add_argument("--config", type=str, default="config.yaml",
+                        help="Path to config.yaml (relative paths resolve against the project root).")
+    parser.add_argument("--require-gate", action=argparse.BooleanOptionalAction, default=True,
+                        help="Refuse to run unless outputs/results/pl_gate_census.json reports "
+                             "gate_pass=true (default: on). Use --no-require-gate to bypass.")
     args = parser.parse_args()
 
-    cfg = load_config(str(PROJECT_ROOT / "config.yaml"))
+    config_path = Path(args.config)
+    if not config_path.is_absolute():
+        config_path = (PROJECT_ROOT / config_path).resolve()
+    cfg = load_config(str(config_path))
+
+    enforce_gate(cfg, args.require_gate)
+
     dev = load_dev_events(cfg)
-    X_a, X_b, y, groups, audit = build_feature_matrices(cfg, dev)
+    X_a, X_b, y, groups, audit, used_ids = build_feature_matrices(cfg, dev)
 
     print("AVAILABILITY AUDIT:", json.dumps(audit, indent=2))
     if audit["n_used"] == 0 or audit["n_positives_used"] < args.n_splits:
@@ -149,54 +322,118 @@ def main() -> None:
     cv = StratifiedGroupKFold(n_splits=args.n_splits, shuffle=True, random_state=args.seed)
     folds = list(cv.split(X_a, y, groups=groups))  # identical folds for A and B
 
+    n_used = len(y)
+    oof_a = np.full(n_used, np.nan, dtype=np.float64)
+    oof_b = np.full(n_used, np.nan, dtype=np.float64)
+
     per_fold = []
     for k, (tr, te) in enumerate(folds):
+        est_a = make_estimator()
+        est_a.fit(X_a[tr], y[tr])
+        prob_a_te = est_a.predict_proba(X_a[te])[:, 1]
+        oof_a[te] = prob_a_te
+
+        est_b = make_estimator()
+        est_b.fit(X_b[tr], y[tr])
+        prob_b_te = est_b.predict_proba(X_b[te])[:, 1]
+        oof_b[te] = prob_b_te
+
         if y[te].sum() == 0:
             per_fold.append({"fold": k, "n_test": int(len(te)), "n_pos_test": 0,
-                             "note": "no positives in fold — metrics undefined"})
+                             "note": "no positives in fold — per-fold ranking metrics undefined "
+                                     "(predictions still contribute to the pooled OOF bootstrap)"})
             continue
-        row = {"fold": k, "n_test": int(len(te)), "n_pos_test": int(y[te].sum())}
-        for label, X in (("A_surface", X_a), ("B_with_pressure", X_b)):
-            est = make_estimator()
-            est.fit(X[tr], y[tr])
-            prob = est.predict_proba(X[te])[:, 1]
-            row[f"{label}_pr_auc"] = float(average_precision_score(y[te], prob))
-            row[f"{label}_roc_auc"] = float(roc_auc_score(y[te], prob))
+
+        row = {
+            "fold": k, "n_test": int(len(te)), "n_pos_test": int(y[te].sum()),
+            "A_surface_pr_auc": float(average_precision_score(y[te], prob_a_te)),
+            "A_surface_roc_auc": float(roc_auc_score(y[te], prob_a_te)),
+            "B_with_pressure_pr_auc": float(average_precision_score(y[te], prob_b_te)),
+            "B_with_pressure_roc_auc": float(roc_auc_score(y[te], prob_b_te)),
+        }
         row["diff_pr_auc_B_minus_A"] = row["B_with_pressure_pr_auc"] - row["A_surface_pr_auc"]
+        row["diff_roc_auc_B_minus_A"] = row["B_with_pressure_roc_auc"] - row["A_surface_roc_auc"]
         per_fold.append(row)
 
+    assert not np.isnan(oof_a).any() and not np.isnan(oof_b).any(), (
+        "OOF prediction arrays must be fully populated: folds must partition all dev events exactly once."
+    )
+
     valid = [r for r in per_fold if "diff_pr_auc_B_minus_A" in r]
-    diffs = np.array([r["diff_pr_auc_B_minus_A"] for r in valid])
+    diffs_pr = np.array([r["diff_pr_auc_B_minus_A"] for r in valid])
+    diffs_roc = np.array([r["diff_roc_auc_B_minus_A"] for r in valid])
     a_scores = np.array([r["A_surface_pr_auc"] for r in valid])
     b_scores = np.array([r["B_with_pressure_pr_auc"] for r in valid])
+
+    per_fold_summary = {
+        "A_surface_mean": float(a_scores.mean()), "A_surface_std": float(a_scores.std(ddof=1)),
+        "B_with_pressure_mean": float(b_scores.mean()), "B_with_pressure_std": float(b_scores.std(ddof=1)),
+        "diff_pr_auc_mean_B_minus_A": float(diffs_pr.mean()), "diff_pr_auc_std": float(diffs_pr.std(ddof=1)),
+        "diff_roc_auc_mean_B_minus_A": float(diffs_roc.mean()), "diff_roc_auc_std": float(diffs_roc.std(ddof=1)),
+        "folds_B_better_pr_auc": int((diffs_pr > 0).sum()), "n_valid_folds": int(len(diffs_pr)),
+    }
+
+    # Pooled OOF absolute metrics (one prediction per dev event per arm).
+    pooled = {
+        "A_surface_pr_auc": float(average_precision_score(y, oof_a)),
+        "A_surface_roc_auc": float(roc_auc_score(y, oof_a)),
+        "B_with_pressure_pr_auc": float(average_precision_score(y, oof_b)),
+        "B_with_pressure_roc_auc": float(roc_auc_score(y, oof_b)),
+    }
+    pooled["diff_pr_auc_B_minus_A"] = pooled["B_with_pressure_pr_auc"] - pooled["A_surface_pr_auc"]
+    pooled["diff_roc_auc_B_minus_A"] = pooled["B_with_pressure_roc_auc"] - pooled["A_surface_roc_auc"]
+
+    bootstrap = cluster_bootstrap_ci(y, oof_a, oof_b, groups, seed=args.seed, n_boot=args.n_boot)
+
+    verdict_pr_auc = _mechanical_verdict("delta_pr_auc (B_with_pressure - A_surface)", bootstrap["delta_pr_auc"])
+    verdict_roc_auc = _mechanical_verdict("delta_roc_auc (B_with_pressure - A_surface)", bootstrap["delta_roc_auc"])
 
     summary = {
         "protocol": "StratifiedGroupKFold by SID, paired A/B, dev set only (test untouched)",
         "seed": args.seed,
         "n_splits": args.n_splits,
+        "n_boot": args.n_boot,
+        "config_path": str(config_path),
+        "config_digest_sha256": _config_digest(config_path),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "availability": audit,
-        "pr_auc": {
-            "A_surface_mean": float(a_scores.mean()), "A_surface_std": float(a_scores.std(ddof=1)),
-            "B_with_pressure_mean": float(b_scores.mean()), "B_with_pressure_std": float(b_scores.std(ddof=1)),
-            "diff_mean_B_minus_A": float(diffs.mean()), "diff_std": float(diffs.std(ddof=1)),
-            "folds_B_better": int((diffs > 0).sum()), "n_valid_folds": int(len(diffs)),
-        },
+        "n_events": audit["n_used"],
+        "n_positives": audit["n_positives_used"],
+        "n_storms": audit["n_storms_used"],
+        "pr_auc": per_fold_summary,
         "per_fold": per_fold,
+        "pooled_oof": pooled,
+        "cluster_bootstrap_by_sid": bootstrap,
         "chance_level_pr_auc": float(y.mean()),
+        "verdict": {
+            "pr_auc": verdict_pr_auc,
+            "roc_auc": verdict_roc_auc,
+        },
         "interpretation_guard": (
-            "With ~33 positives in the development set, per-fold PR-AUC rests on "
-            "6-8 positives; treat differences smaller than the fold-to-fold std "
-            "as indistinguishable from noise."
+            f"With {audit['n_positives_used']} positives in the development set, per-fold "
+            "PR-AUC rests on a handful of positives per fold; treat differences smaller than "
+            "the fold-to-fold std, or bootstrap CIs crossing zero, as indistinguishable from "
+            "noise."
         ),
     }
 
-    out_dir = Path(cfg_get(cfg, "paths.results_dir", "./outputs/results")).resolve() / "feature_ablation"
+    out_dir = Path(cfg_get(cfg, "paths.results_dir", "./outputs/results")).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / "kfold_comparison.json"
+
+    # New canonical output path (deliverable).
+    out_path = out_dir / "feature_ablation_kfold.json"
     out_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
-    print(json.dumps(summary["pr_auc"], indent=2))
+    # Legacy path kept for backward compatibility with existing references.
+    legacy_dir = out_dir / "feature_ablation"
+    legacy_dir.mkdir(parents=True, exist_ok=True)
+    (legacy_dir / "kfold_comparison.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+
+    print(json.dumps(per_fold_summary, indent=2))
+    print(json.dumps(pooled, indent=2))
     print(f"chance level (prevalence): {summary['chance_level_pr_auc']:.3f}")
+    print(verdict_pr_auc)
+    print(verdict_roc_auc)
     print(f"report: {out_path}")
 
 

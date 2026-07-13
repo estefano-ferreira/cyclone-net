@@ -6,6 +6,12 @@ import * as mapApi from './map.js';
 import * as chartApi from './chart.js';
 import * as ui from './ui.js';
 
+/** Point-feature properties array for a geojson, in order (shared shape
+ * used by chart.js internally and now by the env panel). */
+function pointProps(geojson) {
+  return geojson.features.filter((f) => f.geometry.type === 'Point').map((f) => f.properties);
+}
+
 async function boot() {
   let manifest;
   try {
@@ -51,17 +57,30 @@ async function boot() {
 
   ui.renderLegend(definitions);
   ui.renderFooter(definitions);
+  ui.setBasinNames(definitions.basin_names);
 
   const map = mapApi.initMap('map');
   const chart = chartApi.initChart('intensity-chart');
+
+  // Relative-time toggle: only meaningful in compare mode (see js/chart.js);
+  // visibility is flipped per-selection below.
+  ui.setupRelativeTimeToggle((enabled) => chartApi.setRelativeTime(enabled));
 
   // Cross-hover wiring: hovering a marker highlights the matching chart
   // point and vice versa. Neither call re-enters the other (map hover
   // only fires on real mouse events over a marker DOM node; chart onHover
   // only fires on real canvas mouse events), so this cannot loop. Slot-aware
   // now: (slot, index|null) identifies which of A/B was hovered.
-  mapApi.onMarkerHover((slot, index) => chartApi.highlightIndex(slot, index));
-  chartApi.onPointHover((slot, index) => mapApi.highlightIndex(slot, index));
+  // Each side also drives the env panel (ui.updateEnvPanel is a no-op for
+  // slot B and for a null index — see js/ui.js).
+  mapApi.onMarkerHover((slot, index) => {
+    chartApi.highlightIndex(slot, index);
+    ui.updateEnvPanel(slot, index);
+  });
+  chartApi.onPointHover((slot, index) => {
+    mapApi.highlightIndex(slot, index);
+    ui.updateEnvPanel(slot, index);
+  });
 
   // geojsons are integrity-verified by the loader; caching the parsed
   // result (not re-fetching) is safe and avoids refetching on every
@@ -82,6 +101,8 @@ async function boot() {
       mapApi.clearTrack(map, 'B');
       chartApi.clearChart();
       ui.renderMetadata(null);
+      ui.clearEnvPanel();
+      ui.setRelativeTimeToggleVisible(false);
       return;
     }
 
@@ -103,6 +124,8 @@ async function boot() {
       mapApi.renderTrack(map, geojsonA, 'A');
       chartApi.renderChart(geojsonA, definitions);
       ui.renderMetadata(metaA);
+      ui.setEnvPointsSource(pointProps(geojsonA));
+      ui.setRelativeTimeToggleVisible(false);
       return;
     }
 
@@ -116,6 +139,8 @@ async function boot() {
       mapApi.renderTrack(map, geojsonA, 'A');
       chartApi.renderChart(geojsonA, definitions);
       ui.renderMetadata(metaA);
+      ui.setEnvPointsSource(pointProps(geojsonA));
+      ui.setRelativeTimeToggleVisible(false);
       if (err instanceof IntegrityError) {
         ui.renderIntegrityError(err, { inline: true });
       } else {
@@ -129,6 +154,9 @@ async function boot() {
     mapApi.renderTrack(map, geojsonB, 'B', { name: metaB.name });
     chartApi.renderChart(geojsonA, definitions, geojsonB, { a: metaA.name, b: metaB.name });
     ui.renderMetadataCompare(metaA, metaB);
+    // Env panel stays slot-A-only in compare mode (see js/ui.js note).
+    ui.setEnvPointsSource(pointProps(geojsonA));
+    ui.setRelativeTimeToggleVisible(true);
   });
 }
 
