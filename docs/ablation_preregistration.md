@@ -39,9 +39,23 @@ por isso seeds ≥ 3 (captura variabilidade de inicialização).
 
 ## Parâmetros do run
 
-k (folds), seeds e épocas serão fixados pelo autor com base na calibração de
-tempo real de treino desta máquina (medição de 2026-07-13), ANTES do run —
-e registrados aqui no momento da autorização, antes do primeiro resultado.
+**FIXADOS em 2026-07-13 ~17h30, antes de qualquer resultado de treino:**
+
+- **k = 3 folds, 15 épocas por treino.**
+- **Seeds = {42, 123, 456}**, execução FASEADA: uma seed por noite
+  (42 em 2026-07-13; 123 e 456 nas noites seguintes). 6 células de treino
+  por seed (3 folds × 2 braços); 18 no total.
+- **Device: CPU** (CUDA indisponível nesta máquina). Custo medido na
+  calibração de 2026-07-13: ~5,61 min/época → ~84,5 min/célula → ~8,5 h/seed.
+- **ADT: fiel à produção** — canal ADT presente nos dois braços (modelo de
+  10/12 canais de entrada), valores crus onde há cobertura (1.257 eventos),
+  zeros onde não há; simétrico entre braços A e B, idêntico ao comportamento
+  atual do modelo de produção (checkpoint com 10 canais, stats sem adt_mean).
+- **Veredito**: ΔPR-AUC (B−A) médio entre as 3 seeds com IC 95% bootstrap
+  por cluster de SID, computado via `--aggregate` sobre os 3
+  `oof_predictions.csv` salvos. Lido UMA vez pelos 3 ramos acima.
+  **Nenhum veredito antes das 3 seeds agregadas** — resultados por seed são
+  intermediários e não serão interpretados isoladamente.
 
 - Conjunto: dev set validado pelo census (14.101 eventos, 687 positivos,
   839 SIDs; cobertura PL completa, gate PASS de 2026-07-13).
