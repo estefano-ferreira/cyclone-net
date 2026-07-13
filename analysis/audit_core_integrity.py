@@ -72,6 +72,7 @@ def _find_project_root() -> Path:
 PROJECT_ROOT = _find_project_root()
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.processors.pressure_channels import RH_CHANNEL, SHEAR_CHANNEL  # noqa: E402
 from src.utils.config import load_config, cfg_get  # noqa: E402
 from src.utils.splits import SplitConfig, hash_fraction, assign_split, load_frozen_map  # noqa: E402
 
@@ -87,6 +88,34 @@ RNG_SEED = 20260712  # fixed, so re-runs sample identically until data changes
 # =======================================================================
 
 SAFE_YEARS = set(range(1980, 1988)) | set(range(2020, 2024))
+
+
+def _widen_safe_years_post_backfill(results_dir: Path) -> None:
+    """Open the year gate to 1988-2019 ONLY on manifest proof.
+
+    --post-backfill must not blindly trust the caller: every PL backfill
+    window manifest (outputs/provenance/pl_window_{y0}_{y1}.json) must have
+    status 'completed' before the os.replace-rewrite years become readable.
+    Refuses (and keeps the restricted gate) otherwise.
+    """
+    prov_dir = results_dir.parent / "provenance"
+    not_completed = []
+    for y0 in range(1980, 2020, 2):
+        mp = prov_dir / f"pl_window_{y0}_{y0 + 1}.json"
+        if not mp.exists():
+            not_completed.append((mp.name, "missing_manifest"))
+            continue
+        status = json.loads(mp.read_text(encoding="utf-8")).get("status")
+        if status != "completed":
+            not_completed.append((mp.name, status))
+    if not_completed:
+        raise PermissionError(
+            f"--post-backfill REFUSED: {len(not_completed)} PL window manifest(s) not "
+            f"'completed': {not_completed[:5]}. Safe-year gate stays restricted."
+        )
+    SAFE_YEARS.update(range(1988, 2020))
+    logger.info("--post-backfill: all 20 PL window manifests completed -- "
+                "safe-year gate widened to 1980-2023.")
 
 _EVENT_ID_YEAR_RE = re.compile(r"^era5_(\d{4})_")
 
@@ -655,10 +684,19 @@ def _recompute_norm_stats_numeric(cfg: Dict[str, Any], paths: Dict[str, Path]) -
         count_c += x.shape[0]
         used += 1
 
+    # EXACT mirror of normalization.py L637-641, including the float32
+    # quantization of mean BEFORE it is squared for the variance and the
+    # float32 cast of std: comparing a pure-float64 recompute against the
+    # stored float32-rounded stats shows E[x^2]-E[x]^2 cancellation noise
+    # (~1e-3 relative on large-mean channels like mslp_Pa) even on
+    # bit-identical data. Mirroring the quantization makes a TIGHT 1e-6
+    # relative tolerance meaningful.
     denom = np.maximum(count_c, 1).astype(np.float64)
-    mean = sum_c / denom
-    var = np.maximum((sumsq_c / denom) - mean ** 2, 1e-12)
-    std = np.sqrt(var)
+    mean = (sum_c / denom).astype(np.float32)
+    var = np.maximum((sumsq_c / denom) - (mean.astype(np.float64) ** 2), 1e-12)
+    std = np.sqrt(var).astype(np.float32)
+    mean = mean.astype(np.float64)
+    std = std.astype(np.float64)
 
     stats = json.loads(paths["normalization_stats"].read_text(encoding="utf-8"))
     stored_mean = np.array(stats["mean"], dtype=np.float64)
@@ -666,13 +704,34 @@ def _recompute_norm_stats_numeric(cfg: Dict[str, Any], paths: Dict[str, Path]) -
     max_mean_delta = float(np.max(np.abs(mean - stored_mean)))
     max_std_delta = float(np.max(np.abs(std - stored_std)))
 
-    ok = max_mean_delta < 1e-3 and max_std_delta < 1e-3
+    # Standardized-units comparison (mean delta in units of the channel's
+    # std; std delta relative) so all channels are judged on one scale.
+    scale = np.maximum(np.abs(stored_std), 1e-12)
+    mean_delta_std_units = np.abs(mean - stored_mean) / scale
+    std_rel_delta = np.abs(std - stored_std) / scale
+    ok = bool(mean_delta_std_units.max() < 1e-6 and std_rel_delta.max() < 1e-6)
+
+    per_channel = {
+        name: {
+            "stored_mean": float(sm), "recomputed_mean": float(m),
+            "stored_std": float(ss), "recomputed_std": float(s),
+            "mean_delta_in_std_units": float(md), "std_rel_delta": float(sd),
+        }
+        for name, sm, m, ss, s, md, sd in zip(
+            input_names, stored_mean, mean, stored_std, std,
+            mean_delta_std_units, std_rel_delta)
+    }
     return {
         "status": "PASS" if ok else "FAIL",
         "used_events": used,
         "skipped_events": skipped,
         "max_abs_mean_delta": max_mean_delta,
         "max_abs_std_delta": max_std_delta,
+        "max_mean_delta_in_std_units": float(mean_delta_std_units.max()),
+        "max_std_rel_delta": float(std_rel_delta.max()),
+        "tolerance_relative": 1e-6,
+        "quantization_mirrored": "float32 mean/std exactly as normalization.py L637-641",
+        "per_channel": per_channel,
     }
 
 
@@ -818,8 +877,9 @@ def check_metric_computation(cfg: Dict[str, Any], paths: Dict[str, Path], split:
 # =======================================================================
 
 
-def check_input_integrity(cfg: Dict[str, Any], paths: Dict[str, Path], n_sample: int = 120) -> Dict[str, Any]:
-    logger.info("CHECK 5: input integrity (cube reads, SAFE YEARS ONLY: %s)", sorted(SAFE_YEARS))
+def check_input_integrity(cfg: Dict[str, Any], paths: Dict[str, Path], n_sample: int = 120,
+                          post_backfill: bool = False) -> Dict[str, Any]:
+    logger.info("CHECK 5: input integrity (cube reads, years allowed by gate: %s)", sorted(SAFE_YEARS))
     evidence: Dict[str, Any] = {}
 
     splits_df = pd.read_csv(paths["splits_csv"])
@@ -833,15 +893,25 @@ def check_input_integrity(cfg: Dict[str, Any], paths: Dict[str, Path], n_sample:
         return {"status": "FAIL", "evidence": {**evidence, "error": "no safe-year events found in splits.csv"}}
 
     rng = np.random.default_rng(RNG_SEED)
-    splits_present = safe_df["split"].unique().tolist()
-    per_split_target = max(1, n_sample // max(1, len(splits_present)))
-    parts = []
-    for sp in splits_present:
-        pool = safe_df[safe_df["split"] == sp]
-        k = min(len(pool), per_split_target)
-        idx = rng.choice(pool.index.to_numpy(), size=k, replace=False)
-        parts.append(pool.loc[idx])
-    sample = pd.concat(parts)
+    if post_backfill:
+        # Post-backfill run: every year must be touched, not just sampled in
+        # aggregate -- at least 3 cubes per year, then top up to n_sample.
+        parts = []
+        for _, pool in safe_df.groupby("year"):
+            k = min(len(pool), 3)
+            idx = rng.choice(pool.index.to_numpy(), size=k, replace=False)
+            parts.append(pool.loc[idx])
+        sample = pd.concat(parts)
+    else:
+        splits_present = safe_df["split"].unique().tolist()
+        per_split_target = max(1, n_sample // max(1, len(splits_present)))
+        parts = []
+        for sp in splits_present:
+            pool = safe_df[safe_df["split"] == sp]
+            k = min(len(pool), per_split_target)
+            idx = rng.choice(pool.index.to_numpy(), size=k, replace=False)
+            parts.append(pool.loc[idx])
+        sample = pd.concat(parts)
     if len(sample) < n_sample:
         remaining = safe_df.drop(sample.index)
         extra_n = min(len(remaining), n_sample - len(sample))
@@ -895,11 +965,28 @@ def check_input_integrity(cfg: Dict[str, Any], paths: Dict[str, Path], n_sample:
                 failures.append({"event_id": eid, "reason": f"non_finite_values_in_9ch_slice:{n_nonfinite}"})
                 continue
 
+            if post_backfill:
+                # After a completed 1980-2019 backfill (and 2020-2023 having
+                # PL from original preprocessing), EVERY event must carry the
+                # two PL channels, finite.
+                pl_missing = [c for c in (SHEAR_CHANNEL, RH_CHANNEL) if c not in chs]
+                if pl_missing:
+                    failures.append({"event_id": eid, "reason": f"missing_pl_channels:{pl_missing}"})
+                    continue
+                idx_pl = [chs.index(c) for c in (SHEAR_CHANNEL, RH_CHANNEL)]
+                x_pl = cube[:, :, :, idx_pl]
+                if not np.isfinite(x_pl).all():
+                    n_nonfinite = int((~np.isfinite(x_pl)).sum())
+                    failures.append({"event_id": eid, "reason": f"non_finite_values_in_pl_slice:{n_nonfinite}"})
+                    continue
+
             n_ok += 1
         except Exception as exc:  # noqa: BLE001
             failures.append({"event_id": eid, "reason": f"exception:{exc}"})
 
     evidence["n_sampled"] = int(len(sample))
+    evidence["n_years_covered"] = int(sample["year"].nunique())
+    evidence["pl_channels_also_checked"] = bool(post_backfill)
     evidence["n_ok"] = n_ok
     evidence["n_failed"] = len(failures)
     evidence["per_split_sample_counts"] = per_split_counts
@@ -927,6 +1014,9 @@ def main() -> None:
     cfg = load_config(str(PROJECT_ROOT / "config.yaml"))
     paths = _paths(cfg)
 
+    if args.post_backfill:
+        _widen_safe_years_post_backfill(paths["results_dir"])
+
     report: Dict[str, Any] = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         # Deliberately "." — the absolute path would leak the local
@@ -940,7 +1030,7 @@ def main() -> None:
     report["checks"]["2_split_integrity"] = check_split_integrity(cfg, paths)
     report["checks"]["3_normalization_leakage"] = check_normalization_leakage(cfg, paths, args.post_backfill)
     report["checks"]["4_metric_computation"] = check_metric_computation(cfg, paths, split=args.split)
-    report["checks"]["5_input_integrity"] = check_input_integrity(cfg, paths)
+    report["checks"]["5_input_integrity"] = check_input_integrity(cfg, paths, post_backfill=args.post_backfill)
 
     out_path = paths["results_dir"] / "audit_core_integrity.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-13T02:02:11.391293+00:00",
+  "generated_at": "2026-07-13T18:18:33.698906+00:00",
   "project_root": ".",
   "safe_years": [
     1980,
@@ -10,6 +10,38 @@
     1985,
     1986,
     1987,
+    1988,
+    1989,
+    1990,
+    1991,
+    1992,
+    1993,
+    1994,
+    1995,
+    1996,
+    1997,
+    1998,
+    1999,
+    2000,
+    2001,
+    2002,
+    2003,
+    2004,
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
     2020,
     2021,
     2022,
@@ -98,7 +130,7 @@
           }
         },
         "code_inspection": {
-          "trainer_builds_loaders_train_val_only": "213:     train_ds = PhysicsDataset(cfg=cfg, split=\"train\")\n214:     val_ds = PhysicsDataset(cfg=cfg, split=\"val\")",
+          "trainer_builds_loaders_train_val_only": "213: \n214:     train_ds = PhysicsDataset(cfg=cfg, split=\"train\")",
           "dataset_split_argument_allowlist": "114:         if split not in (\"train\", \"val\", \"test\"):\n115:             raise ValueError(f\"Unknown split: {split}\")\n116:         self.split = split",
           "dataset_filters_by_requested_split_only": "137:         df = df[df[\"split\"] == split].copy()\n138:         self.event_ids: List[str] = df[\"event_id\"].astype(str).tolist()",
           "evaluate_is_the_only_caller_of_split_test": "401: def run_evaluate(\n402:     cfg: Dict[str, Any],\n403:     split: str = \"test\",\n404:     calibrate: bool = False,",
@@ -113,7 +145,7 @@
       }
     },
     "3_normalization_leakage": {
-      "status": "PASS(code+provenance)",
+      "status": "PASS",
       "evidence": {
         "code_level": {
           "train_ids_read_from_splits_filtered_to_train": "546: def _read_train_ids_from_splits(splits_csv: Path) -> List[str]:\n547:     \"\"\"Read the train event IDs from a splits CSV.\"\"\"\n548:     df = pd.read_csv(splits_csv)\n549:     if \"event_id\" not in df.columns or \"split\" not in df.columns:\n550:         raise ValueError(\"splits_csv must contain columns: event_id, split\")\n551: \n552:     unknown_splits = sorted(set(df[\"split\"].unique()) - VALID_SPLITS)\n553:     if unknown_splits:\n554:         raise ValueError(f\"Unexpected split names in splits_csv: {unknown_splits}\")\n555: \n556:     train_ids = df[df[\"split\"] == \"train\"][\"event_id\"].astype(str).tolist()\n557:     if not train_ids:\n558:         raise RuntimeError(f\"No train events found in splits CSV: {splits_csv}\")\n559:     return train_ids",
@@ -150,7 +182,89 @@
           "used_events_matches_train_split_n": true
         },
         "numerical_recompute": {
-          "reason": "Numerical recompute requires opening every TRAIN-split interim cube across all years, including 1988-2019 which are currently being rewritten by the PL backfill via os.replace. Forbidden under the hard safety rule. Re-run this script with --post-backfill once the backfill completes."
+          "reason": "Numerical recompute requires opening every TRAIN-split interim cube across all years, including 1988-2019 which are currently being rewritten by the PL backfill via os.replace. Forbidden under the hard safety rule. Re-run this script with --post-backfill once the backfill completes.",
+          "used_events": 11150,
+          "skipped_events": 0,
+          "max_abs_mean_delta": 0.0,
+          "max_abs_std_delta": 0.0,
+          "max_mean_delta_in_std_units": 0.0,
+          "max_std_rel_delta": 0.0,
+          "tolerance_relative": 1e-06,
+          "quantization_mirrored": "float32 mean/std exactly as normalization.py L637-641",
+          "per_channel": {
+            "sst_K": {
+              "stored_mean": 299.6820373535156,
+              "recomputed_mean": 299.6820373535156,
+              "stored_std": 2.4190585613250732,
+              "recomputed_std": 2.4190585613250732,
+              "mean_delta_in_std_units": 0.0,
+              "std_rel_delta": 0.0
+            },
+            "mslp_Pa": {
+              "stored_mean": 101180.9140625,
+              "recomputed_mean": 101180.9140625,
+              "stored_std": 446.494873046875,
+              "recomputed_std": 446.494873046875,
+              "mean_delta_in_std_units": 0.0,
+              "std_rel_delta": 0.0
+            },
+            "u10_mps": {
+              "stored_mean": -2.141406536102295,
+              "recomputed_mean": -2.141406536102295,
+              "stored_std": 5.539029121398926,
+              "recomputed_std": 5.539029121398926,
+              "mean_delta_in_std_units": 0.0,
+              "std_rel_delta": 0.0
+            },
+            "v10_mps": {
+              "stored_mean": -0.930414617061615,
+              "recomputed_mean": -0.930414617061615,
+              "stored_std": 5.788543701171875,
+              "recomputed_std": 5.788543701171875,
+              "mean_delta_in_std_units": 0.0,
+              "std_rel_delta": 0.0
+            },
+            "wind_mps": {
+              "stored_mean": 7.5838799476623535,
+              "recomputed_mean": 7.5838799476623535,
+              "stored_std": 3.481973648071289,
+              "recomputed_std": 3.481973648071289,
+              "mean_delta_in_std_units": 0.0,
+              "std_rel_delta": 0.0
+            },
+            "vort_1ps": {
+              "stored_mean": 3.0625764679825807e-07,
+              "recomputed_mean": 3.0625764679825807e-07,
+              "stored_std": 3.406928954063915e-05,
+              "recomputed_std": 3.406928954063915e-05,
+              "mean_delta_in_std_units": 0.0,
+              "std_rel_delta": 0.0
+            },
+            "div_1ps": {
+              "stored_mean": 3.922308678738773e-06,
+              "recomputed_mean": 3.922308678738773e-06,
+              "stored_std": 3.451662996667437e-05,
+              "recomputed_std": 3.451662996667437e-05,
+              "mean_delta_in_std_units": 0.0,
+              "std_rel_delta": 0.0
+            },
+            "grad_mslp_Pa_per_m": {
+              "stored_mean": 0.0010439539328217506,
+              "recomputed_mean": 0.0010439539328217506,
+              "stored_std": 0.0014607273042201996,
+              "recomputed_std": 0.0014607273042201996,
+              "mean_delta_in_std_units": 0.0,
+              "std_rel_delta": 0.0
+            },
+            "sst_anom_K": {
+              "stored_mean": -2.5016202442884605e-08,
+              "recomputed_mean": -2.5016202442884605e-08,
+              "stored_std": 1.1810821294784546,
+              "recomputed_std": 1.1810821294784546,
+              "mean_delta_in_std_units": 0.0,
+              "std_rel_delta": 0.0
+            }
+          }
         }
       }
     },
@@ -227,7 +341,7 @@
     "5_input_integrity": {
       "status": "PASS",
       "evidence": {
-        "n_events_in_safe_years_total": 4453,
+        "n_events_in_safe_years_total": 16780,
         "safe_years": [
           1980,
           1981,
@@ -237,18 +351,52 @@
           1985,
           1986,
           1987,
+          1988,
+          1989,
+          1990,
+          1991,
+          1992,
+          1993,
+          1994,
+          1995,
+          1996,
+          1997,
+          1998,
+          1999,
+          2000,
+          2001,
+          2002,
+          2003,
+          2004,
+          2005,
+          2006,
+          2007,
+          2008,
+          2009,
+          2010,
+          2011,
+          2012,
+          2013,
+          2014,
+          2015,
+          2016,
+          2017,
+          2018,
+          2019,
           2020,
           2021,
           2022,
           2023
         ],
-        "n_sampled": 120,
-        "n_ok": 120,
+        "n_sampled": 132,
+        "n_years_covered": 44,
+        "pl_channels_also_checked": true,
+        "n_ok": 132,
         "n_failed": 0,
         "per_split_sample_counts": {
-          "train": 40,
-          "test": 40,
-          "val": 40
+          "test": 26,
+          "train": 78,
+          "val": 28
         },
         "failures": [],
         "input_channels_checked": [
