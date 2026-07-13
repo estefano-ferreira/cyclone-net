@@ -153,9 +153,10 @@ def test_atomicity_on_extract_exception(tmp_path, monkeypatch, no_network):
     assert npy_path.read_bytes() == before_npy
     assert json_path.read_bytes() == before_json
     assert manifest["outcome_counts"] == {"failed": 1}
-    # No appended events -> verification trivially passes -> window completes,
-    # but there is nothing to delete and no deletion record for PL raw.
-    assert manifest["status"] == "completed"
+    # A failed event blocks completion (completeness gate): the window stays
+    # retryable on resume and nothing is deleted.
+    assert manifest["status"] == pl_backfill.MANIFEST_STATUS_INCOMPLETE
+    assert manifest["deletion"]["performed"] is False
     assert manifest["deletion"]["deleted_files"] == []
     assert manifest["deletion"]["freed_bytes"] == 0
 
@@ -222,6 +223,40 @@ def test_deletion_gating_on_verification_failure(tmp_path, monkeypatch, no_netwo
     assert manifest["deletion"]["deleted_files"] == []
     assert pl_wind_file.exists()
     assert pl_rh_file.exists()
+
+
+def test_incomplete_pl_data_blocks_completion_and_deletion(tmp_path, monkeypatch, no_network):
+    """CDS rejections leave PL raw incomplete -> events come back
+    pl_unavailable. The window must NOT be marked completed (or the resume
+    would skip those events forever) and must keep its raw files."""
+    cfg = _cfg(tmp_path)
+    interim = Path(cfg["paths"]["interim_data"])
+    raw = Path(cfg["paths"]["raw_data"])
+    cube = np.zeros((H, W, T, 12), dtype=np.float32)
+    event_id = "era5_1985_06_06_1800_1985157N16259"
+    _write_event(interim, event_id, BASE_CHANNELS, BASE_UNITS, cube)
+
+    pl_wind_file = raw / "era5pl_wind_1985_06.nc"
+    pl_rh_file = raw / "era5pl_rh_1985_06.nc"
+    pl_wind_file.write_bytes(b"fake-pl-wind-netcdf")
+    pl_rh_file.write_bytes(b"fake-pl-rh-netcdf")
+
+    monkeypatch.setattr(pl_backfill, "extract_pressure_volume", lambda *a, **kw: None)
+
+    manifest = pl_backfill.backfill_window(cfg, 1985, 1985)
+
+    assert manifest["status"] == pl_backfill.MANIFEST_STATUS_INCOMPLETE
+    assert manifest["outcome_counts"] == {"pl_unavailable": 1}
+    assert manifest["deletion"]["performed"] is False
+    assert pl_wind_file.exists()
+    assert pl_rh_file.exists()
+
+    # Resume must NOT skip the window: run_all re-runs any non-completed
+    # manifest and stops the sweep at it.
+    monkeypatch.setattr(pl_backfill, "extract_pressure_volume", _fake_extract_ones)
+    results = pl_backfill.run_all_backfill_windows(cfg, [(1985, 1985), (1986, 1986)])
+    assert results[0]["status"] == "completed"
+    assert results[0]["outcome_counts"] == {"appended": 1}
 
 
 def test_deletion_scope_never_touches_other_files(tmp_path, monkeypatch, no_network):
