@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Stylized tropical-cyclone glyph: central eye + two spiral arms
+       (180-degree rotational symmetry). Mid-blue tones chosen to stay
+       legible on both light and dark browser tab bars at 16x16. -->
+  <g fill="none" stroke="#3AA0E8" stroke-width="9" stroke-linecap="round">
+    <path d="M 32 6 A 26 26 0 0 1 58 32"/>
+    <path d="M 32 58 A 26 26 0 0 1 6 32"/>
+  </g>
+  <circle cx="32" cy="32" r="10" fill="#1B6FB8"/>
+</svg>

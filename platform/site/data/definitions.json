@@ -12,5 +12,14 @@
     "doi": "10.25921/82ty-9e16",
     "accessed": "2026-03-01T04:27:15.932443Z"
   },
-  "note": "All values are historical observations from the best-track record, not predictions."
+  "note": "All values are historical observations from the best-track record, not predictions.",
+  "basin_names": {
+    "NA": "North Atlantic",
+    "EP": "Eastern North Pacific",
+    "WP": "Western North Pacific",
+    "NI": "North Indian",
+    "SI": "South Indian",
+    "SP": "South Pacific",
+    "SA": "South Atlantic"
+  }
 }
