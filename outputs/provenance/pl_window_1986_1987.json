@@ -28,7 +28,7 @@
   "outcome_counts": {
     "appended": 838
   },
-  "per_event_csv": "C:\\Users\\Est\u00e9fano\\Documents\\Developer\\bmi.io\\Arquiteturas\\github\\cyclone-net\\outputs\\provenance\\pl_window_1986_1987_outcomes.csv",
+  "per_event_csv": "outputs/provenance/pl_window_1986_1987_outcomes.csv",
   "pl_downloads": [
     {
       "file": "era5pl_wind_1986_05.nc",

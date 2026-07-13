@@ -78,6 +78,7 @@ from src.processors.pressure_channels import (
 )
 from src.pipeline.windowed import MANIFEST_STATUS_COMPLETED
 from src.utils.config import cfg_get
+from src.utils.paths import rel_to_root
 
 logger = logging.getLogger(__name__)
 
@@ -494,7 +495,7 @@ def backfill_window(cfg: Dict[str, Any], year_start: int, year_end: int, *,
     # ensure_pl_raw_for_window writes as the downloader's input event list.
     events_csv = prov_dir / f"pl_window_{year_start}_{year_end}_outcomes.csv"
     pd.DataFrame(per_event).to_csv(events_csv, index=False)
-    manifest["per_event_csv"] = str(events_csv)
+    manifest["per_event_csv"] = rel_to_root(events_csv)
 
     manifest["pl_downloads"] = _pl_file_inventory(raw_dir, year_start, year_end)
 

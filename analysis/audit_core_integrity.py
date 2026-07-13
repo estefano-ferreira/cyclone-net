@@ -929,7 +929,9 @@ def main() -> None:
 
     report: Dict[str, Any] = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "project_root": str(PROJECT_ROOT),
+        # Deliberately "." — the absolute path would leak the local
+        # machine's username/layout into a versioned manifest.
+        "project_root": ".",
         "safe_years": sorted(SAFE_YEARS),
         "checks": {},
     }
