@@ -4,18 +4,19 @@
   "audit": {
     "n_ri_positive_points": 1875,
     "n_ri_onsets": 583,
-    "n_matched_pairs": 583,
-    "n_unmatched_onsets": 0,
+    "n_matched_pairs": 394,
+    "n_unmatched_onsets": null,
+    "pairs_provenance": "loaded verbatim from --pairs-csv=C:\\Users\\Est\u00e9fano\\Documents\\Developer\\bmi.io\\Arquiteturas\\github\\cyclone-net\\outputs\\results\\ri_precursor_pairs.csv (frozen; no re-matching performed)",
     "n_pairs_with_artifacts": 394,
     "n_missing_artifacts": {
-      "onset": 108,
-      "control": 81
+      "onset": 0,
+      "control": 0
     },
     "n_pairs_h1_mslp": 394,
-    "n_pairs_h2_shear": 5,
+    "n_pairs_h2_shear": 394,
     "n_pairs_h3_sst": 394,
-    "n_pairs_h4_rh_mid": 5,
-    "note": "shear/rh_mid channels exist only for 2020-2023 events (pressure-level coverage)"
+    "n_pairs_h4_rh_mid": 394,
+    "note": "shear/rh_mid channel coverage measured at runtime over this run's 394 matched pairs: shear_850_200_mps available for 394/394 pairs (100.0%); rh_mid available for 394/394 pairs (100.0%)."
   },
   "results": {
     "H1_pressure_fall": {
@@ -31,7 +32,7 @@
         "t+0h": {
           "mean_paired_diff": 0.7354108502538064,
           "cliffs_delta": 0.01917081089438017,
-          "p_signflip": 0.0755924407559244
+          "p_signflip": 0.07529247075292471
         },
         "t-6h": {
           "mean_paired_diff": 1.4176157994923875,
@@ -41,7 +42,7 @@
         "t-12h": {
           "mean_paired_diff": 1.5556630710659896,
           "cliffs_delta": 0.11615862299981963,
-          "p_signflip": 0.00029997000299970003
+          "p_signflip": 0.00019998000199980003
         },
         "t-18h": {
           "mean_paired_diff": 2.297961611675125,
@@ -56,8 +57,42 @@
       }
     },
     "H2_shear": {
-      "status": "underpowered",
-      "n_pairs": 5
+      "n_pairs": 394,
+      "physics": "high deep-layer shear suppresses RI",
+      "primary": {
+        "quantity": "level at t-24h",
+        "mean_paired_diff": -1.0293993096516412,
+        "cliffs_delta": -0.1349429256100389,
+        "p_signflip": 0.00029997000299970003
+      },
+      "p_bonferroni_x4": 0.0011998800119988001,
+      "per_lag_descriptive": {
+        "t+0h": {
+          "mean_paired_diff": -0.6284939209494187,
+          "cliffs_delta": -0.05867195753562318,
+          "p_signflip": 0.0096990300969903
+        },
+        "t-6h": {
+          "mean_paired_diff": -0.8384271362969038,
+          "cliffs_delta": -0.10074982607127213,
+          "p_signflip": 0.0008999100089991
+        },
+        "t-12h": {
+          "mean_paired_diff": -0.8542454312803969,
+          "cliffs_delta": -0.10051792110077559,
+          "p_signflip": 0.0015998400159984002
+        },
+        "t-18h": {
+          "mean_paired_diff": -0.9752001579527617,
+          "cliffs_delta": -0.1235280476178206,
+          "p_signflip": 0.0007999200079992001
+        },
+        "t-24h": {
+          "mean_paired_diff": -1.0293993096516412,
+          "cliffs_delta": -0.1349429256100389,
+          "p_signflip": 0.00029997000299970003
+        }
+      }
     },
     "H3_sst": {
       "n_pairs": 394,
@@ -98,8 +133,42 @@
       }
     },
     "H4_rh_mid": {
-      "status": "underpowered",
-      "n_pairs": 5
+      "n_pairs": 394,
+      "physics": "dry mid-levels suppress convection",
+      "primary": {
+        "quantity": "level at t-24h",
+        "mean_paired_diff": 2.588265709483022,
+        "cliffs_delta": 0.1161457393903476,
+        "p_signflip": 0.0021997800219978004
+      },
+      "p_bonferroni_x4": 0.008799120087991202,
+      "per_lag_descriptive": {
+        "t+0h": {
+          "mean_paired_diff": 5.62489186799012,
+          "cliffs_delta": 0.24177381535210904,
+          "p_signflip": 9.999000099990002e-05
+        },
+        "t-6h": {
+          "mean_paired_diff": 4.4265023014205624,
+          "cliffs_delta": 0.18964673142827695,
+          "p_signflip": 9.999000099990002e-05
+        },
+        "t-12h": {
+          "mean_paired_diff": 3.753278288178354,
+          "cliffs_delta": 0.16626298023654307,
+          "p_signflip": 9.999000099990002e-05
+        },
+        "t-18h": {
+          "mean_paired_diff": 2.918570721436878,
+          "cliffs_delta": 0.12680048442371614,
+          "p_signflip": 0.00019998000199980003
+        },
+        "t-24h": {
+          "mean_paired_diff": 2.588265709483022,
+          "cliffs_delta": 0.1161457393903476,
+          "p_signflip": 0.0021997800219978004
+        }
+      }
     }
   },
   "interpretation_guard": "Hypothesis-GENERATING observational analysis. Detected signals are not confirmed precursors and do not imply causality; per-lag secondary results are descriptive and not multiplicity-corrected."
