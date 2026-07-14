@@ -11,32 +11,34 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-14 ~18:15 (H8/H9 pre-registered and committed;
-calibration analysis done; README/BENCHMARK audited; 7 local commits on
-feature/tchp NOT pushed)._
+_Last updated: 2026-07-14 ~19:50 (seed 123 RUNNING since 19:35, PID
+24664, run `20260714T223910Z`, ETA ~06:35 of 15/07; night 3 scheduled;
+push done up to `6691fc9`; scalar-branch design doc committed local)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
-Run **seed 123** of the ablation (night 2):
+**Seed 123 is RUNNING** (night 2, launched 14/07 19:35 detached, run dir
+`outputs/results/feature_ablation_cnn/20260714T223910Z`). Next morning
+(15/07, ~06:35):
 
-```
-./venv/Scripts/python.exe analysis/feature_ablation_cnn.py --folds 3 --epochs 15 --seeds 123 --execute
-```
+1. Verify completion: 6/6 cells + `seed123/oof_predictions.csv` + run
+   `summary.json`; check `~/cyclone-net-ops/seed123_heartbeat.log` (10-min
+   forensic liveness log) — any `NOT-RUNNING` before completion means an
+   external kill: correlate the timestamp with the Event Log.
+2. Commit OOF+summary (gitignore already captures only those).
+3. Run H9 GBM `--execute` (minutes, machine free) — verdicts only post-H6.
+4. Night 3 is ALREADY SCHEDULED: `CycloneNet-Ablation-Night3-Seed456`
+   fires 15/07 19:30 (+ heartbeat task 19:41). ASCII-safe launcher with
+   pre-checks (seed 123 complete in any run dir + machine free), smoke
+   tested. If the machine is off at 19:30 the trigger does NOT re-fire →
+   launch manually (same command with `--seeds 456`).
 
-- DETACHED method mandatory (outside the terminal tree — `Start-Process`
-  with redirected logs, or Task Scheduler). Child processes of the
-  terminal session have already been killed 2x on this machine.
-- ~11 h wall time on CPU; machine must not suspend (already configured).
-- Condition: run at NIGHT (phased protocol: one seed per night; dedicated
-  CPU — do not compete with machine use).
-- **Automatic scheduled fire already exists:** Task Scheduler task
-  `CycloneNet-Ablation-Night2-Seed123`, 14/07 at 19:30, with pre-checks
-  (aborts if training is active or seed 42 incomplete). If the machine is
-  off at 19:30, the trigger does NOT re-fire → launch manually with the
-  command above. Launcher/logs: `C:\Users\Estéfano\cyclone-net-ops\`.
-- When done (6/6 cells + `seed123/oof_predictions.csv` + run
-  `summary.json`): commit (gitignore already captures OOF+summary only)
-  and schedule night 3.
+**Incident 14/07 19:30 (resolved):** the night-2 trigger died at launch
+(exit 1, no log): the `.ps1` was UTF-8 without BOM → PS 5.1 read it as
+ANSI → accented username in hardcoded paths mangled → first `Out-File`
+threw under `ErrorActionPreference=Stop`. Fix (permanent rule): every
+operational `.ps1` is ASCII-only with paths via `$env:USERPROFILE`, saved
+with BOM. Re-fired 19:35 via `Start-ScheduledTask`, pre-checks passed.
 
 ## 2. STATE OF ONGOING EXPERIMENT (CNN feature ablation)
 
@@ -46,8 +48,8 @@ before any results). Operational detail: `docs/ablation_progress.md`.
 | Seed | Status |
 |---|---|
 | 42 | **COMPLETE** (run `20260713T232126Z`, commit `c608f19`; Δ PR-AUC OOF +0.033 — intermediate, NO verdict) |
-| 123 | **PENDING** — scheduled for 14/07 at 19:30 |
-| 456 | **PENDING** — night 3 (15/07), schedule same way |
+| 123 | **RUNNING** — launched 14/07 19:35 (run `20260714T223910Z`, PID 24664, ETA ~06:35) |
+| 456 | **SCHEDULED** — night 3, task `CycloneNet-Ablation-Night3-Seed456` 15/07 19:30 |
 
 **HIGHLIGHTED RULE: Do NOT run `--aggregate` with fewer than 3 seeds. No
 conclusions before aggregated CI — one seed is initialization noise. The
@@ -87,9 +89,10 @@ CI is read ONCE; no mining, no re-run.** Final aggregation:
      co-primary): `docs/tabular_baseline_preregistration.md`.
    - Harness: `analysis/tabular_baseline_kfold.py`. Local TODO/context:
      `.claude/TODO_recomendacoes.md`.
-3. **TODO — push:** 7 local commits on `feature/tchp` not pushed
-   (literature review, Zenodo note, H8, H9, registry, calibration,
-   README/BENCHMARK). PR #9 open.
+3. **Push DONE 14/07 ~19:20** (`3b97266..6691fc9`, PR #9 updated). Local
+   only: scalar-branch design doc commit (V4/H10, DESIGN ONLY, post-V3 —
+   `docs/scalar_branch_design.md`) + this PROJECT_STATE update; push with
+   the next batch.
 4. **TODO — author manual action:** update the GitHub repo About text
    (Settings) — suggested wording in `.claude/TODO_recomendacoes.md`; the
    current one still sells the refuted energy-source premise.
