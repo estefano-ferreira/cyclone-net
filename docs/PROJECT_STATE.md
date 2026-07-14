@@ -84,6 +84,10 @@ lido UMA vez; sem garimpo, sem re-run.** Agregação final:
    ERRATA ainda não existe em docs/), link no README, parágrafos da V3.
 5. **TODO (segurança, pendente do usuário):** rotacionar chave CDS e senha
    Copernicus (vazaram no histórico git; redação na origem já implementada).
+6. **CONTÍNUO — caderno de hipóteses:** `docs/hypothesis_registry.md` é a
+   agenda de pesquisa viva (HR-01..HR-07). Registrar hipótese+teste ANTES
+   de rodar; veredito honesto depois. Próxima não-testada: HR-07
+   ("anomalia C", desenhar o teste antes de olhar mapas).
 
 ## 5. MARCOS JÁ CONCLUÍDOS (não refazer)
 
