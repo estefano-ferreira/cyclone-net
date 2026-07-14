@@ -1,0 +1,200 @@
+# Literature Review (initial)
+
+> **Status: initial survey based on abstract-level search; to be deepened
+> with full-text reading and domain-expert (meteorologist) review before
+> publication. Not exhaustive.** This document exists to (a) position
+> CycloneNet honestly relative to the established field and (b) seed the
+> related-work section of the V3 manuscript. Claims below are drawn from
+> abstracts and secondary sources unless marked otherwise; bibliographic
+> details flagged "to verify" must be checked against the full text before
+> citation in any manuscript.
+
+## 1. RI prediction — the established field
+
+Rapid intensification (RI) is conventionally defined as an increase in
+maximum sustained wind of **ΔV24 ≥ 30 kt in 24 h**, the ~95th percentile of
+24-h intensity changes (Kaplan & DeMaria 2003). The operational statistical
+baseline is the **SHIPS Rapid Intensification Index (SHIPS-RII)**, in
+operational use since the early 2000s (Kaplan & DeMaria 2003; revised in
+Kaplan et al. 2010) — probabilistic RI guidance built on linear
+discriminant analysis over environmental predictors.
+
+The environmental predictors of RI are well established and replicated
+across basins:
+
+- low deep-layer (850–200 hPa) vertical wind shear;
+- high sea-surface temperature and, more specifically, high **ocean heat
+  content / TCHP** (integrated upper-ocean warmth, not skin SST alone);
+- high mid-level relative humidity;
+- upper-level divergence / favorable outflow.
+
+(Kaplan & DeMaria 2003; Kaplan et al. 2015; Hendricks et al. 2010.)
+
+**Key finding for our positioning:** favorable environmental conditions are
+**necessary but not sufficient** for RI. The environments of RI storms and
+of non-RI *intensifying* storms are statistically similar, and RI has been
+described as a "weak function" of the environment, with a case for treating
+part of RI occurrence as effectively **stochastic** (Kowch & Emanuel 2015).
+The residual variance is attributed in the literature to **internal
+inner-core processes** — convective bursts, inner-core symmetry, eyewall
+mesovortices, vortex-scale dynamics — plus a stochastic component; Judt &
+Chen (2016) show with high-resolution stochastic ensembles that RI timing
+uncertainty arises from interactions between shear, the mean vortex, and
+internal convective processes. This is the field's central open problem,
+not a gap this project discovered.
+
+## 2. Deep learning for RI — the active ML sub-field
+
+Deep learning for RI prediction is an active sub-field with several
+recurring architectures (abstract-level survey):
+
+- **CNN on reanalysis/NWP fields** — e.g., DeepTC (Kim et al. 2024), a
+  CNN with amplitude focal loss for 24-h RI in the Western Pacific,
+  reporting skill above operational forecasts; hybrid CNNs combining
+  satellite imagery with NWP predictors.
+- **CNN + gradient boosting hybrids** — e.g., TCNET (Wei, Yang & Sun
+  2023), combining CNN feature extraction on ERA-Interim fields with
+  XGBoost over SHIPS-type scalar predictors.
+- **Attention-based models on satellite imagery** (Bai, Chen & Lin 2020)
+  and **temporal LSTM/RNN** approaches over predictor sequences.
+
+Two trends matter for positioning:
+
+1. **The frontier has moved to inner-core structure** observed via
+   high-resolution satellite imagery (inner-core symmetry indices,
+   convective-burst signatures) — consistent with §1's residual being
+   inner-core-driven. CycloneNet does **not** have this data: 0.25°
+   surface-level reanalysis cannot resolve inner-core structure.
+2. **Reproducibility and benchmarking are a recognized contribution
+   category** in this sub-field — e.g., the public satellite-image RI
+   benchmark with released dataset of Bai, Chen & Lin (2020; ECML PKDD).
+   Papers whose primary contribution is a documented, auditable,
+   reproducible pipeline (rather than a new SOTA number) have an
+   established niche.
+
+## 3. Where CycloneNet sits (honest positioning)
+
+- **Not a physical discovery.** Our environmental-precursor findings
+  (shear and mid-level RH differ before RI vs. non-RI; H1–H4 in
+  `hypothesis_registry.md`) are **confirmatory** of §1's established
+  predictors, obtained on our own 1980–2023 reanalysis-derived dataset.
+  They demonstrate the pipeline recovers known signal — a sanity check,
+  not a contribution.
+- **Our "anomaly hypothesis" (H7)** — that some RI residual exists beyond
+  known environmental conditions — **is the field's central known
+  problem**, already attributed to inner-core and stochastic processes
+  (Kowch & Emanuel 2015; Judt & Chen 2016). Those processes are beyond the
+  reach of 0.25° surface reanalysis, so this project cannot be expected to
+  resolve it; any H7 test must be framed against that prior.
+- **Our contribution is on a different axis:** reproducibility and
+  auditability engineering (hash-deterministic SID splits, frozen test
+  set, provenance manifests, pre-registered hypotheses and ablations), an
+  **honest negative result** (the FuelMap hypothesis refuted with
+  storm-center controls — see `fuelmap_validation.md`), and a fully
+  documented, resumable pipeline over 46 years of data. This places the
+  work in the **reproducibility / applied-ML / benchmark** category, not
+  the physical-discovery category.
+- **Appropriate venue:** reproducibility tracks, applied-ML venues, or
+  workshops, with a domain (meteorology) coauthor validating the
+  scientific framing before submission.
+
+## 4. References (to complete)
+
+> **Peer-review status verified per reference; preprints marked as such and
+> not treated as established fact.** Tags: **[PEER-REVIEWED]** journal with
+> review (verified); **[PREPRINT]** arXiv or similar without a confirmed
+> peer-reviewed publication — cite explicitly as preprint; **[SECONDARY]**
+> Wikipedia/ResearchGate-level sources — orientation only, never cited
+> directly. Reading status per entry: [full-text] or [abstract-only].
+> V3 rule: only [PEER-REVIEWED] work may be cited as "established".
+
+Bibliographic details (authors/title/venue/DOI) were verified against
+publisher pages via web search on 2026-07-14. **Every entry below is
+[abstract-only]** — none read in full yet (see §5).
+
+**Foundational — RI climatology and operational prediction:**
+
+1. **[PEER-REVIEWED]** [abstract-only] Kaplan, J., & DeMaria, M. (2003).
+   Large-Scale Characteristics of Rapidly Intensifying Tropical Cyclones
+   in the North Atlantic Basin. *Weather and Forecasting*, 18(6),
+   1093–1108. DOI: 10.1175/1520-0434(2003)018<1093:LCORIT>2.0.CO;2 —
+   defines RI (ΔV24 ≥ 30 kt ≈ 95th percentile), identifies large-scale
+   environmental predictors; basis of SHIPS-RII (operational 2003).
+2. **[PEER-REVIEWED]** [abstract-only] Kaplan, J., DeMaria, M., & Knaff,
+   J. A. (2010). A Revised Tropical Cyclone Rapid Intensification Index
+   for the Atlantic and Eastern North Pacific Basins. *Weather and
+   Forecasting*, 25(1), 220–241. DOI: 10.1175/2009WAF2222280.1 — revised
+   SHIPS-RII, multiple RI thresholds (25/30/35 kt), E. Pacific extension.
+3. **[PEER-REVIEWED]** [abstract-only] Kaplan, J., et al. (2015).
+   Evaluating Environmental Impacts on Tropical Cyclone Rapid
+   Intensification Predictability Utilizing Statistical Models. *Weather
+   and Forecasting*, 30(5), 1374–1396. DOI: 10.1175/WAF-D-15-0032.1 —
+   multi-lead-time evaluation of statistical RI models; consensus skill.
+4. **[PEER-REVIEWED]** [abstract-only] Hendricks, E. A., Peng, M. S., Fu,
+   B., & Li, T. (2010). Quantifying Environmental Control on Tropical
+   Cyclone Intensity Change. *Monthly Weather Review*, 138(8), 3243–3271.
+   DOI: 10.1175/2010MWR3185.1 — partitions environmental vs. internal
+   contributions; environments of RI and non-RI intensifiers are similar.
+5. **[PEER-REVIEWED]** [abstract-only] Kowch, R., & Emanuel, K. (2015).
+   Are Special Processes at Work in the Rapid Intensification of Tropical
+   Cyclones? *Monthly Weather Review*, 143(3), 878–882.
+   DOI: 10.1175/MWR-D-14-00360.1 — RI as the tail of a single smooth
+   intensification distribution; case for a stochastic view.
+6. **[PEER-REVIEWED]** [abstract-only] Judt, F., & Chen, S. S. (2016).
+   Predictability and Dynamics of Tropical Cyclone Rapid Intensification
+   Deduced from High-Resolution Stochastic Ensembles. *Monthly Weather
+   Review*, 144(12), 4395–4420. DOI: 10.1175/MWR-D-15-0283.1 — RI timing
+   uncertainty from shear–vortex–convection interactions; stochastic
+   inner-core component.
+
+**Deep learning for RI:**
+
+7. **[PEER-REVIEWED]** [abstract-only] Kim, J.-H., Ham, Y.-G., Kim, D.,
+   Li, T., & Ma, C. (2024). Improvement in Forecasting Short-Term
+   Tropical Cyclone Intensity Change and Their Rapid Intensification
+   Using Deep Learning. *Artificial Intelligence for the Earth Systems*,
+   3(2), e230052. DOI: 10.1175/AIES-D-23-0052.1 — DeepTC: CNN with
+   amplitude focal loss, W. Pacific; reports skill above operational
+   forecasts. (Model name to re-confirm on full-text read.)
+8. **[PEER-REVIEWED]** [abstract-only] Wei, Y., Yang, R., & Sun, D.
+   (2023). Investigating Tropical Cyclone Rapid Intensification with an
+   Advanced Artificial Intelligence System and Gridded Reanalysis Data.
+   *Atmosphere*, 14(2), 195. DOI: 10.3390/atmos14020195 — TCNET:
+   CNN + XGBoost on ERA-Interim + SHIPS predictors; reports POD/FAR gains
+   over SHIPS-only. (MDPI journal — weigh accordingly.)
+9. **[PEER-REVIEWED]** [abstract-only] Bai, C.-Y., Chen, B.-F., & Lin,
+   H.-T. (2020). Benchmarking Tropical Cyclone Rapid Intensification with
+   Satellite Images and Attention-Based Deep Models. *ECML PKDD 2020*,
+   LNCS 12460, 497–512. Springer. (Preprint: arXiv:1909.11616, 2019 —
+   later peer-reviewed, so cite the proceedings version.) — first
+   satellite-image-only RI benchmark with public dataset; the
+   reproducibility/benchmark precedent for this project's category.
+
+**Reviews (entry points for deepening this survey):**
+
+10. **[PEER-REVIEWED]** [abstract-only] Chen, R., Zhang, W., & Wang, X.
+    (2020). Machine Learning in Tropical Cyclone Forecast Modeling: A
+    Review. *Atmosphere*, 11(7), 676. DOI: 10.3390/atmos11070676.
+11. **[PEER-REVIEWED]** [abstract-only] Wang, Z., et al. (2022). A Review
+    on the Application of Machine Learning Methods in Tropical Cyclone
+    Forecasting. *Frontiers in Earth Science*, 10, 902596.
+    DOI: 10.3389/feart.2022.902596.
+
+No [PREPRINT]-only or [SECONDARY]-only entries remain in this list: the
+one arXiv item (#9) was confirmed as later peer-reviewed. Secondary
+sources (ResearchGate/Wikipedia) were used only to locate primary pages
+during verification and are not cited.
+
+## 5. Gaps in this review (honest)
+
+- No paper below has been read in full yet by the author; everything is
+  abstract-level or secondary-source. Full-text reading is required before
+  the V3 related-work section is written.
+- Needs domain-expert (meteorologist) validation — both of the summary
+  claims and of paper selection.
+- Recent work (2023–2026) is under-covered; key papers may be missing
+  entirely.
+- Basin-specific literature (Atlantic vs. West/East Pacific differences in
+  RI climatology and predictor importance) not systematically surveyed.
+- Operational-forecasting literature (HAFS, consensus aids, DTOPS) not
+  covered at all.
