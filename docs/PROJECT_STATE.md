@@ -100,7 +100,49 @@ lido UMA vez; sem garimpo, sem re-run.** Agregação final:
 - Dataset 1980–2023: 16.780 eventos válidos / 802 positivos RI / 992
   tempestades; splits sem leakage; benchmark congelado intacto.
 
-## 6. NÚMEROS-CHAVE DE REFERÊNCIA
+## 6. EXECUÇÃO DE PROCESSOS LONGOS (anti-interrupção externa — OBRIGATÓRIO)
+
+Contexto: processos longos rodando como filhos da árvore do terminal foram
+mortos 2× nesta máquina (13/07 ~01h00 e ~20h19). Suspeito mais forte da 2ª:
+self-update do Google Updater + sessão do RestartManager (roda a cada ~3h);
+1ª inconclusiva (janela só tinha Windows Update/Defender). O padrão comum:
+**só morrem processos da árvore da sessão do terminal**. Um run detached
+atravessou 11 h e várias sessões do RestartManager sem ser tocado.
+
+Regras para QUALQUER processo > ~15 min (treino, backfill, download):
+
+1. **NUNCA rodar como filho do terminal/sessão** (nem como "background task"
+   da sessão — foi exatamente o que morreu 2×).
+2. **Sempre DETACHED**, com stdout/stderr em arquivo e `-u` (sem buffer):
+   ```powershell
+   Start-Process -FilePath ".\venv\Scripts\python.exe" `
+     -ArgumentList "-u","<script>","<args...>" `
+     -WorkingDirectory "<raiz do repo>" `
+     -RedirectStandardOutput "C:\Users\Estéfano\cyclone-net-ops\<nome>.log" `
+     -RedirectStandardError  "C:\Users\Estéfano\cyclone-net-ops\<nome>.err.log" `
+     -WindowStyle Hidden -PassThru
+   ```
+   Ou via **Task Scheduler** (nasce fora de qualquer árvore de terminal):
+   launcher `.ps1` com pre-checks em `C:\Users\Estéfano\cyclone-net-ops\`,
+   gatilho com `-ExecutionTimeLimit` folgado (ex.: 16 h). Atenção: gatilho
+   "Once" perdido (máquina desligada) NÃO re-dispara.
+3. **Pre-checks antes de disparar** (o launcher da noite 2 é o modelo):
+   etapa anterior completa? máquina livre (sem outro treino/backfill)?
+   Se falhar, abortar e logar o motivo — nunca disparar em cima.
+4. **Logs e progresso fora do Temp do Windows** (Temp pode ser limpo):
+   usar `C:\Users\Estéfano\cyclone-net-ops\` para logs operacionais;
+   artefatos científicos ficam em `outputs/` como sempre.
+5. **Acompanhar por artefatos em disco, não pelo terminal**: timestamps de
+   checkpoints, `ablation_eval.json` por célula, OOF/summary no fim. O
+   processo não depende de ninguém observando.
+6. **Máquina:** não suspender (já configurado); atualizações automáticas
+   (Google Updater/Windows Update) podem rodar à noite — o detached é
+   imune, mas evitar instalar/atualizar software durante um treino.
+7. **Retomada:** todo fluxo longo deve ser retomável (skip-if-exists,
+   manifesto por janela, OOF por célula) — se morrer, re-rodar continua,
+   não recomeça. Antes de re-rodar, checar o que ficou completo em disco.
+
+## 7. NÚMEROS-CHAVE DE REFERÊNCIA
 
 - Modelo produção: PR-AUC 0,251 [IC 0,179–0,331], ROC-AUC 0,796.
 - Dataset: 1980–2023, 16.780 eventos, 802 positivos RI (dev PL-gated:
