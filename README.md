@@ -19,6 +19,16 @@ A static, client‑side explorer of **historical, observed data only**: storm tr
 > _By meticulously auditing historical storms, we build a verifiable foundation. This isn't about replacing physics‑based models; it's about creating a new, complementary tool for analysis—a bridge between data engineering and atmospheric science."_  
 > — **Estefano Senhor Ferreira**
 
+**Note (2026‑07‑14):** the quote above is preserved as the project's ORIGINAL
+motivation. Its opening question — tracing the energy sources of past
+hurricanes — **was tested and is not supported**: the FuelMap does not
+localize the energy source beyond storm position (see
+[`ERRATA.md`](./ERRATA.md) and [`docs/fuelmap_validation.md`](./docs/fuelmap_validation.md)).
+What the rigor produced instead is this project's actual contribution: a
+reproducible, auditable pipeline, pre‑registered tests, and honest negative
+results — the question evolved from "where is the fuel?" to "how much RI
+signal does surface data carry, measured cleanly?".
+
 ---
 
 ## 🔍 Philosophy & Design Goals
@@ -269,12 +279,14 @@ The model was trained and evaluated on the full **1980–2023** North Atlantic s
 | **Recall (Sensitivity)** | **0.852**  | High sensitivity at the forensic operating point.           |
 | **Precision**            | 0.070      | The accepted cost of the recall‑first mandate.              |
 | **F1‑score**             | 0.129      | Dominated by the deliberate recall bias.                    |
-| **Brier score**          | 0.0372     | Calibrated probabilistic outputs (ECE 0.011).               |
-| **Threshold**            | 0.0097     | Chosen on validation (142 positives) for recall ≥ 0.85.     |
+| **Brier score**          | 0.0372     | Well calibrated (ECE 0.009), but weak resolution (0.003 vs 0.041 uncertainty) — see calibration report. |
+| **Threshold**            | 0.0097     | Chosen on validation (142 positives) at target recall 0.90 (val recall 0.9014); test recall 0.852. |
 | **Positive samples**     | 115        | RI events in the test set.                                  |
 | **Negative samples**     | 2,564      | Non‑RI events in the test set.                              |
 
 This is the first version of the project with **statistically demonstrable skill**: both AUC confidence intervals sit entirely above chance. Earlier releases (44 and then 96 test‑relevant positives) had CIs spanning chance — the diagnostic verdict "the bottleneck is sample size" was confirmed by intervention (17× data expansion). A per‑sample breakdown with real test‑set examples is in [`BENCHMARK.md`](./BENCHMARK.md); the correction history is in [`ERRATA.md`](./ERRATA.md).
+
+A post‑hoc **calibration analysis** of the released test predictions (2026‑07‑14; `analysis/calibration_report.py`, artifacts in `outputs/results/calibration/`) shows the probabilities are **well calibrated** (ECE 0.0085, reliability 0.0001) but **weakly resolving** (Brier resolution 0.0030 vs uncertainty 0.0411): the scores can be trusted as probabilities, and the honest reading is that discrimination — not calibration — is the current limit. (Decomposition components are quantile‑binned; the direct Brier differs from REL−RES+UNC by the within‑bin residual −0.00101 of the generalized 5‑term identity, which closes exactly — see `BENCHMARK.md` and `calibration_summary.json`.) Operating points on the saved scores: recall 0.90 costs precision 0.063 (~62 alerts per 100 events); recall 0.50 reaches precision 0.169.
 
 ---
 
@@ -286,7 +298,24 @@ This is the first version of the project with **statistically demonstrable skill
 - **Spatial validation (executed — negative)** – TCHP spatial validation was run against the held‑out test set: the FuelMap peak does **not** beat the naive "predict the storm centre" baseline (median 539 km vs 561 km, n=226, p=0.30). The framework's validated contribution is the RI **classification** skill and the auditable pipeline; spatial energy‑source attribution remains an unsupported hypothesis. Protocol: `python run.py preprocess-tchp` then `python run.py evaluate --spatial`; full analysis in `docs/fuelmap_validation.md`.
 - **Heat flux channels** – Although computed, latent and sensible heat fluxes are **not part of the model inputs** in the current version. They are stored for future enhancements.
 - **Interpretability** – The model produces a spatial FuelMap via **soft‑argmax on a learned logit map**; this is retained for transparency but does **NOT** localize the energy source (see *Spatial validation* above). Gradient‑based attribution methods (e.g., integrated gradients) in `interpretability.py` remain experimental and not integrated into the evaluation pipeline.
-- **Equation consistency** – The loss that enforces vorticity/divergence derived from wind fields to match diagnostic channels is implemented, but its accuracy depends on the grid spacing (0.25°). This is documented in the code.
+- **Equation consistency** – The loss that enforces vorticity/divergence derived from wind fields to match diagnostic channels is implemented, but its accuracy depends on the grid spacing (0.25°). This is documented in the code. It is **disabled by default** (`lambda_consistency: 0.0`) and documented as a weak representational regularizer, not a physical‑discovery constraint.
+- **Intensity‑blind model** – The CNN's inputs are spatial fields only; current intensity (Vmax) and its recent trend (persistence) — among the strongest known RI predictors — are **not** model inputs. A pre‑registered classical‑baseline comparison that includes them is prepared (see below); until it reads out, the CNN's skill has no classical reference on the same data.
+
+---
+
+## 🔬 Scientific process & pre‑registration
+
+Every project hypothesis — tested, pending, or refuted — lives in
+[`docs/hypothesis_registry.md`](./docs/hypothesis_registry.md), with the
+honest verdict recorded after the fact. Tests added from 2026‑07‑14 onward
+are pre‑registered before any result exists: metric, verdict criterion and
+decision consequences are frozen in advance
+([`docs/ablation_preregistration.md`](./docs/ablation_preregistration.md) — shear/RH features, H6;
+[`docs/fuelmap_ablation_preregistration.md`](./docs/fuelmap_ablation_preregistration.md) — FuelMap physics losses, H8;
+[`docs/tabular_baseline_preregistration.md`](./docs/tabular_baseline_preregistration.md) — classical baseline, H9).
+No results from these are reported here yet — verdicts are read once, after
+completion. An initial literature survey positioning this project relative
+to the RI field is in [`docs/literature_review.md`](./docs/literature_review.md).
 
 ---
 
