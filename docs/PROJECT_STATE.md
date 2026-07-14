@@ -11,7 +11,9 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-14 (added Zenodo-snapshot note to pending item 4)._
+_Last updated: 2026-07-14 ~18:15 (H8/H9 pre-registered and committed;
+calibration analysis done; README/BENCHMARK audited; 7 local commits on
+feature/tchp NOT pushed)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
@@ -72,14 +74,29 @@ CI is read ONCE; no mining, no re-run.** Final aggregation:
 
 ## 4. PENDING QUEUE (by priority)
 
-1. **IN PROGRESS — Phased ablation:** seed 123 (today at 19:30) → seed 456
-   (15/07) → `--aggregate` → verdict through the 3 pre-registered decision
-   branches.
-2. **BLOCKED (pending verdict) — Post-ablation:** apply the result to V3,
+1. **IN PROGRESS — Phased ablation (H6):** seed 123 (today at 19:30) →
+   seed 456 (15/07) → `--aggregate` → verdict through the 3 pre-registered
+   decision branches.
+2. **PREPARED — post-H6 experiments (pre-registered 14/07, committed):**
+   - **H8** FuelMap physics-loss ablation: `analysis/fuelmap_ablation_cnn.py
+     --reuse-arm-a <H6 run dirs> --execute` (~5.5 h/seed, phased, detached).
+     Pre-reg: `docs/fuelmap_ablation_preregistration.md`.
+   - **H9** factorial tabular baseline: GBM `--execute` runs in minutes any
+     time (feature cache built, gitignored); V1/V2 verdicts via
+     `--compare-cnn` ONLY after H6 closes. Pre-reg (2 amendments, CNN−F
+     co-primary): `docs/tabular_baseline_preregistration.md`.
+   - Harness: `analysis/tabular_baseline_kfold.py`. Local TODO/context:
+     `.claude/TODO_recomendacoes.md`.
+3. **TODO — push:** 7 local commits on `feature/tchp` not pushed
+   (literature review, Zenodo note, H8, H9, registry, calibration,
+   README/BENCHMARK). PR #9 open.
+4. **TODO — author manual action:** update the GitHub repo About text
+   (Settings) — suggested wording in `.claude/TODO_recomendacoes.md`; the
+   current one still sells the refuted energy-source premise.
+5. **BLOCKED (pending verdict) — Post-ablation:** apply the result to V3,
    Form A (model on platform).
-3. **TODO — PR #9:** open; merge is the user's call (recent commits
-   already pushed on `feature/tchp` branch).
-4. **TODO — hygiene/docs (details to confirm with the author; inherited
+6. **TODO — PR #9:** open; merge is the user's call.
+7. **TODO — hygiene/docs (details to confirm with the author; inherited
    from an earlier session):** dv24 entry in the root ERRATA.md, README
    link, V3 paragraphs.
    - **Zenodo snapshot is outdated** (confirmed by the author 14/07): the
@@ -92,14 +109,13 @@ CI is read ONCE; no mining, no re-run.** Final aggregation:
      and V3 is complete — Zenodo is the archived public face and must
      tell the current story before formal publication. Priority:
      low/medium — no active harm, but must be closed before publishing.
-5. **TODO (security, pending with the author):** rotate CDS key and
+8. **TODO (security, pending with the author):** rotate CDS key and
    Copernicus password (leaked in git history; redaction at source
    already implemented).
-6. **CONTINUOUS — hypothesis registry:** `docs/hypothesis_registry.md`
-   (in English, standard for the repo's scientific docs) is the living
-   research agenda (H1..H7). Record hypothesis+test BEFORE running; honest
-   verdict after. Next untested: H7 ("anomaly hypothesis" — design the
-   test and set the null before looking at any map).
+9. **CONTINUOUS — hypothesis registry:** `docs/hypothesis_registry.md`
+   is the living research agenda (H1..H9 + future agenda). Record
+   hypothesis+test BEFORE running; honest verdict after. H7 re-classified
+   DEFERRED (needs inner-core data); next verdicts due: H6 → then H8/H9.
 
 ## 5. MILESTONES ALREADY COMPLETE (do not redo)
 
