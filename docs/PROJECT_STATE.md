@@ -11,7 +11,7 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-14 ~08:15._
+_Last updated: 2026-07-14 (added Zenodo-snapshot note to pending item 4)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
@@ -82,6 +82,16 @@ CI is read ONCE; no mining, no re-run.** Final aggregation:
 4. **TODO — hygiene/docs (details to confirm with the author; inherited
    from an earlier session):** dv24 entry in the root ERRATA.md, README
    link, V3 paragraphs.
+   - **Zenodo snapshot is outdated** (confirmed by the author 14/07): the
+     published copy still shows old metrics (0.347) and the
+     FuelMap-central framing without the refutation — it does NOT reflect
+     the current state (PR-AUC 0.251 [0.179–0.331], FuelMap refuted,
+     corrected dataset). The LOCAL README is already current
+     (README.md:267-268) — nothing to fix in the repo. Pending action
+     (NOT now): re-publish the Zenodo snapshot AFTER the ablation closes
+     and V3 is complete — Zenodo is the archived public face and must
+     tell the current story before formal publication. Priority:
+     low/medium — no active harm, but must be closed before publishing.
 5. **TODO (security, pending with the author):** rotate CDS key and
    Copernicus password (leaked in git history; redaction at source
    already implemented).
