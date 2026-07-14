@@ -1,65 +1,72 @@
-# Pré-registro — Ablação de features (shear_850_200_mps + rh_mid)
+# Pre-registration — Feature ablation (shear_850_200_mps + rh_mid)
 
-**Registrado em 2026-07-13, ANTES de qualquer resultado de treino.** Este
-documento fixa métrica, veredito e disciplina de leitura. Ele não muda depois
-que os números existirem.
+> **Provenance note (2026-07-14):** faithful English translation of the
+> Portuguese original frozen at commit `eaa8ae8` on 2026-07-13, BEFORE any
+> training result existed. No substantive changes; the original wording is
+> preserved in git history.
 
-## Métrica (fixada)
+**Registered on 2026-07-13, BEFORE any training result.** This document
+fixes the metric, the verdict criterion, and the reading discipline. It
+does not change after the numbers exist.
 
-ΔPR-AUC = PR-AUC(braço B: 9ch + shear_850_200_mps + rh_mid) − PR-AUC(braço A:
-9ch atuais), média out-of-fold, com IC 95% via bootstrap por cluster de SID.
-PR-AUC é threshold-independent — nenhum threshold será escolhido.
+## Metric (fixed)
 
-## Veredito (ler o IC, não o sinal do ponto central)
+ΔPR-AUC = PR-AUC(arm B: 9ch + shear_850_200_mps + rh_mid) − PR-AUC(arm A:
+current 9ch), out-of-fold mean, with 95% CI via SID-cluster bootstrap.
+PR-AUC is threshold-independent — no threshold will be chosen.
 
-- **IC exclui zero, positivo** → shear/rh AGREGAM skill (incremento
-  quantificado). Reportar o delta e o IC. Sem superdimensionar: "agregam X,
-  IC [a, b]" — não "features cruciais".
-- **IC inclui zero** → **NULL**: não distinguível de zero. Reportar como "os
-  core predictors não adicionam skill detectável nesta resolução/regime" —
-  reforça que o gargalo é dado, não features. NÃO reinterpretar como positivo
-  fraco.
-- **IC exclui zero, negativo** → investigar (não reportar cru; pode ser
-  artefato).
+## Verdict (read the CI, not the sign of the point estimate)
 
-## Disciplina (anti-racionalização)
+- **CI excludes zero, positive** → shear/rh ADD skill (quantified
+  increment). Report the delta and the CI. No overselling: "they add X,
+  CI [a, b]" — not "crucial features".
+- **CI includes zero** → **NULL**: indistinguishable from zero. Report as
+  "the core predictors add no detectable skill at this resolution/regime" —
+  reinforcing that the bottleneck is data, not features. Do NOT reinterpret
+  as a weak positive.
+- **CI excludes zero, negative** → investigate (do not report raw; may be
+  an artifact).
 
-- Ler o IC, uma vez. Não mover a régua depois de ver o número.
-- Não garimpar fold/seed/threshold que favoreça um braço.
-- Não re-rodar com parâmetros diferentes esperando resultado melhor. Uma
-  rodada bem-dimensionada, um veredito, aceito.
-- Reportar o número honesto com o IC, seja qual for — positivo esperado ou
-  null informativo. Os dois são resultados válidos.
+## Discipline (anti-rationalization)
 
-## Critério de sucesso do experimento
+- Read the CI, once. Do not move the goalposts after seeing the number.
+- No mining folds/seeds/thresholds that favor one arm.
+- No re-running with different parameters hoping for a better result. One
+  well-powered run, one verdict, accepted.
+- Report the honest number with the CI, whatever it is — expected positive
+  or informative null. Both are valid results.
 
-Veredito CLARO: IC apertado o suficiente para cair em um dos ramos acima sem
-ambiguidade. O único desfecho a evitar é o inconclusivo por falta de poder —
-por isso seeds ≥ 3 (captura variabilidade de inicialização).
+## Success criterion for the experiment
 
-## Parâmetros do run
+A CLEAR verdict: a CI tight enough to fall into one of the branches above
+without ambiguity. The only outcome to avoid is inconclusiveness from lack
+of power — hence seeds ≥ 3 (captures initialization variability).
 
-**FIXADOS em 2026-07-13 ~17h30, antes de qualquer resultado de treino:**
+## Run parameters
 
-- **k = 3 folds, 15 épocas por treino.**
-- **Seeds = {42, 123, 456}**, execução FASEADA: uma seed por noite
-  (42 em 2026-07-13; 123 e 456 nas noites seguintes). 6 células de treino
-  por seed (3 folds × 2 braços); 18 no total.
-- **Device: CPU** (CUDA indisponível nesta máquina). Custo medido na
-  calibração de 2026-07-13: ~5,61 min/época → ~84,5 min/célula → ~8,5 h/seed.
-- **ADT: fiel à produção** — canal ADT presente nos dois braços (modelo de
-  10/12 canais de entrada), valores crus onde há cobertura (1.257 eventos),
-  zeros onde não há; simétrico entre braços A e B, idêntico ao comportamento
-  atual do modelo de produção (checkpoint com 10 canais, stats sem adt_mean).
-- **Veredito**: ΔPR-AUC (B−A) médio entre as 3 seeds com IC 95% bootstrap
-  por cluster de SID, computado via `--aggregate` sobre os 3
-  `oof_predictions.csv` salvos. Lido UMA vez pelos 3 ramos acima.
-  **Nenhum veredito antes das 3 seeds agregadas** — resultados por seed são
-  intermediários e não serão interpretados isoladamente.
+**FIXED on 2026-07-13 ~17:30, before any training result:**
 
-- Conjunto: dev set validado pelo census (14.101 eventos, 687 positivos,
-  839 SIDs; cobertura PL completa, gate PASS de 2026-07-13).
-- Folds: StratifiedGroupKFold agrupado por SID, idênticos entre braços.
-- Stats de normalização: train-only por (seed, fold, braço), escopadas no dir
-  do run; stats globais intocadas.
-- Treino: src.training.trainer.train() real; test split jamais lido.
+- **k = 3 folds, 15 epochs per training.**
+- **Seeds = {42, 123, 456}**, PHASED execution: one seed per night
+  (42 on 2026-07-13; 123 and 456 on the following nights). 6 training
+  cells per seed (3 folds × 2 arms); 18 in total.
+- **Device: CPU** (CUDA unavailable on this machine). Measured cost in the
+  2026-07-13 calibration: ~5.61 min/epoch → ~84.5 min/cell → ~8.5 h/seed.
+- **ADT: faithful to production** — ADT channel present in both arms
+  (10/12-input-channel model), raw values where covered (1,257 events),
+  zeros where not; symmetric between arms A and B, identical to the current
+  production model behavior (10-channel checkpoint, stats without
+  adt_mean).
+- **Verdict**: mean ΔPR-AUC (B−A) across the 3 seeds with 95% SID-cluster
+  bootstrap CI, computed via `--aggregate` over the 3 saved
+  `oof_predictions.csv`. Read ONCE through the 3 branches above.
+  **No verdict before the 3 seeds are aggregated** — per-seed results are
+  intermediate and will not be interpreted in isolation.
+
+- Set: census-validated dev set (14,101 events, 687 positives, 839 SIDs;
+  full PL coverage, gate PASS of 2026-07-13).
+- Folds: StratifiedGroupKFold grouped by SID, identical across arms.
+- Normalization stats: train-only per (seed, fold, arm), scoped to the run
+  dir; global stats untouched.
+- Training: real src.training.trainer.train(); the test split is never
+  read.

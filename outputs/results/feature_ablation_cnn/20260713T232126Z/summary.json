@@ -1,0 +1,241 @@
+{
+  "run_id": "20260713T232126Z",
+  "generated_at": "2026-07-14T10:35:19.833321+00:00",
+  "config_path": "config.yaml",
+  "arms": {
+    "A_current": [
+      "sst_K",
+      "mslp_Pa",
+      "u10_mps",
+      "v10_mps",
+      "wind_mps",
+      "vort_1ps",
+      "div_1ps",
+      "grad_mslp_Pa_per_m",
+      "sst_anom_K"
+    ],
+    "B_with_pressure": [
+      "sst_K",
+      "mslp_Pa",
+      "u10_mps",
+      "v10_mps",
+      "wind_mps",
+      "vort_1ps",
+      "div_1ps",
+      "grad_mslp_Pa_per_m",
+      "sst_anom_K",
+      "shear_850_200_mps",
+      "rh_mid"
+    ]
+  },
+  "folds": 3,
+  "epochs": 15,
+  "seeds": [
+    42
+  ],
+  "n_boot": 10000,
+  "n_events": 14101,
+  "n_positives": 687,
+  "n_storms": 839,
+  "per_seed": {
+    "42": {
+      "per_fold": [
+        {
+          "fold": 0,
+          "n_train": 9402,
+          "n_val": 4699,
+          "n_pos_val": 228,
+          "arms": {
+            "A_current": {
+              "arm": "A_current",
+              "channels": [
+                "sst_K",
+                "mslp_Pa",
+                "u10_mps",
+                "v10_mps",
+                "wind_mps",
+                "vort_1ps",
+                "div_1ps",
+                "grad_mslp_Pa_per_m",
+                "sst_anom_K"
+              ],
+              "elapsed_sec": 6547.23860001564,
+              "pr_auc": 0.1146948857973614,
+              "roc_auc": 0.7830149069834057,
+              "normalization_stats_path": "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/fold0/A_current/normalization_stats.json",
+              "checkpoints_dir": "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/fold0/A_current/checkpoints"
+            },
+            "B_with_pressure": {
+              "arm": "B_with_pressure",
+              "channels": [
+                "sst_K",
+                "mslp_Pa",
+                "u10_mps",
+                "v10_mps",
+                "wind_mps",
+                "vort_1ps",
+                "div_1ps",
+                "grad_mslp_Pa_per_m",
+                "sst_anom_K",
+                "shear_850_200_mps",
+                "rh_mid"
+              ],
+              "elapsed_sec": 6768.295845985413,
+              "pr_auc": 0.1653224562382226,
+              "roc_auc": 0.822057940646741,
+              "normalization_stats_path": "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/fold0/B_with_pressure/normalization_stats.json",
+              "checkpoints_dir": "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/fold0/B_with_pressure/checkpoints"
+            }
+          },
+          "diff_pr_auc_B_minus_A": 0.05062757044086119
+        },
+        {
+          "fold": 1,
+          "n_train": 9402,
+          "n_val": 4699,
+          "n_pos_val": 227,
+          "arms": {
+            "A_current": {
+              "arm": "A_current",
+              "channels": [
+                "sst_K",
+                "mslp_Pa",
+                "u10_mps",
+                "v10_mps",
+                "wind_mps",
+                "vort_1ps",
+                "div_1ps",
+                "grad_mslp_Pa_per_m",
+                "sst_anom_K"
+              ],
+              "elapsed_sec": 6266.450737476349,
+              "pr_auc": 0.20352979881279293,
+              "roc_auc": 0.8060127430197095,
+              "normalization_stats_path": "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/fold1/A_current/normalization_stats.json",
+              "checkpoints_dir": "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/fold1/A_current/checkpoints"
+            },
+            "B_with_pressure": {
+              "arm": "B_with_pressure",
+              "channels": [
+                "sst_K",
+                "mslp_Pa",
+                "u10_mps",
+                "v10_mps",
+                "wind_mps",
+                "vort_1ps",
+                "div_1ps",
+                "grad_mslp_Pa_per_m",
+                "sst_anom_K",
+                "shear_850_200_mps",
+                "rh_mid"
+              ],
+              "elapsed_sec": 6540.0908203125,
+              "pr_auc": 0.24691206543123864,
+              "roc_auc": 0.8403842213518476,
+              "normalization_stats_path": "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/fold1/B_with_pressure/normalization_stats.json",
+              "checkpoints_dir": "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/fold1/B_with_pressure/checkpoints"
+            }
+          },
+          "diff_pr_auc_B_minus_A": 0.043382266618445714
+        },
+        {
+          "fold": 2,
+          "n_train": 9398,
+          "n_val": 4703,
+          "n_pos_val": 232,
+          "arms": {
+            "A_current": {
+              "arm": "A_current",
+              "channels": [
+                "sst_K",
+                "mslp_Pa",
+                "u10_mps",
+                "v10_mps",
+                "wind_mps",
+                "vort_1ps",
+                "div_1ps",
+                "grad_mslp_Pa_per_m",
+                "sst_anom_K"
+              ],
+              "elapsed_sec": 6336.937483787537,
+              "pr_auc": 0.19458528085245658,
+              "roc_auc": 0.7962328106803231,
+              "normalization_stats_path": "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/fold2/A_current/normalization_stats.json",
+              "checkpoints_dir": "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/fold2/A_current/checkpoints"
+            },
+            "B_with_pressure": {
+              "arm": "B_with_pressure",
+              "channels": [
+                "sst_K",
+                "mslp_Pa",
+                "u10_mps",
+                "v10_mps",
+                "wind_mps",
+                "vort_1ps",
+                "div_1ps",
+                "grad_mslp_Pa_per_m",
+                "sst_anom_K",
+                "shear_850_200_mps",
+                "rh_mid"
+              ],
+              "elapsed_sec": 6613.26460981369,
+              "pr_auc": 0.21337177596499063,
+              "roc_auc": 0.8350451954742826,
+              "normalization_stats_path": "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/fold2/B_with_pressure/normalization_stats.json",
+              "checkpoints_dir": "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/fold2/B_with_pressure/checkpoints"
+            }
+          },
+          "diff_pr_auc_B_minus_A": 0.018786495112534052
+        }
+      ],
+      "pooled_oof": {
+        "n_pooled_events": 14101,
+        "A_pr_auc": 0.16163561967748796,
+        "A_roc_auc": 0.7860358586013135,
+        "B_pr_auc": 0.19470277485298876,
+        "B_roc_auc": 0.8251276285025811
+      },
+      "cluster_bootstrap_by_sid": {
+        "method": "cluster_bootstrap_by_sid",
+        "seed": 42,
+        "ci_level": 0.95,
+        "n_boot_requested": 10000,
+        "n_boot_used": 10000,
+        "n_boot_skipped_single_class": 0,
+        "n_groups": 839,
+        "a_pr_auc": {
+          "mean": 0.16425637152191952,
+          "ci_low": 0.12673065398365396,
+          "ci_high": 0.20759030026322398
+        },
+        "b_pr_auc": {
+          "mean": 0.19737030860717988,
+          "ci_low": 0.15848140694323012,
+          "ci_high": 0.23932108941880267
+        },
+        "a_roc_auc": {
+          "mean": 0.7860084379308094,
+          "ci_low": 0.7587960933344395,
+          "ci_high": 0.8127862645173677
+        },
+        "b_roc_auc": {
+          "mean": 0.8250905545173377,
+          "ci_low": 0.800835783487091,
+          "ci_high": 0.847489081929659
+        },
+        "delta_pr_auc": {
+          "mean": 0.03311393708526033,
+          "ci_low": 0.009651952866273458,
+          "ci_high": 0.05579899004665553
+        },
+        "delta_roc_auc": {
+          "mean": 0.03908211658652814,
+          "ci_low": 0.025164820071424128,
+          "ci_high": 0.05368283087864385
+        }
+      },
+      "oof_predictions_csv": "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/oof_predictions.csv"
+    }
+  },
+  "run_dir": "outputs/results/feature_ablation_cnn/20260713T232126Z"
+}
