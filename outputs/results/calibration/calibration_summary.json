@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-07-14T20:56:31.469329+00:00",
+  "source_predictions_csv": "outputs/results/test_predictions.csv",
+  "n_rows": 2679,
+  "n_positives": 115,
+  "n_negatives": 2564,
+  "prevalence": 0.0429264650989175,
+  "metrics": {
+    "pr_auc": 0.2505794829234975,
+    "roc_auc": 0.796245675913993,
+    "ece_quantile_bins": 0.008513433154388076,
+    "ece_fixed_width_bins": 0.011117487514468102,
+    "brier_score": 0.037177817416035173,
+    "reliability": 0.00010827850121200195,
+    "resolution": 0.002999685038205686,
+    "uncertainty": 0.04108378369302892,
+    "within_bin_variance": 0.0009009965200597469,
+    "within_bin_covariance": 0.0019155562600598089,
+    "three_term_sum_rel_minus_res_plus_unc": 0.03819237715603523,
+    "three_term_residual_wbv_minus_wbc": -0.001014559740000062,
+    "five_term_identity_check_abs_error": 0.0
+  },
+  "released_scores_for_comparison": {
+    "pr_auc": 0.251,
+    "roc_auc": 0.796
+  },
+  "files_created": {
+    "reliability_table_quantile": "outputs/results/calibration/reliability_table_quantile.csv",
+    "reliability_table_fixed_width": "outputs/results/calibration/reliability_table_fixed_width.csv",
+    "pr_curve_points": "outputs/results/calibration/pr_curve_points.csv",
+    "roc_curve_points": "outputs/results/calibration/roc_curve_points.csv",
+    "operating_points": "outputs/results/calibration/operating_points.csv",
+    "score_distribution": "outputs/results/calibration/score_distribution.csv",
+    "reliability_diagrams_plot": "outputs/results/calibration/reliability_diagrams.png",
+    "pr_curve_plot": "outputs/results/calibration/pr_curve.png",
+    "score_histograms_plot": "outputs/results/calibration/score_histograms.png"
+  }
+}

@@ -157,15 +157,116 @@ the mapping to this registry is given in the notes of H4/H5 below.
 - **Question:** is there a region where RI occurs more than
   SST/TCHP/shear/RH explain (positive spatial residual after accounting for
   known conditions)?
-- **Physical motivation:** [to be filled by author]. Absence recorded per
-  the rules — until filled, this is a fragility signal of the hypothesis.
-- **Test design:** to be designed — pre-declared sketch: RI rate per
-  spatial cell (not raw count) + residual vs a conditions model + spatial
-  permutation null. Design BEFORE looking at any map.
-- **Status:** UNTESTED
+- **Physical motivation (filled 2026-07-14 from the literature survey,
+  `docs/literature_review.md`):** the residual is the field's central
+  KNOWN problem, not an open anomaly — favorable environment is necessary
+  but not sufficient for RI, and the unexplained variance is attributed to
+  internal inner-core processes (convective bursts, eyewall dynamics) plus
+  a stochastic component (Kowch & Emanuel 2015; Judt & Chen 2016;
+  Hendricks et al. 2010). A spatial residual test on 0.25° surface
+  reanalysis cannot observe those processes.
+- **Test design:** pre-declared sketch retained (RI rate per spatial cell
+  + residual vs a conditions model + spatial permutation null), but see
+  status.
+- **Status:** **DEFERRED — future work.** Re-classified 2026-07-14:
+  answering this requires inner-core data (high-resolution satellite
+  imagery / structure indices) beyond the current 0.25° surface-level
+  dataset. Target: MS program (2027).
 - **Verdict:** —
-- **Notes:** high spatial-fishing risk; the null and multiple-comparison
-  correction must be fixed before the first plot.
+- **Notes:** high spatial-fishing risk stands; if ever run, the null and
+  multiple-comparison correction must be fixed before the first plot. Any
+  positive found with current data would most likely be an unmeasured
+  inner-core/stochastic signal leaking through — interpret accordingly.
+
+---
+
+### H8: The FuelMap physics-guided losses improve RI classification
+- **Registered:** 2026-07-14 (**pre-registered**:
+  `docs/fuelmap_ablation_preregistration.md`, fixed before any result) |
+  **Tested:** —
+- **Question:** do the 4 active FuelMap loss terms (KL prior alignment,
+  forward constraint, TV, L1) improve RI PR-AUC relative to an identical
+  model trained with all physics lambdas = 0 (plain 3D-CNN)?
+- **Physical motivation:** genuinely open — H1's refutation killed the
+  FuelMap's interpretive claim but says nothing about the losses' value as
+  regularization / weak supervision for the classification objective. The
+  literature does not predict the answer.
+- **Test design:** arm A (physics on, production config) vs arm B (all
+  lambdas 0), identical architecture and channels; k=3, 15 epochs, seeds
+  {42, 123, 456}; same PL-gated dev set and fold recipe as H6; arm A
+  reused from H6's `A_current` cells (fold-identity validated); verdict =
+  mean cross-seed ΔPR-AUC (B−A) with 95% SID-cluster bootstrap CI, read
+  once through 3 pre-registered branches with FIXED consequences
+  (hurt → remove; null → remove for parsimony; help → keep as
+  regularization, never as validated physics).
+- **Status:** PREPARED — runs only AFTER H6 completes (harness:
+  `analysis/fuelmap_ablation_cnn.py`).
+- **Verdict:** —
+- **Notes:** whatever the outcome, the H1 refutation stands; a "help"
+  verdict re-frames the losses, it does not rehabilitate the energy-source
+  claim.
+
+---
+
+### H9: The CNN adds skill beyond a SHIPS-like tabular baseline
+- **Registered:** 2026-07-14 (**pre-registered**:
+  `docs/tabular_baseline_preregistration.md`, fixed before any result) |
+  **Tested:** —
+- **Question:** does the 3D-CNN (H6 arm `A_current`) beat a
+  gradient-boosting model on scalar predictors (Vmax, persistence,
+  latitude, season, basin, shear/RH/SST cube means) on identical
+  SID-grouped folds, in OOF PR-AUC?
+- **Motivation (validity, then science):** never tested — the CNN's skill
+  has no classical reference on the same data (BENCHMARK.md records the
+  gap). Scientifically, this is the first rung of measuring the
+  surface-data information ceiling for RI: scalars vs +spatial structure.
+  Note the CNN is intensity-blind (no Vmax/persistence input), so a strong
+  tabular showing is plausible, not a strawman.
+- **Test design (amended 2026-07-14 pre-result — factorial, TWO co-primary
+  verdicts):** GBM (sklearn defaults, no tuning) on three feature sets — S
+  (state only), F (field aggregates only: the tabular counterpart of the
+  CNN's diet), SF (union) — plus logistic reference on SF; same PL-gated
+  dev set, same folds/seeds as H6. **V1 (validity):** Δ₁ = PR-AUC(CNN) −
+  PR-AUC(GBM_SF). **V2 (architecture justification, promoted from
+  descriptive to co-primary at the author's requirement, still
+  pre-result):** Δ₂ = PR-AUC(CNN) − PR-AUC(GBM_F) — decides whether the
+  architecture earns its existence at a fixed information diet; null or
+  negative → architecture retired/redesigned regardless of V1. Scope
+  guard: V2 speaks about THIS model, not about whether spatial structure
+  carries information. Both CIs: mean cross-seed, 95% SID-cluster
+  bootstrap (shared resampling), read ONCE after all 3 H6 seeds exist.
+  SF−S and the S arm alone remain descriptive. Harness:
+  `analysis/tabular_baseline_kfold.py`.
+- **Status:** PREPARED — GBM side runnable now; Δ verdict blocked on H6
+  completion.
+- **Verdict:** —
+- **Notes:** NULL or negative here does not kill the project — it
+  redirects it (the tabular model becomes the honest reference, and the
+  intensity-blindness of the CNN becomes the first fix). Positive here is
+  the first real evidence for spatial surface signal.
+
+---
+
+## Future agenda — beyond the current data (MS program, 2027)
+
+Physically valid directions, already established in the literature (see
+`docs/literature_review.md`), that CANNOT be tested with the current 0.25°
+surface-level reanalysis dataset. Recorded here so they are not mistaken
+for open hypotheses of THIS project; each becomes an H[N] entry only when
+the required data exists.
+
+- **Inner-core convection / hot towers:** convective bursts and inner-core
+  symmetry are the leading explanation for the RI residual (Judt & Chen
+  2016; the DL frontier already works on satellite-derived structure).
+  Requires high-resolution satellite imagery — outside current resolution.
+- **Ocean currents / eddies:** warm-core eddies and current-driven TCHP
+  anomalies modulate the fuel reservoir (operational TCHP literature).
+  Partially reachable via TCHP/altimetry, but current coverage in this
+  project is partial (see H2 caveats); a proper test needs multi-year
+  eddy-resolving ocean fields.
+
+Both are established physics, NOT discoveries waiting to be made here —
+the honest framing is "known mechanisms our data cannot see".
 
 ---
 
