@@ -54,6 +54,20 @@ outputs/results/feature_ablation_cnn/**
 !outputs/results/feature_ablation_cnn/**/oof_predictions.csv
 !outputs/results/feature_ablation_cnn/aggregate_*.json
 
+# Mesma política para a ablação FuelMap (H8) e o baseline tabular (H9):
+# evidência (summary/OOF/aggregate/compare) versionada; run-artifacts e o
+# cache de features (regenerável via --build-features-only) são locais.
+outputs/results/fuelmap_ablation_cnn/**
+!outputs/results/fuelmap_ablation_cnn/**/
+!outputs/results/fuelmap_ablation_cnn/**/summary.json
+!outputs/results/fuelmap_ablation_cnn/**/oof_predictions.csv
+!outputs/results/fuelmap_ablation_cnn/aggregate_*.json
+outputs/results/tabular_baseline/**
+!outputs/results/tabular_baseline/**/
+!outputs/results/tabular_baseline/**/summary.json
+!outputs/results/tabular_baseline/**/oof_predictions.csv
+!outputs/results/tabular_baseline/compare_*.json
+
 # Cache de testes
 .pytest_cache/
 
