@@ -1,5 +1,9 @@
 # Ablação faseada de features (CNN) — estado e retomada
 
+> **Estado geral do projeto e próximo passo: ver `docs/PROJECT_STATE.md`
+> (leia aquele primeiro ao iniciar uma sessão). Este arquivo é o detalhe
+> operacional da ablação.**
+
 Protocolo pré-registrado em `docs/ablation_preregistration.md` (commit
 `eaa8ae8`, fixado ANTES de qualquer resultado): k=3 folds, 15 épocas,
 seeds {42, 123, 456} executadas UMA POR NOITE, CPU, braço A (9 canais
