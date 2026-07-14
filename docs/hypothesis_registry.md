@@ -1,166 +1,174 @@
-# Caderno de hipóteses (hypothesis registry)
+# Hypothesis Registry
 
-Agenda de pesquisa viva do CycloneNet. Toda hipótese do projeto — testada ou
-não — vive aqui, no espírito do pré-registro.
+Living research agenda for CycloneNet. Every project hypothesis — tested or
+not — lives here, in the spirit of pre-registration.
 
-**Regras do caderno:**
-- Registrar a hipótese E o teste ANTES de rodar (pré-registro).
-- Registrar o veredito HONESTO depois, seja positivo, null ou refutado.
-- Uma hipótese sem veredito = não-testada (não é "provável", é
-  "desconhecida").
-- Não remover hipóteses refutadas — elas são conhecimento (sabemos que são
-  falsas). Manter o histórico.
-- Datar tudo. Versionar em git (cada mudança é um commit rastreável).
-- Hipótese sem motivação física clara: registrar essa ausência — é um sinal
-  de fragilidade da hipótese.
-- Entradas anteriores à criação deste caderno (2026-07-14) estão marcadas
-  como **registro retroativo** — o teste veio antes do registro aqui.
-  A partir de agora, a ordem é: registrar → testar.
+**Rules:**
+- Register the hypothesis AND the test design BEFORE running (for all
+  hypotheses added from 2026-07-14 onward).
+- Record the HONEST verdict afterwards — positive, null, or refuted.
+- A hypothesis without a verdict is UNTESTED (that means "unknown", not
+  "likely").
+- Refuted hypotheses are NOT removed — they are knowledge (we know they are
+  false). Keep the history.
+- Date everything. Version in git (every change is a traceable commit).
+- A hypothesis without clear physical motivation: record that absence — it
+  is a fragility signal.
 
-Numeração própria deste caderno (HR-nn). Atenção: `analysis/ri_precursors.py`
-usa internamente "H1–H4" — a correspondência está nas notas de HR-05/HR-06.
+**Convention (instrument integrity):**
+- **Tested:** the real test date.
+- **Registered:** the date the entry was added to this log (log created
+  2026-07-14).
+- Tests predating this log are marked **RETROACTIVE ENTRY — not
+  pre-registered in this instrument; strict pre-registration applies only
+  to hypotheses added from 2026-07-14 onward.**
+- The feature ablation (H6) is the first GENUINELY pre-registered test.
 
----
-
-### HR-01: O FuelMap localiza a fonte de energia física real da tempestade
-- **Registrada em:** 2026-07-14 (registro retroativo; testes de jun–jul/2026)
-- **Pergunta:** a região destacada pelo FuelMap corresponde à fonte de
-  energia oceânica real (reservatório de calor) que sustenta a
-  intensificação, superando o baseline trivial do centro da tempestade?
-- **Motivação física:** o combustível do ciclone é o fluxo de entalpia
-  ar-mar, alimentado pelo calor oceânico subsuperficial (TCHP) — literatura
-  operacional consolidada (AOML/SHIPS-RII).
-- **Teste desenhado:** comparação de 3 vias (centro / física-pura /
-  FuelMap) vs pico de TCHP; teste dinâmico; controle de prior.
-- **Status:** TESTADA
-- **Veredito:** **REFUTADA** (3 ângulos convergentes): validação TCHP
-  (n=226) sem diferença significativa vs baseline do centro (p=0,30);
-  teste dinâmico negativo; controle de prior mostrou que o colapso espacial
-  era aritmética do prior, não estrutura aprendida.
-- **Veredito em:** 2026-07 (consolidado)
-- **Notas:** ressalva anterior já registrada no roadmap: a ablação causal
-  (`src/evaluation/causal_ablation.py`) prova apenas dependência causal
-  INTERNA do modelo ao FuelMap, não correspondência com a fonte física.
-  Consequência inviolável: FuelMap = "hypothesis maps", nunca fonte de
-  energia comprovada.
+Note: `analysis/ri_precursors.py` uses an internal "H1–H4" family naming;
+the mapping to this registry is given in the notes of H4/H5 below.
 
 ---
 
-### HR-02: ADT como canal de entrada melhora a previsão de RI
-- **Registrada em:** 2026-07-14 (registro retroativo; teste de jul/2026)
-- **Pergunta:** adicionar ADT (proxy de superfície do reservatório
-  subsuperficial; rho=0,30 vs TCHP, replicado em 2022/2023) como canal de
-  entrada melhora o skill de RI?
-- **Motivação física:** TCHP é preditor operacional de RI (SHIPS-RII); ADT
-  é sua assinatura altimétrica disponível em área ampla.
-- **Teste desenhado:** ablação with/without ADT, mesmo seed e protocolo.
-- **Status:** TESTADA
-- **Veredito:** **NULL/marginal** — exp_adt: with 0,906 vs without 0,914
-  (não ajudou; direção levemente negativa). Ressalva: cobertura de ADT
-  parcial (canal neutro fora de 2022–2023) e positivos escassos no
-  subconjunto coberto → teste subdimensionado; NULL aqui não é refutação
-  definitiva do sinal físico (o proxy ADT↔TCHP segue válido).
-- **Veredito em:** 2026-07
-- **Notas:** re-testável com cobertura ampla de SLA/ADT multi-ano.
+### H1: The FuelMap recovers the storm's real energy source
+- **Registered:** 2026-07-14 | **Tested:** 2026-06/07 (consolidated)
+- **RETROACTIVE ENTRY** — not pre-registered in this instrument.
+- **Question:** does the region highlighted by the FuelMap correspond to
+  the real oceanic energy source sustaining intensification, beating the
+  trivial storm-center baseline?
+- **Physical motivation:** the cyclone's fuel is air–sea enthalpy flux fed
+  by subsurface ocean heat content (TCHP) — established operational
+  literature (AOML / SHIPS-RII).
+- **Test design:** three-way comparison (storm center / pure physics /
+  FuelMap) against TCHP peak; dynamic test; prior-control experiment.
+- **Status:** TESTED
+- **Verdict:** **REFUTED** (three converging angles): TCHP validation
+  (n=226) shows no significant difference vs the storm-center baseline
+  (p=0.30); dynamic test negative; prior control showed the spatial
+  collapse was prior arithmetic, not learned structure.
+- **Notes:** standing caveat from earlier work: causal ablation
+  (`src/evaluation/causal_ablation.py`) proves only the model's INTERNAL
+  causal dependence on the FuelMap, not correspondence with the physical
+  source. Inviolable consequence: FuelMap = "hypothesis maps", never a
+  validated energy source.
 
 ---
 
-### HR-03: O gargalo de desempenho é a amostra, não a arquitetura
-- **Registrada em:** 2026-07-14 (registro retroativo; teste de jul/2026)
-- **Pergunta:** o PR-AUC baixo vem do n de positivos (não da capacidade do
-  modelo)?
-- **Motivação física/estatística:** ~35 positivos originais tornam qualquer
-  AUC dominado por ruído; física não entra — é poder estatístico.
-- **Teste desenhado:** intervenção direta — expandir o dataset (1980–2023)
-  e observar a resposta do skill mantendo a arquitetura.
-- **Status:** TESTADA
-- **Veredito:** **POSITIVO** — expansão de 9→115 positivos no test
-  (802 no total) confirmou que o gargalo era amostra.
-- **Veredito em:** 2026-07-12 (estágio 2 do dataset completo)
-- **Notas:** base para o dataset atual (16.780 eventos / 802 positivos).
+### H2: ADT as an input channel improves RI prediction
+- **Registered:** 2026-07-14 | **Tested:** 2026-07
+- **RETROACTIVE ENTRY** — not pre-registered in this instrument.
+- **Question:** does adding ADT (surface proxy of the subsurface heat
+  reservoir; rho=0.30 vs TCHP, replicated in 2022/2023) as an input channel
+  improve RI skill?
+- **Physical motivation:** TCHP is an operational RI predictor (SHIPS-RII);
+  ADT is its altimetric surface signature with broad coverage.
+- **Test design:** with/without-ADT ablation, same seed and protocol.
+- **Status:** TESTED
+- **Verdict:** **NULL/marginal** — exp_adt: 0.906 (with) vs 0.914
+  (without); no improvement, slightly negative direction. Caveat: partial
+  ADT coverage (neutral channel outside 2022–2023) and few positives in the
+  covered subset → underpowered; NULL here does not definitively refute the
+  physical signal (the ADT↔TCHP proxy remains valid).
+- **Notes:** re-testable with multi-year SLA/ADT coverage.
 
 ---
 
-### HR-04: Shear e RH-mid agregam skill preditivo sobre o baseline de canais
-- **Registrada em:** 2026-07-13 (pré-registro REAL, antes de qualquer
-  resultado: `docs/ablation_preregistration.md`, commit `eaa8ae8`)
-- **Pergunta:** adicionar shear_850_200_mps e rh_mid aos 9 canais atuais
-  melhora PR-AUC de RI?
-- **Motivação física:** shear profundo suprime RI; umidade média sustenta a
-  convecção — preditores clássicos (SHIPS).
-- **Teste desenhado:** ablação A (9 canais) vs B (+shear/RH), k=3 folds,
-  15 épocas, seeds {42,123,456} faseadas; veredito ÚNICO via ΔPR-AUC médio
-  entre seeds com IC 95% bootstrap por cluster de SID (`--aggregate`),
-  pelos 3 ramos pré-registrados. IC lido UMA vez.
-- **Status:** TESTANDO
-- **Veredito:** — (seed 42 completa em 2026-07-14, Δ OOF +0,033
-  INTERMEDIÁRIO sem valor de veredito; seeds 123/456 pendentes)
-- **Veredito em:** —
-- **Notas:** progresso operacional em `docs/ablation_progress.md`.
+### H3: The performance bottleneck is sample size, not architecture
+- **Registered:** 2026-07-14 | **Tested:** 2026-07-12
+- **RETROACTIVE ENTRY** — not pre-registered in this instrument.
+- **Question:** does the low PR-AUC stem from the number of positives
+  rather than model capacity?
+- **Motivation (statistical):** with ~35 original positives, any AUC is
+  noise-dominated; this is statistical power, not physics.
+- **Test design:** direct intervention — expand the dataset (1980–2023) and
+  observe the skill response with the architecture held fixed.
+- **Status:** TESTED
+- **Verdict:** **POSITIVE** — the 9→115 test-positive expansion (802 total
+  positives) confirmed sample size was the bottleneck.
+- **Notes:** basis for the current dataset (16,780 events / 802 positives).
 
 ---
 
-### HR-05: Shear mais baixo PRECEDE o onset de RI (precursor, t-24h)
-- **Registrada em:** 2026-07-12 (pré-registrado em
-  `analysis/ri_precursors.py` como "H2"; re-teste pós-backfill pré-declarado
-  com pares congelados)
-- **Pergunta:** no pareamento onset-vs-controle (mesma banda de
-  intensidade), o nível de shear a t-24h é menor nos onsets de RI?
-- **Motivação física:** shear profundo desorganiza o núcleo quente e
-  suprime RI.
-- **Teste desenhado:** pares casados congelados, null de permutação
-  sign-flip, primária = nível a t-24h, Bonferroni ×4 (família fixa H1–H4
-  do script).
-- **Status:** TESTADA
-- **Veredito:** **POSITIVO** — n=394/394 pares (100% cobertura PL),
-  Δ pareado = −1,03 m/s, Cliff's δ=−0,13, p(Bonf ×4)=1,2e-3, direção
-  física correta. Efeito pequeno porém robusto: precursor consistente, não
-  preditor forte.
-- **Veredito em:** 2026-07-13 (commit `970a419`)
-- **Notas:** versão pré-backfill era n=5 (não testável) — o veredito válido
-  é o pós-backfill sobre os MESMOS pares congelados (zero re-matching).
+### H4: Lower deep-layer shear PRECEDES RI onset (precursor, t-24h)
+- **Registered:** 2026-07-14 | **Tested:** 2026-07-13
+- **RETROACTIVE ENTRY** — the matched-pairs protocol and the frozen-pairs
+  re-test were pre-declared in `analysis/ri_precursors.py` (internal "H2"),
+  but not in this instrument.
+- **Question:** in intensity-matched onset-vs-control pairs, is the shear
+  level at t-24h lower for RI onsets?
+- **Physical motivation:** deep-layer shear disrupts the warm core and
+  suppresses RI.
+- **Test design:** frozen matched pairs, sign-flip permutation null,
+  primary = level at t-24h, Bonferroni ×4 (fixed H1–H4 family of the
+  script).
+- **Status:** TESTED
+- **Verdict:** **POSITIVE** — n=394/394 pairs (100% PL coverage), paired
+  Δ = −1.03 m/s, Cliff's δ = −0.13, p(Bonf ×4) = 1.2e-3,
+  physics-consistent direction (commit `970a419`).
+- **Notes:** **CONFIRMATORY positive** — shear as an RI predictor is
+  established (SHIPS basis); this confirms it with real N, it does not
+  discover it. **Statistical precedence ≠ incremental model gain — this
+  does NOT prejudge the feature ablation (H6).** The pre-backfill version
+  (n=5) was untestable; the valid verdict is the post-backfill re-test on
+  the SAME frozen pairs (zero re-matching).
 
 ---
 
-### HR-06: Umidade média mais alta PRECEDE o onset de RI (precursor, t-24h)
-- **Registrada em:** 2026-07-12 (pré-registrado em
-  `analysis/ri_precursors.py` como "H4")
-- **Pergunta:** idem HR-05, para rh_mid a t-24h (maior nos onsets?).
-- **Motivação física:** ar seco em níveis médios suprime a convecção
-  profunda necessária à RI.
-- **Teste desenhado:** idem HR-05 (mesma família Bonferroni ×4).
-- **Status:** TESTADA
-- **Veredito:** **POSITIVO** — n=394/394, Δ pareado = +2,59% RH,
-  Cliff's δ=+0,12, p(Bonf ×4)=8,8e-3, direção física correta. Mesma
-  leitura de HR-05: pequeno e robusto.
-- **Veredito em:** 2026-07-13 (commit `970a419`)
-- **Notas:** as outras duas primárias da família (queda de pressão "H1",
-  p=4,0e-4; SST "H3", δ=+0,53, p=4,0e-4) também POSITIVAS no mesmo teste —
-  registradas aqui como contexto da família, sem entrada própria.
+### H5: Higher mid-level humidity PRECEDES RI onset (precursor, t-24h)
+- **Registered:** 2026-07-14 | **Tested:** 2026-07-13
+- **RETROACTIVE ENTRY** — same standing as H4 (script-internal "H4").
+- **Question:** as H4, for rh_mid at t-24h (higher for RI onsets?).
+- **Physical motivation:** dry mid-level air suppresses the deep convection
+  RI requires.
+- **Test design:** identical to H4 (same Bonferroni ×4 family).
+- **Status:** TESTED
+- **Verdict:** **POSITIVE** — n=394/394, paired Δ = +2.59% RH,
+  Cliff's δ = +0.12, p(Bonf ×4) = 8.8e-3, physics-consistent direction
+  (commit `970a419`).
+- **Notes:** same reading as H4: CONFIRMATORY, small and robust; does NOT
+  prejudge the ablation (H6). The family's other two primaries (24h
+  pressure fall, p=4.0e-4; SST, δ=+0.53, p=4.0e-4) were also POSITIVE in
+  the same run — recorded here as family context, no separate entries.
 
 ---
 
-### HR-07: Existe anomalia espacial de RI não explicada pelas condições conhecidas ("anomalia C")
-- **Registrada em:** 2026-07-14
-- **Pergunta:** existe região onde RI ocorre mais do que SST/TCHP/shear/RH
-  explicam (resíduo espacial positivo após descontar as condições
-  conhecidas)?
-- **Motivação física:** (rascunho, a confirmar pelo autor) candidatos a
-  driver não-medido: calor subsuperficial não capturado pela superfície
-  (eddies), dinâmica de bacia (ondas, MJO), ou artefato de amostragem do
-  IBTrACS. Se nenhum candidato sobreviver, a "anomalia" é provavelmente
-  variância não modelada — a fragilidade está registrada.
-- **Teste desenhado:** a desenhar — esboço pré-declarado: taxa de RI por
-  célula espacial (não contagem bruta), resíduo vs modelo de condições,
-  null espacial por permutação. Desenhar ANTES de olhar qualquer mapa.
-- **Status:** NÃO-TESTADA
-- **Veredito:** —
-- **Veredito em:** —
-- **Notas:** risco alto de garimpo espacial; o null e a correção de
-  múltiplas comparações precisam estar fixados antes do primeiro plot.
+### H6: Shear and mid-level RH add PR-AUC over the current channel baseline
+- **Registered:** 2026-07-13 (**first genuinely pre-registered test**:
+  `docs/ablation_preregistration.md`, commit `eaa8ae8`, fixed before any
+  training result) | **Tested:** —
+- **Question:** does adding shear_850_200_mps and rh_mid to the current 9
+  input channels improve RI PR-AUC?
+- **Physical motivation:** classic SHIPS predictors (see H4/H5); the open
+  question is incremental gain over what the current channels already
+  encode.
+- **Test design:** arm A (9 channels) vs arm B (+shear/RH), k=3 folds, 15
+  epochs, seeds {42, 123, 456} phased one per night; single verdict via
+  mean cross-seed ΔPR-AUC with 95% SID-cluster bootstrap CI
+  (`--aggregate`), through the 3 pre-registered decision branches. CI read
+  ONCE; no mining, no re-runs.
+- **Status:** TESTING
+- **Verdict:** — (seed 42 complete 2026-07-14, pooled-OOF Δ +0.033 is
+  INTERMEDIATE with no verdict value; seeds 123/456 pending)
+- **Notes:** operational progress in `docs/ablation_progress.md`.
 
 ---
 
-_Para adicionar uma nova hipótese: copiar o bloco-modelo acima, numerar
-HR-nn sequencial, preencher Pergunta/Motivação/Teste ANTES de rodar
-qualquer análise, e commitar o registro antes do resultado._
+### H7: A region shows residual RI beyond what known conditions explain ("anomaly hypothesis")
+- **Registered:** 2026-07-14 | **Tested:** —
+- **Question:** is there a region where RI occurs more than
+  SST/TCHP/shear/RH explain (positive spatial residual after accounting for
+  known conditions)?
+- **Physical motivation:** [to be filled by author]. Absence recorded per
+  the rules — until filled, this is a fragility signal of the hypothesis.
+- **Test design:** to be designed — pre-declared sketch: RI rate per
+  spatial cell (not raw count) + residual vs a conditions model + spatial
+  permutation null. Design BEFORE looking at any map.
+- **Status:** UNTESTED
+- **Verdict:** —
+- **Notes:** high spatial-fishing risk; the null and multiple-comparison
+  correction must be fixed before the first plot.
+
+---
+
+_To add a new hypothesis: copy the template block, take the next H[N],
+fill Question / Physical motivation / Test design BEFORE running any
+analysis, and commit the registration before the result._
