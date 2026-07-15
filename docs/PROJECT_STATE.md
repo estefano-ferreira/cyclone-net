@@ -11,25 +11,43 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-15 ~09:25 (seed 123 COMPLETE 6/6, committed
-`c6a3b20`; night 3 scheduled for tonight 19:30; H9 GBM run is next)._
+_Last updated: 2026-07-15 ~10:00 (session close; seed 123 committed
+`c6a3b20`; H9 GBM EXECUTED `143756f`; night 3 tonight 19:30 — machine
+must be ON)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
-**Seed 123 COMPLETE** (night 2: run `20260714T223910Z`, 6/6 cells, clean
-exit ~09:20 of 15/07, OOF+summary committed `c6a3b20`). Per-seed numbers
-are INTERMEDIATE (no verdict). Today:
+**⚠️ TONIGHT 15/07 19:30 — seed 456 (night 3), ALREADY SCHEDULED**
+(`CycloneNet-Ablation-Night3-Seed456` + heartbeat 19:41). The machine was
+shut down after the 15/07 morning session: **if it is off at 19:30 the
+trigger does NOT re-fire** → launch manually:
+`powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\cyclone-net-ops\ablation_night3_seed456.ps1"`
+(ASCII-safe launcher with pre-checks, smoke tested).
 
-1. Run H9 GBM `--execute` (minutes, machine free) — verdicts V1/V2 only
-   after H6 closes (`--compare-cnn`).
-2. Night 3 is ALREADY SCHEDULED: `CycloneNet-Ablation-Night3-Seed456`
-   fires TONIGHT 15/07 19:30 (+ heartbeat task 19:41). ASCII-safe launcher
-   with pre-checks (seed 123 complete in any run dir + machine free),
-   smoke tested. If the machine is off at 19:30 the trigger does NOT
-   re-fire → launch manually (same command with `--seeds 456`).
-3. After seed 456 completes (16/07 morning): commit OOF+summary, then
-   `--aggregate` → read the CI ONCE → verdict through the 3 pre-registered
-   branches → then H8 (`--reuse-arm-a`) and H9 `--compare-cnn`.
+After seed 456 completes (16/07 morning):
+1. Verify 6/6 cells + `seed456/oof_predictions.csv` + `summary.json`
+   (heartbeat log: `~/cyclone-net-ops/seed456_heartbeat.log`); commit.
+2. `--aggregate` → read the CI ONCE → H6 verdict through the 3
+   pre-registered branches.
+3. H8 (`fuelmap_ablation_cnn.py --reuse-arm-a <H6 run dirs>`, ~5.5 h/seed,
+   phased nights) → verdict on the "physics-guided" name.
+4. H9 `--compare-cnn` (V1/V2 co-primary, consequences fixed) — H9 GBM runs
+   are DONE (see §4 item 2); only the paired comparison remains.
+
+**H9 executed 15/07** (run `20260715T123221Z`, commits `d6cc930` fix +
+`143756f` results; 3rd dated pre-reg amendment: median imputation for the
+LogReg reference, crash happened before any result). Pooled OOF PR-AUC by
+seed (42/123/456): S 0.191/0.196/0.218; F 0.169/0.159/0.183;
+**SF 0.241/0.245/0.261**; LogReg SF ~0.20. Uncomfortable direction for
+the CNN, BUT: verdicts only via the paired `--compare-cnn` post-H6, and
+CNN ≈ GBM(F) carries a mandatory qualifier — the current CNN does global
+average pooling (aggregates spatially), so the tie was expected OF THIS
+ARCHITECTURE and licenses no claim about spatial signal in the data.
+
+**NEW QA item (blocks T5/benchmark release): audit the `basin` metadata
+field** — H9's one-hot came out as only `basin_EP` + `basin_` (empty
+string): basin appears empty for most events. Does not affect H9 verdicts
+(same table in all arms).
 
 Night-2 operational notes: cell wall time varied 114–157 min (machine
 load-dependent; ~110 min/cell when dedicated). A session background
@@ -85,16 +103,18 @@ CI is read ONCE; no mining, no re-run.** Final aggregation:
 1. **IN PROGRESS — Phased ablation (H6):** seed 123 (today at 19:30) →
    seed 456 (15/07) → `--aggregate` → verdict through the 3 pre-registered
    decision branches.
-2. **PREPARED — post-H6 experiments (pre-registered 14/07, committed):**
+2. **PREPARED — post-H6 experiments:**
    - **H8** FuelMap physics-loss ablation: `analysis/fuelmap_ablation_cnn.py
      --reuse-arm-a <H6 run dirs> --execute` (~5.5 h/seed, phased, detached).
      Pre-reg: `docs/fuelmap_ablation_preregistration.md`.
-   - **H9** factorial tabular baseline: GBM `--execute` runs in minutes any
-     time (feature cache built, gitignored); V1/V2 verdicts via
-     `--compare-cnn` ONLY after H6 closes. Pre-reg (2 amendments, CNN−F
+   - **H9** factorial tabular baseline: GBM runs **DONE 15/07** (run
+     `20260715T123221Z`, `143756f`; numbers in §1). V1/V2 verdicts via
+     `--compare-cnn` ONLY after H6 closes. Pre-reg (3 amendments, CNN−F
      co-primary): `docs/tabular_baseline_preregistration.md`.
    - Harness: `analysis/tabular_baseline_kfold.py`. Local TODO/context:
      `.claude/TODO_recomendacoes.md`.
+   - **NEW: `basin` metadata audit** (empty for most events? see §1) —
+     required before T5/benchmark release; does not gate H6/H8/H9.
 3. **Push DONE 14/07 ~19:20** (`3b97266..6691fc9`, PR #9 updated). Local
    only: scalar-branch design doc commit (V4/H10, DESIGN ONLY, post-V3 —
    `docs/scalar_branch_design.md`) + this PROJECT_STATE update; push with
