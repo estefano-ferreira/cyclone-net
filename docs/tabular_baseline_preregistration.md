@@ -18,6 +18,16 @@ exist.
 > when this amendment was made (the feature cache had been built; features
 > reveal no outcome).
 
+> **THIRD AMENDMENT (2026-07-15, implementation fix, still before any
+> result):** the first `--execute` crashed at the very first
+> LogisticRegression fit (`ValueError: Input X contains NaN`) — before any
+> model finished training, so no outcome was observed. Cause: `cube_*`
+> features carry NaN by design (paired with `*_missing` flags); GBM
+> handles NaN natively, LogReg does not. Fix: `SimpleImputer(median)`
+> prepended to the LogReg pipeline, fitted inside the fold pipeline
+> (train-fold statistics only — no leakage). GBM arms (the primary
+> models) are untouched.
+
 ## Context (why this test exists)
 
 The project has never compared the 3D-CNN against a strong classical
