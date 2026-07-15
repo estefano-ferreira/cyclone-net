@@ -1,0 +1,241 @@
+{
+  "run_id": "20260714T223910Z",
+  "generated_at": "2026-07-15T12:19:45.892365+00:00",
+  "config_path": "config.yaml",
+  "arms": {
+    "A_current": [
+      "sst_K",
+      "mslp_Pa",
+      "u10_mps",
+      "v10_mps",
+      "wind_mps",
+      "vort_1ps",
+      "div_1ps",
+      "grad_mslp_Pa_per_m",
+      "sst_anom_K"
+    ],
+    "B_with_pressure": [
+      "sst_K",
+      "mslp_Pa",
+      "u10_mps",
+      "v10_mps",
+      "wind_mps",
+      "vort_1ps",
+      "div_1ps",
+      "grad_mslp_Pa_per_m",
+      "sst_anom_K",
+      "shear_850_200_mps",
+      "rh_mid"
+    ]
+  },
+  "folds": 3,
+  "epochs": 15,
+  "seeds": [
+    123
+  ],
+  "n_boot": 10000,
+  "n_events": 14101,
+  "n_positives": 687,
+  "n_storms": 839,
+  "per_seed": {
+    "123": {
+      "per_fold": [
+        {
+          "fold": 0,
+          "n_train": 9400,
+          "n_val": 4701,
+          "n_pos_val": 229,
+          "arms": {
+            "A_current": {
+              "arm": "A_current",
+              "channels": [
+                "sst_K",
+                "mslp_Pa",
+                "u10_mps",
+                "v10_mps",
+                "wind_mps",
+                "vort_1ps",
+                "div_1ps",
+                "grad_mslp_Pa_per_m",
+                "sst_anom_K"
+              ],
+              "elapsed_sec": 9409.989554405212,
+              "pr_auc": 0.19229478358244406,
+              "roc_auc": 0.7857977048847365,
+              "normalization_stats_path": "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/fold0/A_current/normalization_stats.json",
+              "checkpoints_dir": "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/fold0/A_current/checkpoints"
+            },
+            "B_with_pressure": {
+              "arm": "B_with_pressure",
+              "channels": [
+                "sst_K",
+                "mslp_Pa",
+                "u10_mps",
+                "v10_mps",
+                "wind_mps",
+                "vort_1ps",
+                "div_1ps",
+                "grad_mslp_Pa_per_m",
+                "sst_anom_K",
+                "shear_850_200_mps",
+                "rh_mid"
+              ],
+              "elapsed_sec": 7998.447510004044,
+              "pr_auc": 0.18200923003644806,
+              "roc_auc": 0.8172354328924858,
+              "normalization_stats_path": "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/fold0/B_with_pressure/normalization_stats.json",
+              "checkpoints_dir": "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/fold0/B_with_pressure/checkpoints"
+            }
+          },
+          "diff_pr_auc_B_minus_A": -0.010285553545996001
+        },
+        {
+          "fold": 1,
+          "n_train": 9401,
+          "n_val": 4700,
+          "n_pos_val": 229,
+          "arms": {
+            "A_current": {
+              "arm": "A_current",
+              "channels": [
+                "sst_K",
+                "mslp_Pa",
+                "u10_mps",
+                "v10_mps",
+                "wind_mps",
+                "vort_1ps",
+                "div_1ps",
+                "grad_mslp_Pa_per_m",
+                "sst_anom_K"
+              ],
+              "elapsed_sec": 7957.716029644012,
+              "pr_auc": 0.15374526774505762,
+              "roc_auc": 0.7990485017956573,
+              "normalization_stats_path": "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/fold1/A_current/normalization_stats.json",
+              "checkpoints_dir": "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/fold1/A_current/checkpoints"
+            },
+            "B_with_pressure": {
+              "arm": "B_with_pressure",
+              "channels": [
+                "sst_K",
+                "mslp_Pa",
+                "u10_mps",
+                "v10_mps",
+                "wind_mps",
+                "vort_1ps",
+                "div_1ps",
+                "grad_mslp_Pa_per_m",
+                "sst_anom_K",
+                "shear_850_200_mps",
+                "rh_mid"
+              ],
+              "elapsed_sec": 7575.344358205795,
+              "pr_auc": 0.1886645486145936,
+              "roc_auc": 0.8168380607095312,
+              "normalization_stats_path": "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/fold1/B_with_pressure/normalization_stats.json",
+              "checkpoints_dir": "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/fold1/B_with_pressure/checkpoints"
+            }
+          },
+          "diff_pr_auc_B_minus_A": 0.034919280869535996
+        },
+        {
+          "fold": 2,
+          "n_train": 9401,
+          "n_val": 4700,
+          "n_pos_val": 229,
+          "arms": {
+            "A_current": {
+              "arm": "A_current",
+              "channels": [
+                "sst_K",
+                "mslp_Pa",
+                "u10_mps",
+                "v10_mps",
+                "wind_mps",
+                "vort_1ps",
+                "div_1ps",
+                "grad_mslp_Pa_per_m",
+                "sst_anom_K"
+              ],
+              "elapsed_sec": 6845.951545476913,
+              "pr_auc": 0.19384304162642446,
+              "roc_auc": 0.8221981737719743,
+              "normalization_stats_path": "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/fold2/A_current/normalization_stats.json",
+              "checkpoints_dir": "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/fold2/A_current/checkpoints"
+            },
+            "B_with_pressure": {
+              "arm": "B_with_pressure",
+              "channels": [
+                "sst_K",
+                "mslp_Pa",
+                "u10_mps",
+                "v10_mps",
+                "wind_mps",
+                "vort_1ps",
+                "div_1ps",
+                "grad_mslp_Pa_per_m",
+                "sst_anom_K",
+                "shear_850_200_mps",
+                "rh_mid"
+              ],
+              "elapsed_sec": 7278.843344926834,
+              "pr_auc": 0.20887932015070265,
+              "roc_auc": 0.8403071126004654,
+              "normalization_stats_path": "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/fold2/B_with_pressure/normalization_stats.json",
+              "checkpoints_dir": "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/fold2/B_with_pressure/checkpoints"
+            }
+          },
+          "diff_pr_auc_B_minus_A": 0.01503627852427819
+        }
+      ],
+      "pooled_oof": {
+        "n_pooled_events": 14101,
+        "A_pr_auc": 0.17245729650608962,
+        "A_roc_auc": 0.7941823148987925,
+        "B_pr_auc": 0.183514670400081,
+        "B_roc_auc": 0.8212951382129384
+      },
+      "cluster_bootstrap_by_sid": {
+        "method": "cluster_bootstrap_by_sid",
+        "seed": 123,
+        "ci_level": 0.95,
+        "n_boot_requested": 10000,
+        "n_boot_used": 10000,
+        "n_boot_skipped_single_class": 0,
+        "n_groups": 839,
+        "a_pr_auc": {
+          "mean": 0.1740279659317385,
+          "ci_low": 0.13077299225972872,
+          "ci_high": 0.22319237415661775
+        },
+        "b_pr_auc": {
+          "mean": 0.1853928501000793,
+          "ci_low": 0.1506350553984433,
+          "ci_high": 0.22236548261755693
+        },
+        "a_roc_auc": {
+          "mean": 0.794001755385275,
+          "ci_low": 0.7664865104516253,
+          "ci_high": 0.8192207417770548
+        },
+        "b_roc_auc": {
+          "mean": 0.8210825833370403,
+          "ci_low": 0.7970881025349236,
+          "ci_high": 0.8435554494740728
+        },
+        "delta_pr_auc": {
+          "mean": 0.011364884168340805,
+          "ci_low": -0.030948858716673928,
+          "ci_high": 0.04922533362943691
+        },
+        "delta_roc_auc": {
+          "mean": 0.02708082795176531,
+          "ci_low": 0.01076452679359557,
+          "ci_high": 0.043612571651004524
+        }
+      },
+      "oof_predictions_csv": "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/oof_predictions.csv"
+    }
+  },
+  "run_dir": "outputs/results/feature_ablation_cnn/20260714T223910Z"
+}

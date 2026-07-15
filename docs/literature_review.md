@@ -75,8 +75,10 @@ Two trends matter for positioning:
 ## 3. Where CycloneNet sits (honest positioning)
 
 - **Not a physical discovery.** Our environmental-precursor findings
-  (shear and mid-level RH differ before RI vs. non-RI; H1–H4 in
-  `hypothesis_registry.md`) are **confirmatory** of §1's established
+  (shear and mid-level RH differ before RI vs. non-RI; H4/H5 in
+  `hypothesis_registry.md` — not to be confused with the internal
+  "H1–H4" family of `ri_precursors.py`, a separate numbering the
+  registry documents) are **confirmatory** of §1's established
   predictors, obtained on our own 1980–2023 reanalysis-derived dataset.
   They demonstrate the pipeline recovers known signal — a sanity check,
   not a contribution.
@@ -198,3 +200,13 @@ during verification and are not cited.
   RI climatology and predictor importance) not systematically surveyed.
 - Operational-forecasting literature (HAFS, consensus aids, DTOPS) not
   covered at all.
+- **Positioning hypothesis, NOT VERIFIED at this review level:** we have
+  not found a publication that measures the RI-predictability lower bound
+  extractable from coarse (0.25°) surface reanalysis alone, under
+  storm-level leakage control and without mixing satellite/NWP predictors.
+  Novelty-by-absence cannot be claimed from an abstract-level,
+  non-exhaustive review with 2023–2026 under-covered. Requires full-text
+  reading plus domain review before any novelty claim in V3 — first item
+  for the domain co-author. If the hypothesis falls, the V3 framing
+  ("measuring the limit" as the contribution) must be downgraded to
+  replication/benchmark.

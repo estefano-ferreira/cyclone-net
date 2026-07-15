@@ -11,32 +11,65 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-14 ~18:15 (H8/H9 pre-registered and committed;
-calibration analysis done; README/BENCHMARK audited; 7 local commits on
-feature/tchp NOT pushed)._
+_Last updated: 2026-07-15 ~10:00 (session close; seed 123 committed
+`c6a3b20`; H9 GBM EXECUTED `143756f`; night 3 tonight 19:30 — machine
+must be ON)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
-Run **seed 123** of the ablation (night 2):
+**⚠️ TONIGHT 15/07 19:30 — seed 456 (night 3), ALREADY SCHEDULED**
+(`CycloneNet-Ablation-Night3-Seed456` + heartbeat 19:41). The machine was
+shut down after the 15/07 morning session: **if it is off at 19:30 the
+trigger does NOT re-fire** → launch manually:
+`powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\cyclone-net-ops\ablation_night3_seed456.ps1"`
+(ASCII-safe launcher with pre-checks, smoke tested).
 
-```
-./venv/Scripts/python.exe analysis/feature_ablation_cnn.py --folds 3 --epochs 15 --seeds 123 --execute
-```
+After seed 456 completes (16/07 morning):
+1. Verify 6/6 cells + `seed456/oof_predictions.csv` + `summary.json`
+   (heartbeat log: `~/cyclone-net-ops/seed456_heartbeat.log`); commit.
+2. `--aggregate` → read the CI ONCE → H6 verdict through the 3
+   pre-registered branches.
+3. H8 (`fuelmap_ablation_cnn.py --reuse-arm-a <H6 run dirs>`, ~5.5 h/seed,
+   phased nights) → verdict on the "physics-guided" name.
+4. H9 `--compare-cnn` (V1/V2 co-primary, consequences fixed) — H9 GBM runs
+   are DONE (see §4 item 2); only the paired comparison remains.
 
-- DETACHED method mandatory (outside the terminal tree — `Start-Process`
-  with redirected logs, or Task Scheduler). Child processes of the
-  terminal session have already been killed 2x on this machine.
-- ~11 h wall time on CPU; machine must not suspend (already configured).
-- Condition: run at NIGHT (phased protocol: one seed per night; dedicated
-  CPU — do not compete with machine use).
-- **Automatic scheduled fire already exists:** Task Scheduler task
-  `CycloneNet-Ablation-Night2-Seed123`, 14/07 at 19:30, with pre-checks
-  (aborts if training is active or seed 42 incomplete). If the machine is
-  off at 19:30, the trigger does NOT re-fire → launch manually with the
-  command above. Launcher/logs: `C:\Users\Estéfano\cyclone-net-ops\`.
-- When done (6/6 cells + `seed123/oof_predictions.csv` + run
-  `summary.json`): commit (gitignore already captures OOF+summary only)
-  and schedule night 3.
+**H9 executed 15/07** (run `20260715T123221Z`, commits `d6cc930` fix +
+`143756f` results; 3rd dated pre-reg amendment: median imputation for the
+LogReg reference, crash happened before any result). Pooled OOF PR-AUC by
+seed (42/123/456): S 0.191/0.196/0.218; F 0.169/0.159/0.183;
+**SF 0.241/0.245/0.261**; LogReg SF ~0.20. Uncomfortable direction for
+the CNN, BUT: verdicts only via the paired `--compare-cnn` post-H6, and
+CNN ≈ GBM(F) carries a mandatory qualifier — the current CNN does global
+average pooling (aggregates spatially), so the tie was expected OF THIS
+ARCHITECTURE and licenses no claim about spatial signal in the data.
+
+**Basin QA — AUDITED + PUBLIC RELABEL DONE 15/07 (ERRATA item 7):** the
+dataset is TWO-BASIN — 992 valid storms = 578 EP / 414 NA; "NA" (North
+Atlantic) was blanked by pandas default `na_values` in `ibtracs.py:120`
+(3rd appearance of the `keep_default_na` pitfall; the fix in
+`build_events.py:122` never reached the metadata path). Empty ≡ NA,
+recoverable per SID; no data lost. "North Atlantic sector" framing was
+INCORRECT — corrected in README/BENCHMARK/MANUSCRIPT/tex/INTERPRETATION/
+DATASET + ERRATA item 7 + H9 registry note (GBM effectively used basin as
+a predictor via the mislabeled one-hot). METADATA repair (ibtracs.py fix +
+rebuild or SID→basin map) stays blocked until H6/H8 close. Released
+artifacts' `coverage` strings keep the old label until next retrain.
+
+Night-2 operational notes: cell wall time varied 114–157 min (machine
+load-dependent; ~110 min/cell when dedicated). A session background
+watcher was killed again 15/07 ~08:00-08:28 with NO RestartManager/System
+events in the window — 3rd occurrence of the session-tree kill pattern,
+2nd without updater correlation; detached training was untouched both
+nights. Keep everything critical detached; session watchers are
+best-effort only.
+
+**Incident 14/07 19:30 (resolved):** the night-2 trigger died at launch
+(exit 1, no log): the `.ps1` was UTF-8 without BOM → PS 5.1 read it as
+ANSI → accented username in hardcoded paths mangled → first `Out-File`
+threw under `ErrorActionPreference=Stop`. Fix (permanent rule): every
+operational `.ps1` is ASCII-only with paths via `$env:USERPROFILE`, saved
+with BOM. Re-fired 19:35 via `Start-ScheduledTask`, pre-checks passed.
 
 ## 2. STATE OF ONGOING EXPERIMENT (CNN feature ablation)
 
@@ -46,8 +79,8 @@ before any results). Operational detail: `docs/ablation_progress.md`.
 | Seed | Status |
 |---|---|
 | 42 | **COMPLETE** (run `20260713T232126Z`, commit `c608f19`; Δ PR-AUC OOF +0.033 — intermediate, NO verdict) |
-| 123 | **PENDING** — scheduled for 14/07 at 19:30 |
-| 456 | **PENDING** — night 3 (15/07), schedule same way |
+| 123 | **COMPLETE** (run `20260714T223910Z`, commit `c6a3b20`; Δ PR-AUC OOF +0.011 [−0.031, +0.049] per-seed — intermediate, NO verdict; per-fold Δ −0.010/+0.035/+0.015; ΔROC +0.027 [+0.011, +0.044]) |
+| 456 | **SCHEDULED** — night 3, task `CycloneNet-Ablation-Night3-Seed456` 15/07 19:30 |
 
 **HIGHLIGHTED RULE: Do NOT run `--aggregate` with fewer than 3 seeds. No
 conclusions before aggregated CI — one seed is initialization noise. The
@@ -77,19 +110,26 @@ CI is read ONCE; no mining, no re-run.** Final aggregation:
 1. **IN PROGRESS — Phased ablation (H6):** seed 123 (today at 19:30) →
    seed 456 (15/07) → `--aggregate` → verdict through the 3 pre-registered
    decision branches.
-2. **PREPARED — post-H6 experiments (pre-registered 14/07, committed):**
+2. **PREPARED — post-H6 experiments:**
    - **H8** FuelMap physics-loss ablation: `analysis/fuelmap_ablation_cnn.py
      --reuse-arm-a <H6 run dirs> --execute` (~5.5 h/seed, phased, detached).
      Pre-reg: `docs/fuelmap_ablation_preregistration.md`.
-   - **H9** factorial tabular baseline: GBM `--execute` runs in minutes any
-     time (feature cache built, gitignored); V1/V2 verdicts via
-     `--compare-cnn` ONLY after H6 closes. Pre-reg (2 amendments, CNN−F
+   - **H9** factorial tabular baseline: GBM runs **DONE 15/07** (run
+     `20260715T123221Z`, `143756f`; numbers in §1). V1/V2 verdicts via
+     `--compare-cnn` ONLY after H6 closes. Pre-reg (3 amendments, CNN−F
      co-primary): `docs/tabular_baseline_preregistration.md`.
    - Harness: `analysis/tabular_baseline_kfold.py`. Local TODO/context:
      `.claude/TODO_recomendacoes.md`.
-3. **TODO — push:** 7 local commits on `feature/tchp` not pushed
-   (literature review, Zenodo note, H8, H9, registry, calibration,
-   README/BENCHMARK). PR #9 open.
+   - **`basin` metadata REPAIR** (audit done 15/07, see §1 — empty ≡ NA):
+     fix `ibtracs.py:120` + rebuild or SID→basin repair map. Blocked until
+     H6/H8 close; still gates T5/benchmark release. Public relabel already
+     done (ERRATA item 7).
+3. **PR flow (corrected 15/07):** PRs #9/#10/#11/#12 (`feature/tchp` →
+   `main`) are all MERGED (#12 on 14/07 19:22 absorbed up to `6691fc9`).
+   **The live PR is #13** (opened 15/07 ~09:56, head `443ffe5`, 8 commits,
+   mergeable clean, no conflicts). `origin/main` serves the CURRENT README
+   (PR-AUC 0.251, honest framing) — the outdated 0.347 copy is the Zenodo
+   snapshot (item 7 below), not GitHub.
 4. **TODO — author manual action:** update the GitHub repo About text
    (Settings) — suggested wording in `.claude/TODO_recomendacoes.md`; the
    current one still sells the refuted energy-source premise.

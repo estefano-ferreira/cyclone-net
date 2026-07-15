@@ -1,7 +1,15 @@
 ## CycloneNet – Test-Set Validation Report
 
-**Dataset:** full 1980–2023 North Atlantic sector archive — 16,780 valid
-events / 802 RI positives / 992 storms. Storm-level splits are
+**Dataset:** full 1980–2023 **two-basin archive (East Pacific + North
+Atlantic)** — 16,780 valid events / 802 RI positives / 992 storms (578 EP /
+414 NA by genesis basin, i.e. the first point of each storm's IBTrACS
+record; the extraction bounding box cuts the EP basin west of 140°W). Basin
+is a per-point IBTrACS attribute: per-point the valid events split 8,888 EP
+/ 7,892 NA, six storms in the archive genuinely cross between the basins,
+and one valid storm (Joan/Miriam 1988) has valid events in both. An earlier
+version of this line said "North Atlantic sector" — incorrect; the
+basin-relabel correction is documented in [ERRATA.md](./ERRATA.md) item 7.
+Storm-level splits are
 hash-deterministic by SID (leakage-free; adding storms never reassigns
 existing ones). Test split: **2,679 events / 115 RI positives / 153 storms**,
 never used during development. These numbers are reproducible from the
@@ -126,10 +134,18 @@ Event identifiers carry the storm ID: `era5_{YYYY_MM_DD_HHMM}_{SID}`
 
 - **Diagnostic, not predictive:** hindcast evaluation only; no real-time
   forecasting claim, and no comparison against operational baselines
-  (SHIPS-RII) executed yet. A **pre-registered classical-baseline
+  (SHIPS-RII) executed yet. Note that SHIPS-RII is fitted **per basin**; a
+  direct comparison against this two-basin model is not possible without
+  separating the basins. A **pre-registered classical-baseline
   comparison** (gradient boosting on SHIPS-like scalars, factorial
   state/fields design, identical SID-grouped folds) is prepared — see
   `docs/tabular_baseline_preregistration.md` (H9); results pending.
+- **Two-basin heterogeneity:** the dataset mixes two basins (East Pacific +
+  North Atlantic) with different RI climatologies (shear, TCHP,
+  seasonality); basin is not used as a control in the current experiments,
+  and per-basin analysis is under-powered (687 dev positives total). This
+  heterogeneity is a **declared limitation, not a controlled variable**
+  (see ERRATA.md item 7).
 - **Model note:** the CNN receives only spatial fields — current intensity
   and persistence are NOT inputs. The pre-registered baseline above
   measures exactly what that omission costs.

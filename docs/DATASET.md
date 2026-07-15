@@ -54,7 +54,9 @@ An event is defined as a 6-hourly observation along a storm track. Each event in
 ## Preprocessing Steps
 
 1. **IBTrACS Processing** (`src/processors/ibtracs.py`):
-   - Filter to Atlantic basin (optional).
+   - Optional basin filter (disabled in the released configuration — the
+     archive spans two basins, East Pacific + North Atlantic; geographic
+     selection is done by the bounding box).
    - Remove rows with missing wind or position.
    - Compute RI labels and deltas using 6-hour steps.
 

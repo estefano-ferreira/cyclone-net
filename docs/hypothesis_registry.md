@@ -244,6 +244,18 @@ the mapping to this registry is given in the notes of H4/H5 below.
   redirects it (the tabular model becomes the honest reference, and the
   intensity-blindness of the CNN becomes the first fix). Positive here is
   the first real evidence for spatial surface signal.
+- **Collateral finding (2026-07-15, basin audit — relevant when reading
+  the verdict):** the `basin` one-hot in the GBM feature table came out as
+  `basin_EP`/`basin_` (empty string) due to the `"NA"`-parsing bug
+  (ERRATA.md item 7), but the two mislabeled columns carry the TRUE
+  two-basin partition almost perfectly (empty ≡ North Atlantic, 99.9%
+  event-level correspondence). The GBM therefore effectively **used basin
+  membership as a predictor**. Part of the S-arm's skill comes from
+  knowing the basin — information the CNN never sees (no basin input).
+  This is one more channel of the CNN's state-blindness that V1 captures
+  without distinguishing; it does not invalidate any arm (same table in
+  all three), but the verdict reading should not attribute all of the
+  S/SF advantage to storm state alone.
 
 ---
 

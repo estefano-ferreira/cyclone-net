@@ -68,6 +68,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from sklearn.ensemble import HistGradientBoostingClassifier  # noqa: E402
+from sklearn.impute import SimpleImputer  # noqa: E402
 from sklearn.linear_model import LogisticRegression  # noqa: E402
 from sklearn.metrics import average_precision_score, roc_auc_score  # noqa: E402
 from sklearn.model_selection import StratifiedGroupKFold  # noqa: E402
@@ -470,7 +471,12 @@ def run_execute(cfg: Dict[str, Any], events_df: pd.DataFrame, features_df: pd.Da
 
             # LogReg reference on the full (SF) set only.
             X_sf = X_by_set["state_plus_fields"]
+            # NaN is by-design in cube_* features (missing channels carry a
+            # *_missing flag); GBM handles NaN natively, LogReg needs
+            # imputation. Median fitted inside the pipeline -> train-fold
+            # statistics only, no leakage.
             logit_pipe = Pipeline([
+                ("imputer", SimpleImputer(strategy="median")),
                 ("scaler", StandardScaler()),
                 ("logit", LogisticRegression(max_iter=2000, class_weight="balanced", random_state=seed)),
             ])

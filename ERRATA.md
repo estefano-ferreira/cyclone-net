@@ -137,6 +137,64 @@ temporal join) will be applied at the next retrain (together with the
 pressure-level backfill), because it alters labels of the frozen dataset and
 does not justify reopening the current milestone on its own.
 
+## 7. The dataset is two-basin (EP + NA), not "North Atlantic sector" (2026-07-15)
+
+**What the documentation said:** README, BENCHMARK and the manuscript described the
+dataset as a "1980–2023 North Atlantic sector archive"; `docs/INTERPRETATION.md`
+claimed the model was "trained on Atlantic hurricanes only."
+
+**What the data actually contains:** the extraction bounding box
+(`spatial_subset: [60, -140, 0, -20]`) spans **two basins**. Of the 1,498 storms in
+the event list, **805 are East Pacific and 699 North Atlantic** (by first IBTrACS
+basin); of the 992 storms in the valid dataset, **578 are EP and 414 NA**. The East
+Pacific is the *majority* basin. The bounding box cuts the EP basin west of 140°W.
+
+**Why it went unnoticed — causal chain:** `src/processors/ibtracs.py` (line ~120)
+reads IBTrACS with pandas' default `na_values`, which parse the literal basin code
+`"NA"` (North Atlantic) as a missing value; `_clean_text_column(default="")` then
+writes it as an empty string into the event list, and
+`src/processors/preprocess_scientific.py` (line ~369) propagates the empty string
+into every interim event JSON. As a result the `basin` metadata field contains only
+`"EP"` and `""`, and the visible label ("EP present, everything else blank")
+supported the wrong "Atlantic archive" reading. A `keep_default_na=False` fix exists
+in `platform/build/build_events.py` (line ~122) and
+`analysis/audit_core_integrity.py` (line ~224), but it **never reached the main
+event-list → metadata path**. This is the third appearance of the same pandas
+pitfall in this codebase.
+
+**No data was lost:** the empty string is exactly ≡ `NA` (verified event-by-event
+against the raw IBTrACS read correctly: 99.9% correspondence, off-diagonals being
+basin-crossing storms). The true basin is deterministically recoverable per SID.
+
+**Basin is a per-point attribute, not a per-storm one (verified 2026-07-15):**
+IBTrACS assigns `BASIN` to each track point, and **6 storms in the event list
+genuinely cross between EP and NA inside the sector** (Debby 1988, Joan/Miriam
+1988, Gert 1993, Hermine 2010, Otto 2016, Bonnie 2022 — all documented
+crossovers; their label flips at the Central America boundary were checked
+against the tracks). This is why per-basin SID counts (805 EP + 699 NA)
+exceed the 1,498 unique storms by exactly 6. The storm-level split quoted
+above (578 EP / 414 NA of the 992 valid storms) attributes each storm to the
+basin of the **first point of its raw IBTrACS record (genesis basin)**;
+alternative criteria move at most 2 storms (first valid event: 579/413;
+majority of valid events: 580/412). Per-point, the 16,780 valid events split
+8,888 EP / 7,892 NA, and exactly **one** valid storm (Joan/Miriam 1988) has
+valid events in both basins (11 EP / 9 NA).
+
+**Scientific impact:** none on H6/H8/H9 verdicts — splits do not use basin, and the
+H9 tabular baseline uses the same (mislabeled but internally consistent) table in
+all three arms. The impact is on the **public framing**, corrected as of this note
+in README.md, BENCHMARK.md, MANUSCRIPT_honest.md / cyclonenet_honest.tex,
+docs/INTERPRETATION.md and docs/DATASET.md. Note also that SHIPS-RII is fitted per
+basin, so any future comparison requires separating basins.
+
+**Pending:** repairing the `basin` field in the metadata itself (fix in
+`ibtracs.py` + rebuild or a SID→basin repair map) is scheduled for **after the
+running pre-registered experiments (H6/H8) close**, because the pipeline code is
+frozen while they run. The `coverage` strings inside released artifacts
+(`models/checkpoints/dataset_provenance.json`, `outputs/results/test_metrics.json`)
+still carry the old "North Atlantic sector" label and will be corrected at the next
+retrain/re-release rather than by editing released artifacts in place.
+
 ---
 
 ## Summary
@@ -161,3 +219,11 @@ delta, deviating from the canonical definition at rare non-synoptic best-track
 rows (~1.3% of points in the validation sample). Platform and model share the
 convention (internally consistent); the correction is scheduled for the next
 retrain rather than a reopening of the current milestone.
+
+A seventh item (2026-07-15, item 7 above): the dataset is **two-basin
+(East Pacific majority + North Atlantic)**, not the "North Atlantic sector"
+the documentation claimed — a pandas `"NA"`-parsing bug blanked the North
+Atlantic basin labels and masked the composition. Framing corrected across
+the documentation; the metadata repair itself is scheduled for after the
+running pre-registered experiments close. No experimental verdict is
+affected.
