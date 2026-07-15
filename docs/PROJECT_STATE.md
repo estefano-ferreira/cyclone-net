@@ -11,27 +11,33 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-14 ~19:50 (seed 123 RUNNING since 19:35, PID
-24664, run `20260714T223910Z`, ETA ~06:35 of 15/07; night 3 scheduled;
-push done up to `6691fc9`; scalar-branch design doc committed local)._
+_Last updated: 2026-07-15 ~09:25 (seed 123 COMPLETE 6/6, committed
+`c6a3b20`; night 3 scheduled for tonight 19:30; H9 GBM run is next)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
-**Seed 123 is RUNNING** (night 2, launched 14/07 19:35 detached, run dir
-`outputs/results/feature_ablation_cnn/20260714T223910Z`). Next morning
-(15/07, ~06:35):
+**Seed 123 COMPLETE** (night 2: run `20260714T223910Z`, 6/6 cells, clean
+exit ~09:20 of 15/07, OOF+summary committed `c6a3b20`). Per-seed numbers
+are INTERMEDIATE (no verdict). Today:
 
-1. Verify completion: 6/6 cells + `seed123/oof_predictions.csv` + run
-   `summary.json`; check `~/cyclone-net-ops/seed123_heartbeat.log` (10-min
-   forensic liveness log) — any `NOT-RUNNING` before completion means an
-   external kill: correlate the timestamp with the Event Log.
-2. Commit OOF+summary (gitignore already captures only those).
-3. Run H9 GBM `--execute` (minutes, machine free) — verdicts only post-H6.
-4. Night 3 is ALREADY SCHEDULED: `CycloneNet-Ablation-Night3-Seed456`
-   fires 15/07 19:30 (+ heartbeat task 19:41). ASCII-safe launcher with
-   pre-checks (seed 123 complete in any run dir + machine free), smoke
-   tested. If the machine is off at 19:30 the trigger does NOT re-fire →
-   launch manually (same command with `--seeds 456`).
+1. Run H9 GBM `--execute` (minutes, machine free) — verdicts V1/V2 only
+   after H6 closes (`--compare-cnn`).
+2. Night 3 is ALREADY SCHEDULED: `CycloneNet-Ablation-Night3-Seed456`
+   fires TONIGHT 15/07 19:30 (+ heartbeat task 19:41). ASCII-safe launcher
+   with pre-checks (seed 123 complete in any run dir + machine free),
+   smoke tested. If the machine is off at 19:30 the trigger does NOT
+   re-fire → launch manually (same command with `--seeds 456`).
+3. After seed 456 completes (16/07 morning): commit OOF+summary, then
+   `--aggregate` → read the CI ONCE → verdict through the 3 pre-registered
+   branches → then H8 (`--reuse-arm-a`) and H9 `--compare-cnn`.
+
+Night-2 operational notes: cell wall time varied 114–157 min (machine
+load-dependent; ~110 min/cell when dedicated). A session background
+watcher was killed again 15/07 ~08:00-08:28 with NO RestartManager/System
+events in the window — 3rd occurrence of the session-tree kill pattern,
+2nd without updater correlation; detached training was untouched both
+nights. Keep everything critical detached; session watchers are
+best-effort only.
 
 **Incident 14/07 19:30 (resolved):** the night-2 trigger died at launch
 (exit 1, no log): the `.ps1` was UTF-8 without BOM → PS 5.1 read it as
@@ -48,7 +54,7 @@ before any results). Operational detail: `docs/ablation_progress.md`.
 | Seed | Status |
 |---|---|
 | 42 | **COMPLETE** (run `20260713T232126Z`, commit `c608f19`; Δ PR-AUC OOF +0.033 — intermediate, NO verdict) |
-| 123 | **RUNNING** — launched 14/07 19:35 (run `20260714T223910Z`, PID 24664, ETA ~06:35) |
+| 123 | **COMPLETE** (run `20260714T223910Z`, commit `c6a3b20`; Δ PR-AUC OOF +0.011 [−0.031, +0.049] per-seed — intermediate, NO verdict; per-fold Δ −0.010/+0.035/+0.015; ΔROC +0.027 [+0.011, +0.044]) |
 | 456 | **SCHEDULED** — night 3, task `CycloneNet-Ablation-Night3-Seed456` 15/07 19:30 |
 
 **HIGHLIGHTED RULE: Do NOT run `--aggregate` with fewer than 3 seeds. No
