@@ -93,7 +93,13 @@ execution quality, not scientific contribution.
 
 - **ERA5** (Copernicus CDS), 0.25°: SST, MSLP, 10 m winds; optionally 2 m temperature and
   dewpoint for bulk heat-flux diagnostics. The **public release covers 1980–2023**,
-  North Atlantic sector season months. Because the raw monthly files (~60 GB) exceed
+  season months over a single extraction sector (60°N–0°, 140°W–20°W) that **spans two
+  basins: East Pacific and North Atlantic** (992 storms in the valid dataset: 578 EP /
+  414 NA by genesis basin — the first point of each storm's IBTrACS record; basin is a
+  per-point attribute and six storms genuinely cross between the basins; the bounding
+  box cuts the EP basin west of 140°W).
+  Earlier versions of this section said "North Atlantic sector" — incorrect; see the
+  correction record (§8) and ERRATA.md item 7. Because the raw monthly files (~60 GB) exceed
   local storage, the dataset is built by a **windowed pipeline**
   (download → extract → verify → discard raw), with per-window provenance manifests
   recording SHA-256 checksums, per-event extraction outcomes, and the deletion record —
@@ -244,7 +250,13 @@ that a plausible such map does not.
   learns environmental favorability, not storm-scale dynamics.
 - **No comparison against operational baselines (SHIPS-RII)** — required before any
   operational skill claim; §5.1's result is skill above chance, not skill above the
-  state of practice.
+  state of practice. SHIPS-RII is additionally fitted **per basin**, so a direct
+  comparison against this two-basin model is not possible without separating basins.
+- **Two-basin heterogeneity.** The dataset mixes two basins (East Pacific + North
+  Atlantic) with different RI climatologies (shear, TCHP, seasonality); basin is not
+  used as a control in the current experiments, and per-basin analysis is
+  under-powered (687 dev positives total). This heterogeneity is a declared
+  limitation, not a controlled variable.
 - TCHP validation limited to 2022–2023 (gridded pre-2022 TCHP unavailable publicly),
   i.e. n = 226 of 2,679 test events.
 - The heuristic prior is not a physical guarantee; the equation-consistency term is degenerate.

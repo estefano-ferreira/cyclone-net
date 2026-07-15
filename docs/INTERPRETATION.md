@@ -46,5 +46,11 @@ These metrics quantify how well the model's attention aligns with actual ocean h
 
 - The FuelMap is a **proxy**; it does not directly measure energy fluxes.
 - TCHP validation is only possible when data are available (≥1993, Atlantic basin).
-- The model is trained on Atlantic hurricanes only; performance in other basins may differ.
+- The training archive mixes **two basins (East Pacific + North Atlantic)**
+  with different RI climatologies (shear, TCHP, seasonality); basin is not
+  used as a control in the current experiments, and per-basin analysis is
+  under-powered (687 dev positives total). This heterogeneity is a declared
+  limitation, not a controlled variable. (An earlier version of this line
+  claimed the model was "trained on Atlantic hurricanes only" — incorrect;
+  see ERRATA.md item 7.)
 - The model does not account for vertical wind shear or other atmospheric factors beyond the selected ERA5 fields.

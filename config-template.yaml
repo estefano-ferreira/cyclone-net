@@ -53,7 +53,7 @@ download:
   download_format: netcdf
   time_granularity: monthly # Download as monthly files
   split_after_download: false # Never split files; keep original
-  spatial_subset: [60, -140, 0, -20] # [N, W, S, E] bounding box (Atlantic basin)
+  spatial_subset: [60, -140, 0, -20] # [N, W, S, E] bounding box (two-basin sector: East Pacific + North Atlantic; cuts EP west of 140°W)
   max_workers: 8 # Parallel downloads
 
   # TCHP (Tropical Cyclone Heat Potential) external data – for validation only, not model input

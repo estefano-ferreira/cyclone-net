@@ -44,10 +44,17 @@ CNN ≈ GBM(F) carries a mandatory qualifier — the current CNN does global
 average pooling (aggregates spatially), so the tie was expected OF THIS
 ARCHITECTURE and licenses no claim about spatial signal in the data.
 
-**NEW QA item (blocks T5/benchmark release): audit the `basin` metadata
-field** — H9's one-hot came out as only `basin_EP` + `basin_` (empty
-string): basin appears empty for most events. Does not affect H9 verdicts
-(same table in all arms).
+**Basin QA — AUDITED + PUBLIC RELABEL DONE 15/07 (ERRATA item 7):** the
+dataset is TWO-BASIN — 992 valid storms = 578 EP / 414 NA; "NA" (North
+Atlantic) was blanked by pandas default `na_values` in `ibtracs.py:120`
+(3rd appearance of the `keep_default_na` pitfall; the fix in
+`build_events.py:122` never reached the metadata path). Empty ≡ NA,
+recoverable per SID; no data lost. "North Atlantic sector" framing was
+INCORRECT — corrected in README/BENCHMARK/MANUSCRIPT/tex/INTERPRETATION/
+DATASET + ERRATA item 7 + H9 registry note (GBM effectively used basin as
+a predictor via the mislabeled one-hot). METADATA repair (ibtracs.py fix +
+rebuild or SID→basin map) stays blocked until H6/H8 close. Released
+artifacts' `coverage` strings keep the old label until next retrain.
 
 Night-2 operational notes: cell wall time varied 114–157 min (machine
 load-dependent; ~110 min/cell when dedicated). A session background
@@ -113,12 +120,16 @@ CI is read ONCE; no mining, no re-run.** Final aggregation:
      co-primary): `docs/tabular_baseline_preregistration.md`.
    - Harness: `analysis/tabular_baseline_kfold.py`. Local TODO/context:
      `.claude/TODO_recomendacoes.md`.
-   - **NEW: `basin` metadata audit** (empty for most events? see §1) —
-     required before T5/benchmark release; does not gate H6/H8/H9.
-3. **Push DONE 14/07 ~19:20** (`3b97266..6691fc9`, PR #9 updated). Local
-   only: scalar-branch design doc commit (V4/H10, DESIGN ONLY, post-V3 —
-   `docs/scalar_branch_design.md`) + this PROJECT_STATE update; push with
-   the next batch.
+   - **`basin` metadata REPAIR** (audit done 15/07, see §1 — empty ≡ NA):
+     fix `ibtracs.py:120` + rebuild or SID→basin repair map. Blocked until
+     H6/H8 close; still gates T5/benchmark release. Public relabel already
+     done (ERRATA item 7).
+3. **PR flow (corrected 15/07):** PRs #9/#10/#11/#12 (`feature/tchp` →
+   `main`) are all MERGED (#12 on 14/07 19:22 absorbed up to `6691fc9`).
+   **The live PR is #13** (opened 15/07 ~09:56, head `443ffe5`, 8 commits,
+   mergeable clean, no conflicts). `origin/main` serves the CURRENT README
+   (PR-AUC 0.251, honest framing) — the outdated 0.347 copy is the Zenodo
+   snapshot (item 7 below), not GitHub.
 4. **TODO — author manual action:** update the GitHub repo About text
    (Settings) — suggested wording in `.claude/TODO_recomendacoes.md`; the
    current one still sells the refuted energy-source premise.
