@@ -1,0 +1,32 @@
+CycloneNet Dataset v2 — attribution notices
+============================================
+
+This dataset is licensed under Creative Commons Attribution 4.0
+International (CC BY 4.0). The following attributions are required and
+must be preserved in redistributions.
+
+ERA5 / Copernicus Climate Change Service (C3S)
+----------------------------------------------
+Contains modified Copernicus Climate Change Service information
+(1980-2023). Neither the European Commission nor ECMWF is responsible for
+any use that may be made of the Copernicus information or data it
+contains.
+
+Source: ERA5 hourly data on single levels and on pressure levels,
+Copernicus Climate Data Store (CDS). Cite the CDS catalogue entries per
+their landing pages (Hersbach et al., ERA5).
+
+IBTrACS (best-track data, storm identities, positions, intensities, RI labels)
+------------------------------------------------------------------------------
+International Best Track Archive for Climate Stewardship (IBTrACS)
+Project, Version v04r00 (the version used to build this dataset). NOAA
+National Centers for Environmental Information. Knapp, K. R., M. C. Kruk,
+D. H. Levinson, H. J. Diamond, and C. J. Neumann, 2010: The International
+Best Track Archive for Climate Stewardship (IBTrACS): Unifying tropical
+cyclone best track data. Bull. Amer. Meteor. Soc., 91, 363-376. IBTrACS
+data are open access (U.S. Government work / WMO Resolution 40).
+
+ADT extras (subset of events, 2020-2023)
+----------------------------------------
+Absolute Dynamic Topography derived from Copernicus Marine Service
+products. Generated using E.U. Copernicus Marine Service information.
