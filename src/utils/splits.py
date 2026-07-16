@@ -114,7 +114,9 @@ def make_splits(metadata_csv: str | Path, cfg: SplitConfig) -> Dict[str, Any]:
       * frozen overrides (historical benchmark) win over the hash.
     """
     _validate(cfg)
-    df = pd.read_csv(metadata_csv)
+    # keep_default_na: the event list carries literal "NA" (North Atlantic)
+    # in text columns — pandas' default NA parsing must never run on it.
+    df = pd.read_csv(metadata_csv, keep_default_na=False, na_values=[""])
     group_col = "sid" if cfg.method == "sid" else "storm_name"
 
     if group_col not in df.columns:
@@ -122,15 +124,33 @@ def make_splits(metadata_csv: str | Path, cfg: SplitConfig) -> Dict[str, Any]:
     if "event_id" not in df.columns:
         raise KeyError("metadata_csv must contain 'event_id'")
 
+    # Split assignment is an inviolable path: an event that cannot be
+    # assigned must FAIL LOUDLY, never be silently dropped.
+    missing_group = df[group_col].isna() | (df[group_col].astype(str).str.strip() == "")
+    if missing_group.any():
+        sample = df.loc[missing_group, "event_id"].astype(str).head(5).tolist()
+        raise ValueError(
+            f"{int(missing_group.sum())} event(s) have a missing '{group_col}' and "
+            f"cannot be assigned to a split (e.g. {sample}). Refusing to continue — "
+            f"silent exclusion from splits is forbidden."
+        )
+
     frozen = load_frozen_map(cfg.frozen_map_path)
 
-    groups = sorted(df[group_col].dropna().astype(str).unique().tolist())
+    groups = sorted(df[group_col].astype(str).unique().tolist())
     group_to_split = {g: assign_split(g, cfg, frozen) for g in groups}
     n_frozen_used = sum(1 for g in groups if g in frozen)
 
     out = df.copy()
     out["split"] = out[group_col].astype(str).map(group_to_split)
-    out = out.dropna(subset=["split"]).copy()
+    unmapped = out["split"].isna()
+    if unmapped.any():
+        sample = out.loc[unmapped, "event_id"].astype(str).head(5).tolist()
+        raise ValueError(
+            f"{int(unmapped.sum())} event(s) received no split assignment "
+            f"(e.g. {sample}). Refusing to continue — silent exclusion from "
+            f"splits is forbidden."
+        )
 
     out_csv = out[["event_id", "split"]].copy()
     if cfg.persist:

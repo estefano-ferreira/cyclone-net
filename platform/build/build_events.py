@@ -264,7 +264,7 @@ def build_events(
     basin_lookup = load_basin_lookup(raw_ibtracs_csv)
 
     # Read augmented event list
-    df = pd.read_csv(augmented_csv)
+    df = pd.read_csv(augmented_csv, keep_default_na=False, na_values=[""])
     print(f"Loaded {len(df)} records from {augmented_csv}")
 
     # Sort by sid and timestamp to ensure proper ordering

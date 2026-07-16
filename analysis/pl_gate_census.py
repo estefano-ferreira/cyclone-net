@@ -89,9 +89,12 @@ def load_split_join(cfg: Dict[str, Any]) -> pd.DataFrame:
     opened by this module.
     """
     normalized = Path(cfg_get(cfg, "paths.normalized_dir", "./data/normalized")).resolve()
-    splits = pd.read_csv(normalized / "splits.csv")
-    events = pd.read_csv(normalized / "valid_events.csv")
+    splits = pd.read_csv(normalized / "splits.csv", keep_default_na=False, na_values=[""])
+    events = pd.read_csv(normalized / "valid_events.csv", keep_default_na=False, na_values=[""])
     df = splits.merge(events[["event_id", "sid", "ri_label"]], on="event_id", how="inner")
+    # v2 labels are nullable (NULL = undefined); the census counts events by
+    # PL coverage, so NULL rides along — it is a label state, not missing data.
+    df["ri_label"] = pd.to_numeric(df["ri_label"], errors="coerce")
     df["year"] = df["event_id"].map(_year_from_event_id)
     return df
 

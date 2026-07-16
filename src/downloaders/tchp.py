@@ -168,7 +168,7 @@ class TCHPDownloader:
         # Fallback: extract years from event list
         event_list_path = Path(cfg_get(self.cfg, "paths.event_list", "./data/event_list_augmented.csv"))
         if event_list_path.exists():
-            df = pd.read_csv(event_list_path)
+            df = pd.read_csv(event_list_path, keep_default_na=False, na_values=[""])
             if "timestamp" in df.columns:
                 years = pd.to_datetime(df["timestamp"]).dt.year.unique()
             elif "datetime" in df.columns:

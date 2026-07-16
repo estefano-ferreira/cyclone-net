@@ -124,10 +124,20 @@ def load_dev_events(cfg) -> pd.DataFrame:
     The test split is intentionally excluded and never read.
     """
     normalized = Path(cfg_get(cfg, "paths.normalized_dir", "./data/normalized")).resolve()
-    splits = pd.read_csv(normalized / "splits.csv")
-    events = pd.read_csv(normalized / "valid_events.csv")
+    splits = pd.read_csv(normalized / "splits.csv", keep_default_na=False, na_values=[""])
+    events = pd.read_csv(normalized / "valid_events.csv", keep_default_na=False, na_values=[""])
     df = splits.merge(events[["event_id", "sid", "ri_label"]], on="event_id", how="inner")
     dev = df[df["split"].isin(["train", "val"])].reset_index(drop=True)
+    # v2 labels are nullable: NULL = no exact temporal partner (undefined).
+    # Undefined events are EXCLUDED from the classification view — never
+    # coerced to 0, never fed to stratification as NaN.
+    dev["ri_label"] = pd.to_numeric(dev["ri_label"], errors="coerce")
+    n_null = int(dev["ri_label"].isna().sum())
+    if n_null:
+        print(f"load_dev_events: excluded {n_null} dev events with NULL ri_label "
+              f"(undefined under strict-temporal v2 semantics)")
+        dev = dev[dev["ri_label"].notna()].reset_index(drop=True)
+    dev["ri_label"] = dev["ri_label"].astype(int)
     return dev
 
 

@@ -132,6 +132,25 @@ asset. **The CNN test-set PR-AUC 0.251 STAYS in BENCHMARK** (author,
 16/07): labels proven reproducible from raw; historical record of a
 retired architecture, separate protocol.
 
+**keep_default_na CLASS CLOSED (2026-07-16, post-v2 sweep):** the T5
+release sweep found the class in 7 more readers and fixed all of them
+(kfold family via `load_dev_events` — now also EXCLUDES NULL v2 labels
+with a logged count; pl_gate_census; era5/tchp downloaders; audit;
+ri_precursors ×2; platform `build_events.py:267`). **6th occurrence, the
+instructive one:** the platform read the event list with default NA
+parsing — the 15/07 basin fix never actually reached it; it WORKED BY
+ACCIDENT because its own raw-IBTrACS basin lookup (line ~110) re-injected
+what the read had just destroyed. A workaround compensating a bug nobody
+knew existed — this is why class sweeps, not spot fixes. Also:
+`make_splits` now FAILS LOUDLY on missing/unmappable sid (the silent
+dropna on the inviolable path is gone); `_clean_text_column` NA-handling
+reordered (the phase-1 "latent-grave" rating was RETRACTED — a
+second-line replace defense already existed). Tests:
+`tests/test_na_handling_readers.py` (6, each designed to fail against
+the old behavior). Census counts (14,101) intentionally still include
+NULL-label events (coverage ≠ classification); no downstream consumer
+joins census with training.
+
 **DATED RECORDS (author, 2026-07-16):** (a) test-set carve-out for the
 dv24 impact assessment/correction — AGGREGATE LABEL COUNTS ONLY, no
 features, no model, no metric, no test event_ids listed; not an open
