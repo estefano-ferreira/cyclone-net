@@ -4,14 +4,14 @@ If you use CycloneNet in your research, please cite the following:
 
 ## Software Release
 
-Ferreira, E. S. (2026). CycloneNet: A Reproducible Pipeline for Forensic Rapid-Intensification Analysis — and an Honest Audit of What It Can and Cannot Do. GitHub. https://github.com/estefano-ferreira/cyclone-net
+Ferreira, E. S. (2026). CycloneNet: A Reproducible Pipeline and Leakage-Safe Two-Basin Dataset for Tropical-Cyclone Rapid-Intensification Analysis. GitHub. https://github.com/estefano-ferreira/cyclone-net
 
 ## BibTeX
 
 ```bibtex
 @misc{cyclonenet2026,
   author = {Ferreira, Estefano Senhor},
-  title = {CycloneNet: A Reproducible Pipeline for Forensic Rapid-Intensification Analysis --- and an Honest Audit of What It Can and Cannot Do},
+  title = {CycloneNet: A Reproducible Pipeline and Leakage-Safe Two-Basin Dataset for Tropical-Cyclone Rapid-Intensification Analysis},
   year = {2026},
   publisher = {GitHub},
   journal = {GitHub repository},

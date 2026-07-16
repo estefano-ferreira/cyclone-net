@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "build_version": "ff223cd+2026-07-13T18:45:33.115118Z",
+  "build_version": "0309837+2026-07-16T21:27:34.905481Z",
   "generated_by": "platform/build/build_events.py",
   "source_provenance": {
     "dataset": "IBTrACS v04r00 (ALL)",
@@ -1510,8 +1510,8 @@
   ],
   "artifacts": {
     "events_index.json": {
-      "sha256": "bc5eae022426c4584f97616b0adf6d8d244b7a0acd298a9db218754f507464ac",
-      "bytes": 276851
+      "sha256": "3ce70638d4aee4e2c11c416ecfbc8eae50454c205d05a2f3204f552a4cdee102",
+      "bytes": 276852
     },
     "definitions.json": {
       "sha256": "02d5ecd626580f360d4a59b120f569d03e73db4693c46dbcc3b8644183ea74bc",
@@ -2766,8 +2766,8 @@
       "bytes": 3555
     },
     "events/1989221N16339.geojson": {
-      "sha256": "31a9cd8f269b477bef7e2fb2da0953bc89275153118390fc1693d138582161ce",
-      "bytes": 5579
+      "sha256": "4d775179d91ab70d5310d7ad526194fdbd319133c3e1205405a0c2472292aad1",
+      "bytes": 5580
     },
     "events/1989227N12236.geojson": {
       "sha256": "23a11b57503d4eef29493d15adcf72ce0c49b518a90e8716b1d70a82d9cc0d1d",
@@ -2846,7 +2846,7 @@
       "bytes": 5007
     },
     "events/1989286N19268.geojson": {
-      "sha256": "dc655f98282d5006026ddc8fab88b51d77da7241de9ab9d54d935a5d48607b6e",
+      "sha256": "3f6d186bc1a2a7cfaec1d42cf27896cd4ff7f384ed584f583f184ae53085c545",
       "bytes": 4747
     },
     "events/1989289N16243.geojson": {
@@ -3542,8 +3542,8 @@
       "bytes": 5319
     },
     "events/1995212N22287.geojson": {
-      "sha256": "3de7bf6f460020f41e42d4cd1af23b5f1400223875a136a0175f430b4a8ad83f",
-      "bytes": 7493
+      "sha256": "c28895de418f8782592363455079c42493c4e3b28492a60e876c4b18ce8340ff",
+      "bytes": 7494
     },
     "events/1995214N15249.geojson": {
       "sha256": "6eb0112dcc51125dce81026376ff9da1cb94493d2a51f6b0875b1db0db52a5a6",
@@ -3682,7 +3682,7 @@
       "bytes": 20973
     },
     "events/1996237N14339.geojson": {
-      "sha256": "d2e13b0f5f091f22dfd320f5506b5a71f40b000e5aeff1da1405c2056cb2cfd3",
+      "sha256": "59981bf16d186dde1c06b487a377f4a1bd6c503747c81e26fb47bfa868c34103",
       "bytes": 20872
     },
     "events/1996239N13337.geojson": {
@@ -3790,8 +3790,8 @@
       "bytes": 12632
     },
     "events/1997212N11265.geojson": {
-      "sha256": "6182268702391af47c75089817cf2573623c7d2aba1a1f58f899f418b0e3798a",
-      "bytes": 17195
+      "sha256": "a5344af6775ff801830e6a387082f866ce13fbc2bf82e491a7736c177ce66df8",
+      "bytes": 17185
     },
     "events/1997222N11246.geojson": {
       "sha256": "9faca0bb87d1b18a6520997ec594dc2c08196e73b6ca25e1a752f35ce19e118f",
@@ -3806,7 +3806,7 @@
       "bytes": 4193
     },
     "events/1997246N11316.geojson": {
-      "sha256": "2d311a79ceb481982183d70e2e4dd5f736a423cd1d108346e0086d23a9933b35",
+      "sha256": "6844ecef09d87873d2da519dbdf1f808567b3225dc6f4b2665e952809b949c35",
       "bytes": 16694
     },
     "events/1997247N18248.geojson": {
@@ -3822,8 +3822,8 @@
       "bytes": 3867
     },
     "events/1997259N13258.geojson": {
-      "sha256": "9ebffa4af6b6aef9f0d47d011dedc0f3c0eff0ec3feedf8a03aa1fd48b5c0323",
-      "bytes": 11892
+      "sha256": "127b9a070806d1df62467d6c1afcd00f789e4175575a199007c1d9a282fb5863",
+      "bytes": 11893
     },
     "events/1997270N11265.geojson": {
       "sha256": "60f053683f5bf6c55525c49511435aa8e886fcba1c31eb0ac6938d6dfb0dec66",
@@ -3914,8 +3914,8 @@
       "bytes": 5331
     },
     "events/1998259N10335.geojson": {
-      "sha256": "1d01a596c7d441b2f54394e8127514f4183e61abc7ebb120a1c7dd43c33c462d",
-      "bytes": 18840
+      "sha256": "84615b9d26f06e2c91716429ca2ee9bf7692e598239ba93f675dd22f19f7c94c",
+      "bytes": 18837
     },
     "events/1998261N27270.geojson": {
       "sha256": "7f902effbf8a4c1d620c9e9e85a6e973ddb5c085df19cbe327e454bb64cc6602",
@@ -4034,8 +4034,8 @@
       "bytes": 1374
     },
     "events/1999251N15314.geojson": {
-      "sha256": "c46fee67290fcc86786c31135d619def3e38395eaa0409adb8a2d926b999316e",
-      "bytes": 13987
+      "sha256": "c93a772bea87c907162b2713e2740c6bc10af2a019e8c957c30ef2c586051d7b",
+      "bytes": 13986
     },
     "events/1999255N13336.geojson": {
       "sha256": "7336111a10f0d8b10ba3e5fb009461ba7b003b7d317f374f5610c93b0c6cb077",
@@ -4410,8 +4410,8 @@
       "bytes": 8586
     },
     "events/2002245N29281.geojson": {
-      "sha256": "0bfe8d3b8b0514ed8f88e5f7bf0819386384333785bc48ac2d9f2e82bb3035b4",
-      "bytes": 5329
+      "sha256": "d5802757e6d128855ec89d52b79189d66175c6c8b7a3468018d421ef04ff8196",
+      "bytes": 5330
     },
     "events/2002249N19253.geojson": {
       "sha256": "005334541ca65a12dfe661926a56fef9b0394a8dfc630fb67d651912930c4309",
@@ -4686,8 +4686,8 @@
       "bytes": 12516
     },
     "events/2004247N10332.geojson": {
-      "sha256": "86a1adbb0be8082fe0141bad981a7025778eaa3d4dfd60555b6b5aa192ede5bf",
-      "bytes": 25880
+      "sha256": "7ce80df541dd6b71f3c726200c5f40c994b4dfc6a7947df8513bf3cd49ca7338",
+      "bytes": 25878
     },
     "events/2004252N15250.geojson": {
       "sha256": "7820bbfaad67de724c1b48d8ddec0947ec62d83fee19106fb5e000f8e61d919f",
@@ -4766,12 +4766,12 @@
       "bytes": 8383
     },
     "events/2005186N12299.geojson": {
-      "sha256": "eae3f02a6fdf0c4f1c0063edf461a9b538c69e6120e3bc8278f13438dfe2336a",
-      "bytes": 16042
+      "sha256": "233dbbeff112006d05249b523c3abe8838ce50b20bf7740eee2c283489fd6fa2",
+      "bytes": 16041
     },
     "events/2005192N11318.geojson": {
-      "sha256": "e36488f08c3e1c4fa1ad02c0bb499eb64a11c3815e3ed17c029becebd504cb0b",
-      "bytes": 12458
+      "sha256": "aba634b2ba663a98f251fc3633330d4e27fa30c24b3196850f8b1773e57d355f",
+      "bytes": 12456
     },
     "events/2005199N15256.geojson": {
       "sha256": "e741ed3dec121efba6c7c72ec8df4fcf8f61748362c53951b2d95eac0b200626",
@@ -4950,8 +4950,8 @@
       "bytes": 2929
     },
     "events/2006200N32287.geojson": {
-      "sha256": "47c01f55539bb533051fb436e54ffd05541bf9671d133794b7f7a0e5f0a8b407",
-      "bytes": 4427
+      "sha256": "314163245f24cd1f9cbf3fb60d65a0c8a282fa15e4288d17ae716a51455eba07",
+      "bytes": 4428
     },
     "events/2006203N12257.geojson": {
       "sha256": "a2071c5d2880d81d86407060760da995a9a1471697ff9157f46b044ee181be8a",
@@ -4998,8 +4998,8 @@
       "bytes": 15745
     },
     "events/2006254N20306.geojson": {
-      "sha256": "00a149cf031e912bc7260725fab0c717123f17e4e9668b319a1f9948227356db",
-      "bytes": 11864
+      "sha256": "33b1ad609c9c480d64290f5db59eb79e240e089062cb303325019ddebe073d94",
+      "bytes": 11860
     },
     "events/2006256N12338.geojson": {
       "sha256": "fcfa952c39d8eee75b055e29d8d97b471ec5df55d656d6c87b38071312493737",
@@ -5206,8 +5206,8 @@
       "bytes": 4417
     },
     "events/2008203N18276.geojson": {
-      "sha256": "a8c1627c0277bd7b1b04432f1379acb4699fb14bd50b89674664c5d91abbec23",
-      "bytes": 7494
+      "sha256": "ffbe910b960b1d923d7b9888aeb30db1fafa075f44e176293b9b9b377a9d9d81",
+      "bytes": 7491
     },
     "events/2008204N13260.geojson": {
       "sha256": "fc46a5d26f85b73e7b217ed51ce426bcc9fdf427ae2024885b4167e8140d4807",
@@ -5226,8 +5226,8 @@
       "bytes": 11493
     },
     "events/2008229N18293.geojson": {
-      "sha256": "bda16cf6d23b6c222b63de388b74460d87b4c7e000cf268a40591af3411a3c8c",
-      "bytes": 15029
+      "sha256": "98fb6c9dbeeaa9f67f2db0d5261c7281e87d1c57292cd02d4d5212abf78acfbb",
+      "bytes": 15030
     },
     "events/2008237N18253.geojson": {
       "sha256": "8c506198610c1057f5ded47bdcaa945c3008995b5074f135c3a52faa9fa9022d",
@@ -5290,7 +5290,7 @@
       "bytes": 8800
     },
     "events/2008289N15277.geojson": {
-      "sha256": "f0d7e0afcf24a67cb4b9a02d629b338b1234917c52c5b408348374197c604f31",
+      "sha256": "0eca71eb5519e465664dc00f8c7e49f6798443ae037b3c507e7136534d0a6139",
       "bytes": 1367
     },
     "events/2008297N12255.geojson": {
@@ -5382,7 +5382,7 @@
       "bytes": 11370
     },
     "events/2009245N17303.geojson": {
-      "sha256": "2a2219dd37aecab745a942ef322d0f7a55d06f087d36ab21757bbf0f160939e5",
+      "sha256": "92b8542e9751787708d3fc773617690ed850911ad5cdb909897e2e8750dd89f8",
       "bytes": 2606
     },
     "events/2009246N12250.geojson": {
@@ -5482,8 +5482,8 @@
       "bytes": 2604
     },
     "events/2010234N11329.geojson": {
-      "sha256": "444eb5f9ecbf17d5dcfb9c32574eaf88cc27e03a64ee708f0a039f80b6d890e4",
-      "bytes": 14339
+      "sha256": "ea366342be5cee2fa1682b237ad81f89d15638e15ec5cbbe5793d341a68fc4cd",
+      "bytes": 14337
     },
     "events/2010234N14267.geojson": {
       "sha256": "fa2fcb983a8b28931a13b290ebee192fd86e27129b355fb8c6d9767002c3d0bd",
@@ -5518,8 +5518,8 @@
       "bytes": 14583
     },
     "events/2010257N16282.geojson": {
-      "sha256": "1c8ce70772003cbaa8a6574d5ea0ac131e5a9eedd0c14744da66f32f4efee161",
-      "bytes": 5059
+      "sha256": "da79ff533c1d8383f5b9d857b91151f1ad7e610d7473230bc768df13c31538a0",
+      "bytes": 5058
     },
     "events/2010263N15328.geojson": {
       "sha256": "441c5ec93141b0e501fe1d8ce310918acd78e9ab61d517761b6566251b2a8ab3",
@@ -5546,8 +5546,8 @@
       "bytes": 5078
     },
     "events/2010293N17277.geojson": {
-      "sha256": "d90d6cb1a0bd7852347472979d2db23c024d2610e10897f8e86fa2348d7df488",
-      "bytes": 7797
+      "sha256": "acfea10a9a14eea9ddbc86501a83381461bbca9cf32bb41154f9e535b568d102",
+      "bytes": 7795
     },
     "events/2010302N09306.geojson": {
       "sha256": "9ef5d2a63ce4e1bf53ff72df7fa56240fb56458c047a479addeec03c34481966",
@@ -5646,8 +5646,8 @@
       "bytes": 5026
     },
     "events/2011250N12324.geojson": {
-      "sha256": "4e469fc389871b284ff2043c6b987ffe6d31aff91d497aa91fa410d5b8ae33c2",
-      "bytes": 11750
+      "sha256": "83dee075977fb86c7674c2da1d0fcdf8ce95a5012ed5aafe201ca2f68b8d066b",
+      "bytes": 11748
     },
     "events/2011250N20266.geojson": {
       "sha256": "dce696ec63f0daec83ac40af41f972cf391209a51588ab9c3d59a4120d99b6e1",
@@ -5982,8 +5982,8 @@
       "bytes": 11796
     },
     "events/2014180N32282.geojson": {
-      "sha256": "cb222c5e1cffc7fdc90c6c3bb23b926d2048c436696904e1de9c5d44a67c4863",
-      "bytes": 12066
+      "sha256": "3012e590f2ee1c4536a6d8afa12241b8b303224e05f80910456d24ff18bccb55",
+      "bytes": 12062
     },
     "events/2014181N17257.geojson": {
       "sha256": "b78cb10a7d39e80044156724b19d8972927a6b18fe085a198514fa0b61d76e4d",
@@ -6078,8 +6078,8 @@
       "bytes": 2280
     },
     "events/2014285N16305.geojson": {
-      "sha256": "d43e48b3359667fee7f6a62da7506980637ed3863b968ff81f00b6c0ea0b15ca",
-      "bytes": 10031
+      "sha256": "cffdf538d2805fc4b2c12cbeb90c6396d999ae922db7ad008183e689735114a3",
+      "bytes": 10029
     },
     "events/2014290N14261.geojson": {
       "sha256": "ce6a14012a764a16a5caccfa375716f7116a2ac89c56bdb9fa4bd8f41ccb2fb2",
@@ -6198,16 +6198,16 @@
       "bytes": 14618
     },
     "events/2015274N13201.geojson": {
-      "sha256": "2cc4bbf6ecb6e024d90c4ba57df37f46ab20521fde12ce1b0a97c1707f999a84",
-      "bytes": 467
+      "sha256": "b4a51e279c4d573330f15479a69a411eb78ac66cf0808a0353f76e86e35dc9f6",
+      "bytes": 465
     },
     "events/2015282N11230.geojson": {
       "sha256": "8d71c9363682d3b74b41c754f9fc881ce1bbcd3316684f14fed90769b6273834",
       "bytes": 1399
     },
     "events/2015288N10243.geojson": {
-      "sha256": "86e99abd226c61c7b2c2236a25a68249b1fe91fb47fdeb772712b8a856e6ef79",
-      "bytes": 8181
+      "sha256": "5d53e3e72e92e981027a2afc929ccb619cfc447176a51b7fa47cd6180bcc5081",
+      "bytes": 8171
     },
     "events/2015293N13266.geojson": {
       "sha256": "9a206162b9d0f2d258e2e40ec307b8e699309e329cd1572eb7c12c32941184cb",
@@ -6230,7 +6230,7 @@
       "bytes": 11484
     },
     "events/2016148N27288.geojson": {
-      "sha256": "1a00b27692d75db276cf323edb8dd9bafc91db044fef9d21bae78fb0564319ac",
+      "sha256": "01b64605dbead26f78d489ef6ddb1c362eeb290ba9606e44cd74f3aef7f81a8c",
       "bytes": 15939
     },
     "events/2016158N13261.geojson": {
@@ -6346,8 +6346,8 @@
       "bytes": 8118
     },
     "events/2016270N12223.geojson": {
-      "sha256": "56dac667016de726a322e95bbee47957625beaf769595865bf264e259790c279",
-      "bytes": 3249
+      "sha256": "0da3f69eb644a4527adc927604282804940704f65fa3437a8d97bddf7dd8aac0",
+      "bytes": 3248
     },
     "events/2016270N15240.geojson": {
       "sha256": "3871cf0025823d502c08422a4401e9ac91f28171fa1a0dcefc847758cd113903",
@@ -6642,7 +6642,7 @@
       "bytes": 10832
     },
     "events/2018265N08338.geojson": {
-      "sha256": "ad3a7bfbe5b3c9f572896ba06fc71d080865131471396823664dfaebaf3b6683",
+      "sha256": "4faae9401de5504161ffc272539cf042207ba9cc55a58715fbfa3444ecb5d9cc",
       "bytes": 7483
     },
     "events/2018265N13308.geojson": {
@@ -6746,8 +6746,8 @@
       "bytes": 6556
     },
     "events/2019236N10314.geojson": {
-      "sha256": "98223100cbc8d7482c3c9eda6f2594a6e67ea52d01b14ce6d1e09468cc581e1f",
-      "bytes": 18857
+      "sha256": "e54d864abdb81526e6a7893c4ebaeb3d5c8b44dcf8b90d08b5e5a6d7cad0725a",
+      "bytes": 18858
     },
     "events/2019239N32287.geojson": {
       "sha256": "2ef5e652f860eaa999542feb8d8d35e4b8eebee383a43a53f0ed6669fc7267cb",
@@ -6914,7 +6914,7 @@
       "bytes": 8731
     },
     "events/2020212N13340.geojson": {
-      "sha256": "fb2440c66621177758934ed5a2cb406e90680b7c2006f0689fede175b9069ff4",
+      "sha256": "9746991acfc62c90aec8b60d241bcc63c373b11c24db2df13ef58251ead522f9",
       "bytes": 1986
     },
     "events/2020221N13262.geojson": {
@@ -6974,8 +6974,8 @@
       "bytes": 7778
     },
     "events/2020251N17319.geojson": {
-      "sha256": "70062e1411d8830b9e442eeb6e21cfe0683f7b9ffd5ef810fd241a66e758da16",
-      "bytes": 23089
+      "sha256": "8e16bd9615bbf5fe1bc490fe4d6e6e7d39197309ed21d7d962038e2c861cf7bd",
+      "bytes": 23083
     },
     "events/2020256N11329.geojson": {
       "sha256": "6151e461bda3db3340b0e854bc040f29eff04d6f4c67861827ce7b83cf1b31db",
@@ -7090,8 +7090,8 @@
       "bytes": 766
     },
     "events/2021182N09317.geojson": {
-      "sha256": "05c0f3ab290e33e53251206088bb1f900938f05d94d2540358ad2059582ac16e",
-      "bytes": 11188
+      "sha256": "80fa7c050b234a0e72e89bd9ed34492b4ecc97ae3ad42be2d67579e63baeab79",
+      "bytes": 11189
     },
     "events/2021195N13249.geojson": {
       "sha256": "3117fd91791ddd27fefdbd211f4f4d6de56bcd5dd9af04186c242a9228b03876",
@@ -7194,7 +7194,7 @@
       "bytes": 5666
     },
     "events/2021283N14258.geojson": {
-      "sha256": "efbb9a03c9582668447c1726cdf64eae48ff8104a806937ff21a74a6259cc9a5",
+      "sha256": "5003862be4c6cd1ac87e7e51073c32bfa5f6f24c3872f2b920df658bbb8f5c78",
       "bytes": 3869
     },
     "events/2021296N13260.geojson": {
@@ -7302,8 +7302,8 @@
       "bytes": 8449
     },
     "events/2022266N12294.geojson": {
-      "sha256": "8bed437387d78fa7c0bfd47a1ae024154221c29402fc6b07bd29028b443ea074",
-      "bytes": 9943
+      "sha256": "ae30bcf6ad3d3ced9510f13deb16b6e6e78c0fd58f6c9104301f94d0fd71808b",
+      "bytes": 9944
     },
     "events/2022266N17341.geojson": {
       "sha256": "7ff957d4aeef11cc30ced59135910be14368eee9260f120ae9862b9a66c4d87b",
@@ -7358,8 +7358,8 @@
       "bytes": 6050
     },
     "events/2023173N10320.geojson": {
-      "sha256": "8519534e139a03e25da46661882c79e66d9c43782021895e94b257a44e8e9fc2",
-      "bytes": 5820
+      "sha256": "ba8146affda24704291414a85edeef1443aa337a4fe09c31c6a81520cce710a7",
+      "bytes": 5817
     },
     "events/2023179N15256.geojson": {
       "sha256": "5ffe45672668790d243a5246047ab731626c13a61eaef244f3f30c2da49aee48",
@@ -7406,8 +7406,8 @@
       "bytes": 8225
     },
     "events/2023232N13300.geojson": {
-      "sha256": "fdc1af5af87fe6ed57e604f9dc0ee4f1dac91c4a7c638da2beb24abc169818f1",
-      "bytes": 20833
+      "sha256": "c3599738235bdc6546bf57ecf4f336ed5689adb41a9c40bca039e6a2ee9fb389",
+      "bytes": 20831
     },
     "events/2023234N25271.geojson": {
       "sha256": "2e7e775e30649f2161b11cdb347ea4bdfd86f5b615ce46d2061f8b01e1533909",
@@ -7490,7 +7490,7 @@
       "bytes": 15307
     },
     "events/2023294N09264.geojson": {
-      "sha256": "94f59f3398b7f33fa28cc40625e931937231d84001f47649b0742671b5d6eba6",
+      "sha256": "4432a7cf30eb114dd5c7df1969d070fc5c404706d18870f0dab2d102947642a8",
       "bytes": 5426
     },
     "events/2023297N11277.geojson": {

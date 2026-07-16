@@ -46,6 +46,7 @@ function windTooltipLines(p) {
     lines.push(`dv24: ${sign}${p.dv24_kt} kt ${trendArrow(p.trend)}`);
   }
   if (p.ri_candidate) lines.push('RI candidate');
+  else if (p.ri_candidate === null) lines.push('RI undefined (no 24 h track partner)');
   return lines;
 }
 
@@ -160,10 +161,12 @@ export function clearChart() {
 function buildWindDataset(points, opts, mode = 'absolute', originMs = 0) {
   const windData = points.map((p) => ({ x: computeX(new Date(p.t).getTime(), mode, originMs), y: p.wind_kt }));
   const pointColors = points.map((p) => windColor(p.wind_kt));
-  const pointBorderColors = points.map((p) => (p.ri_candidate ? '#ffffff' : windColor(p.wind_kt)));
-  const pointBorderWidths = points.map((p) => (p.ri_candidate ? 2 : 1));
-  const pointRadii = points.map((p) => (p.ri_candidate ? 6 : 3));
-  const pointStyles = points.map((p) => (p.ri_candidate ? 'rectRot' : 'circle'));
+  // Tri-state ri_candidate: true / false / null (undefined label — shown
+  // as a gray triangle, distinct from both RI and non-RI points).
+  const pointBorderColors = points.map((p) => (p.ri_candidate ? '#ffffff' : p.ri_candidate === null ? '#9aa0a6' : windColor(p.wind_kt)));
+  const pointBorderWidths = points.map((p) => (p.ri_candidate || p.ri_candidate === null ? 2 : 1));
+  const pointRadii = points.map((p) => (p.ri_candidate ? 6 : p.ri_candidate === null ? 4 : 3));
+  const pointStyles = points.map((p) => (p.ri_candidate ? 'rectRot' : p.ri_candidate === null ? 'triangle' : 'circle'));
 
   return {
     label: opts.label,

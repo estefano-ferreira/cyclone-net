@@ -367,7 +367,12 @@ def build_events(
                 "dv6_kt": row["dv6_kt"],
                 "dv12_kt": row["dv12_kt_rounded"],
                 "dv24_kt": row["dv24_kt_rounded"],
-                "ri_candidate": bool(row["ri_label"] == 1),
+                # Tri-state: true (RI observed), false (no RI), null (label
+                # UNDEFINED under strict-temporal v2 semantics — no exact
+                # 24 h best-track partner). Coercing undefined to false
+                # would present a non-observation as an observation.
+                "ri_candidate": (None if pd.isna(row["ri_label"])
+                                 else bool(row["ri_label"] == 1)),
                 "trend": trend
             }
 
