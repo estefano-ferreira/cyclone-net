@@ -4,63 +4,63 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{booktabs}
 
-\title{\vspace{-1.2em}Supersession Note\\[0.3em]
-\large CycloneNet --- Zenodo record 10.5281/zenodo.18751255, version 3.0.0}
-\author{Estefano Senhor Ferreira}
+% Title = the record's citable identity (author decision 2026-07-16):
+% the tool, not the process. Matches CITATION.cff.
+
+\title{\vspace{-1.2em}CycloneNet: A Reproducible Pipeline and Leakage-Safe
+Two-Basin Dataset for Tropical-Cyclone Rapid-Intensification Analysis\\[0.3em]
+\large Project Status --- Zenodo record 10.5281/zenodo.18751255, version 3.0.0}
+\author{Estefano Senhor Ferreira \\
+        Senior Software Engineer, Independent Researcher \\
+        \texttt{estefano.senhor@gmail.com} \\
+        \url{https://github.com/estefano-ferreira/cyclone-net}
+}
 \date{2026-07-16}
 
 \begin{document}
 \maketitle
 \vspace{-1.5em}
 
-\noindent This note precedes the version~2.0.0 manuscript, which is kept
-below \emph{unmodified}, as the historical record of what was claimed. The
-central claims of that manuscript have since been tested; most were refuted
-or superseded. Read the manuscript through this note. Full audit trail:
-\texttt{ERRATA.md}, \texttt{BENCHMARK.md}, and
-\texttt{docs/hypothesis\_registry.md} in the project repository
+\noindent This document states what the project is today (\S1--\S2) and
+records, in full, the claims of version~2.0.0 that were refuted or
+superseded (\S3). The version~2.0.0 manuscript follows below,
+\emph{unmodified}, as the historical record of what was claimed --- read
+it through \S3. Full audit trail: \texttt{ERRATA.md},
+\texttt{BENCHMARK.md}, and \texttt{docs/hypothesis\_registry.md} in the
+project repository
 (\url{https://github.com/estefano-ferreira/cyclone-net}).
 
-\section*{1. What version 2.0.0 claimed, and what testing found}
+\section*{1. What this project is}
 
-\textbf{Energy-source localization (FuelMap).} Version~2.0.0 stated that
-external spatial validation against TCHP/OHC ``remains future work.'' It
-was executed and returned negative, from three independent angles:
-(i)~\emph{static TCHP validation} ($n=226$ eligible test events): the
-FuelMap peak beats a random-point null ($p=0.0003$) but does \emph{not}
-locate the TCHP peak better than a naive storm-centre baseline --- median
-539~km vs.\ 561~km, closer in only 46\% of events ($p=0.30$, sign-flip
-permutation); (ii)~a \emph{dynamic displacement test} against a control;
-(iii)~a \emph{physics-prior control}: the pure enthalpy-flux prior, with no
-learned weights, reproduces the dynamic behavior --- it is arithmetic of
-the prior, not learned skill. The localization claim is unsupported, not
-pending. A counterfactual occlusion test shows the RI prediction depends
-on the identified region, which demonstrates \emph{model-internal}
-dependence only.
+A two-basin (East Pacific + North Atlantic), 1980--2023, hurricane-season,
+leakage-safe tropical-cyclone rapid-intensification (RI) dataset, with an
+auditable construction pipeline:
 
-\textbf{Headline metrics.} The reported ROC-AUC~0.83 / recall~0.905 on
-2{,}193 samples (211 RI positives) were never reproducible from the public
-artifacts and are superseded; do not cite them. The reproducible numbers,
-from the released 1980--2023 dataset, are: ROC-AUC~0.796
-[95\%~CI 0.753--0.837], PR-AUC~0.251 [0.179--0.331], recall~0.852, on a
-frozen test split of 2{,}679 events (115 RI positives, v1 labels; see
-\S3). These are the metrics of a model that has since been retired (\S2);
-they stand as historical record, not as a reference model.
+\begin{itemize}
+  \item \textbf{Population:} 16{,}780 events from 992 storms --- 799 RI
+  positives, 15{,}962 negatives, and 19 events whose label is undefined
+  (NULL) under the corrected strict-temporal labeling (dataset~v2; the
+  v1$\to$v2 per-row provenance ships with the dataset).
+  \item \textbf{Reproducible labeling:} the labeling chain is
+  byte-reproducible from the raw IBTrACS source (32{,}989/32{,}989 rows,
+  every label identical on reconstruction).
+  \item \textbf{Leakage-safe splits:} storm-level, hash-deterministic,
+  with a frozen benchmark override map; no storm crosses splits.
+  \item \textbf{Lifecycle provenance:} raw ERA5 was processed in windows
+  (download $\to$ extract $\to$ verify $\to$ discard), each with a
+  SHA-256-checksummed provenance manifest; repairs to stored artifacts
+  (basin metadata, label correction) carry their own manifests.
+  \item \textbf{Pre-registration:} the modeling claims were subjected to a
+  pre-registered campaign with four verdicts, each confidence interval
+  read once (\S2).
+  \item \textbf{No reference model:} the retired CNN's frozen test
+  metrics are historical record; the tabular baseline was evaluated on
+  development folds only and never on the frozen test set.
+  \item \textbf{Licensing:} dual --- code under MIT, dataset under
+  CC~BY~4.0 (mandatory Copernicus/ERA5 and IBTrACS attributions).
+\end{itemize}
 
-\textbf{``Physics-guided.''} The label was retired on 2026-07-16. The only
-equation-consistency term in the released code is disabled
-($\lambda_{\mathrm{consistency}}=0$) and documented as near-degenerate; the
-remaining terms are weak supervision toward a heuristic prior whose
-semantics were refuted (hypothesis H1). There are no conservation laws or
-imposed dynamics. Class and module names in the code retain the historical
-identifiers because the released checkpoint references them.
-
-\textbf{``Atmospheric Singularity Mapping.''} Removed as an overstatement
-(\texttt{ERRATA.md}, item~5). A literature check found the components and
-the forensic framing established, not novel; the contribution of this
-project is engineering and reproducibility, not a discovery.
-
-\section*{2. Pre-registered campaign verdicts (2026-07-16)}
+\section*{2. The pre-registered campaign (2026-07-16)}
 
 All hypotheses were registered with decision rules before any result was
 read; each confidence interval was read once, and the reports are
@@ -99,23 +99,52 @@ claim; (ii)~per the scope guard, none of this establishes whether spatial
 structure in the fields carries RI information --- only that this CNN did
 not extract it.
 
-\section*{3. What this project is now}
+\section*{3. Correction record: what version 2.0.0 claimed, and what testing found}
 
-A two-basin (East Pacific + North Atlantic), 1980--2023,
-hurricane-season, leakage-safe tropical-cyclone RI dataset: 16{,}780
-events from 992 storms --- 799 RI positives, 15{,}962 negatives, and 19
-events whose label is undefined (NULL) under the corrected
-strict-temporal labeling (dataset~v2; the v1$\to$v2 per-row provenance
-ships with the dataset). The labeling
-chain is byte-reproducible from the raw IBTrACS source, and splits are
-storm-level and hash-deterministic with a frozen benchmark map. The
-project designates \emph{no} reference model: the retired CNN's frozen
-test metrics are historical record; the tabular baseline was evaluated on
-development folds only and never on the frozen test set. Licensing is
-dual: code under MIT, dataset under CC~BY~4.0 (with mandatory
-Copernicus/ERA5 and IBTrACS attributions).
+\textbf{Energy-source localization (FuelMap): REFUTED, not pending.}
+Version~2.0.0 stated that external spatial validation against TCHP/OHC
+``remains future work.'' It was executed and returned negative, from
+three independent angles: (i)~\emph{static TCHP validation} ($n=226$
+eligible test events): the FuelMap peak beats a random-point null
+($p=0.0003$) but does \emph{not} locate the TCHP peak better than a naive
+storm-centre baseline --- median 539~km vs.\ 561~km, closer in only 46\%
+of events ($p=0.30$, sign-flip permutation); (ii)~a \emph{dynamic
+displacement test} against a control; (iii)~a \emph{physics-prior
+control}: the pure enthalpy-flux prior, with no learned weights,
+reproduces the dynamic behavior --- it is arithmetic of the prior, not
+learned skill. A counterfactual occlusion test shows the RI prediction
+depends on the identified region, which demonstrates
+\emph{model-internal} dependence only.
 
-\section*{Provenance of this note}
+\textbf{Headline metrics: SUPERSEDED --- do not cite.} The reported
+ROC-AUC~0.83 / recall~0.905 on 2{,}193 samples (211 RI positives) were
+never reproducible from the public artifacts. The reproducible numbers,
+from the released 1980--2023 dataset, are: ROC-AUC~0.796
+[95\%~CI 0.753--0.837], PR-AUC~0.251 [0.179--0.331], recall~0.852, on a
+frozen test split of 2{,}679 events (115 RI positives, v1 labels; see
+\S1 for the v2 label correction). These are the metrics of a model that
+has since been retired (\S2); they stand as historical record, not as a
+reference model.
+
+\textbf{``Physics-guided'': label RETIRED (2026-07-16).} The only
+equation-consistency term in the released code is disabled
+($\lambda_{\mathrm{consistency}}=0$) and documented as near-degenerate;
+the remaining terms are weak supervision toward a heuristic prior whose
+semantics were refuted (hypothesis H1). There are no conservation laws or
+imposed dynamics. Class and module names in the code retain the
+historical identifiers because the released checkpoint references them.
+
+\textbf{``Atmospheric Singularity Mapping'': REMOVED as an overstatement}
+(\texttt{ERRATA.md}, item~5). A literature check found the components and
+the forensic framing established, not novel; the contribution of this
+project is engineering and reproducibility, not a discovery.
+
+\textbf{The CNN: RETIRED} by the pre-registered verdict H9/V2 (\S2).
+
+The version~2.0.0 manuscript remains attached below without
+modification, as the record of what was claimed.
+
+\section*{4. Provenance of this document}
 
 This project began as a software engineer's attempt to apply
 critical-systems engineering discipline to a geophysical hypothesis. The

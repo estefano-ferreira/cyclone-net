@@ -3,16 +3,15 @@
 DRAFT FOR AUTHOR REVIEW — 2026-07-16. Slots marked ⟦…⟧ wait for the
 dataset DOI.
 
-## Title — DECIDED (author, 2026-07-16): option A
+## Title — DECIDED (author, 2026-07-16, final revision):
 
-- **A (CHOSEN — matches CITATION.cff; one public name everywhere):**
-  CycloneNet: A Reproducible Pipeline for Forensic Rapid-Intensification
-  Analysis — and an Honest Audit of What It Can and Cannot Do
-- **B:** CycloneNet v3: Pre-Registered Negative Results and a Leakage-Safe
-  Two-Basin Dataset for Tropical-Cyclone Rapid Intensification
-- **C:** CycloneNet: An Auditable Pipeline and Dataset for Retrospective
-  Tropical-Cyclone Rapid-Intensification Analysis, with Pre-Registered
-  Negative Results
+> **CycloneNet: A Reproducible Pipeline and Leakage-Safe Two-Basin Dataset
+> for Tropical-Cyclone Rapid-Intensification Analysis**
+
+(Names what the tool IS — pipeline + dataset, both adjectives verified
+properties. Matches CITATION.cff / docs/CITATION.md — one public name.
+The earlier "…Honest Audit…" variant was retired before any public use;
+the audit framing lives in the abstract/description, not the title.)
 
 ## Description (rewrite — replaces the v2 text in full)
 

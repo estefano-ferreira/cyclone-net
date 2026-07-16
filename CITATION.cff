@@ -1,8 +1,8 @@
 cff-version: 1.2.0
 message: "If you use CycloneNet in your research, please cite it as below."
 title: >-
-  CycloneNet: A Reproducible Pipeline for Forensic Rapid-Intensification
-  Analysis — and an Honest Audit of What It Can and Cannot Do
+  CycloneNet: A Reproducible Pipeline and Leakage-Safe Two-Basin Dataset
+  for Tropical-Cyclone Rapid-Intensification Analysis
 type: software
 authors:
   - family-names: Senhor Ferreira
