@@ -312,7 +312,9 @@ def month_file(raw_dir: Path, dt: datetime) -> Path:
 
 
 def load_event_list(event_list_path: Path) -> pd.DataFrame:
-    df = pd.read_csv(event_list_path)
+    # keep_default_na=False: the basin code "NA" (North Atlantic) must survive;
+    # empty fields (pandas' NaN representation on write) still map to NaN.
+    df = pd.read_csv(event_list_path, keep_default_na=False, na_values=[""])
     if "timestamp" in df.columns:
         df["dt"] = pd.to_datetime(df["timestamp"], errors="coerce")
     elif "datetime" in df.columns:

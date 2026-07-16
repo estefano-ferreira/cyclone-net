@@ -11,9 +11,9 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-16 ~10:40 (H6 CLOSED: NULL; H9 CLOSED: V1
-NEGATIVE / V2 NULL; H8 CANCELLED; "physics-guided" label RETIRED; src/
-freeze LIFTED; basin repair = critical path)._
+_Last updated: 2026-07-16 ~13:15 (H6 NULL; H9 V1 NEG / V2 NULL; H8
+CANCELLED; label RETIRED; freeze LIFTED; **basin REPAIRED** — parser fix
++ rebuild + 12,708 JSONs, audit-exact verification)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
@@ -73,12 +73,24 @@ frozen test-set metrics as historical record, or whether the tabular
 baseline becomes the reported model. This changes what the released
 benchmark ships."
 
+**basin metadata REPAIRED (2026-07-16, same session):** parser fixed at
+the origin (`ibtracs.py` + 3 event-list readers, `keep_default_na=False`;
+tests in `tests/test_ibtracs_basin.py`), event list rebuilt (32,989 rows —
+identical except basin: ""→"NA" ×16,602), 12,708 interim JSONs repaired
+surgically (`analysis/repair_basin_metadata.py`; raw ERA5 discarded by
+design, pipeline regeneration impossible). Verification matches the 15/07
+audit EXACTLY (per-point 8,888/7,892/16,780; genesis 578/414/992; same 6
+crossers); `valid_events.csv`/`splits.csv` byte-identical. Manifest:
+`outputs/provenance/basin_metadata_repair_20260716T130158Z.json`.
+ERRATA item 7 updated to REPAIRED. Released artifacts keep the old label
+(historical record; next re-release).
+
 Next steps:
-1. **basin metadata REPAIR is now the critical path** (unblocked by the
-   freeze lift; gates T5/benchmark release and the coauthor-contact gate).
-2. "physics-guided" relabel pass (inventory in §4; coordinate with the
-   basin-repair retrain/re-release so public artifacts change once).
-3. V3: tabular reference vs historical CNN record (open item above).
+1. "physics-guided" relabel pass (inventory in §4; coordinate with the
+   next re-release so public artifacts change once).
+2. V3: tabular reference vs historical CNN record (open item above).
+3. T5 benchmark release + coauthor gate: basin repair no longer blocks;
+   remaining gate items are the H-verdicts (done) and the V3 skeleton.
 
 **H9 executed 15/07** (run `20260715T123221Z`, commits `d6cc930` fix +
 `143756f` results; 3rd dated pre-reg amendment: median imputation for the
@@ -154,10 +166,9 @@ record; not to be run.
      report `compare_20260716T121803Z.json`.
    - **H8 CANCELLED 16/07** (see §1; registry has the verbatim record).
    - Local TODO/context: `.claude/TODO_recomendacoes.md`.
-   - **`basin` metadata REPAIR — CRITICAL PATH (unblocked 16/07):**
-     fix `ibtracs.py:120` + rebuild or SID→basin repair map. Still gates
-     T5/benchmark release and the coauthor gate. Public relabel already
-     done (ERRATA item 7).
+   - **`basin` metadata — REPAIRED 16/07** (see §1; ERRATA item 7 updated;
+     manifest `basin_metadata_repair_20260716T130158Z.json`). No longer
+     gates T5.
    - **"physics-guided" RELABEL (new 16/07, label retired — see §1):**
      inventory of occurrences (16/07): README.md (§structure/§losses/
      §preprocessing), MANUSCRIPT_honest.md (title + 7 mentions),

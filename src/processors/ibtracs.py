@@ -94,9 +94,9 @@ def build_event_list(
     out_csv
         Destination path for the standardized event list.
     basin_filter
-        Optional substring filter for basin names/codes. NOTE: pandas parses
-        the literal string "NA" (North Atlantic) as a missing value when
-        reading IBTrACS, so prefer ``bbox`` for Atlantic selection.
+        Optional substring filter for basin names/codes. NOTE: fixed 2026-07-16
+        -- the file is now read with keep_default_na=False so the literal
+        basin code 'NA' (North Atlantic) survives parsing.
     min_wind_kt
         Optional minimum best-track wind threshold in knots.
     year_range
@@ -117,7 +117,14 @@ def build_event_list(
     out_csv = Path(out_csv)
 
     logger.info("Reading IBTrACS file: %s", ibtracs_csv)
-    df = pd.read_csv(ibtracs_csv, low_memory=False)
+    # IBTrACS uses 'NA' as the North Atlantic basin code; pandas' default
+    # na_values converts it to NaN. Any future read of IBTrACS MUST pass
+    # keep_default_na=False. SUBBASIN has the same collision (96,909 rows)
+    # and is not currently consumed -- same rule applies if it ever is.
+    # IBTrACS encodes missing fields as a single space (verified 2026-07-16);
+    # numeric columns below go through pd.to_numeric(errors="coerce"), which
+    # is unaffected by this change.
+    df = pd.read_csv(ibtracs_csv, low_memory=False, keep_default_na=False, na_values=[" "])
 
     # ------------------------------------------------------------------
     # Resolve source columns (IBTrACS naming can vary across releases)

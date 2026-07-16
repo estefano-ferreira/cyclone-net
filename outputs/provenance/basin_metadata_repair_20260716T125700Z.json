@@ -1,0 +1,130 @@
+{
+  "timestamp_utc": "20260716T125700Z",
+  "dry_run": true,
+  "regression_ok": true,
+  "regression_detail": "Basin transitions:\n  '' -> 'NA': 16602\n  'EP' -> 'EP': 16387",
+  "args": {
+    "event_list": "data/event_list_augmented.csv",
+    "old_event_list": "<outside-repo>/event_list_augmented_PREFIX_backup.csv",
+    "interim_dir": "data/interim",
+    "valid_events": "data/normalized/valid_events.csv",
+    "provenance_dir": "outputs/provenance",
+    "execute": false
+  },
+  "summary": {
+    "jsons_scanned": 26954,
+    "jsons_unchanged": 14246,
+    "jsons_updated": 12708,
+    "jsons_unmatched": 0,
+    "jsons_stem_mismatch": 0,
+    "unmatched_examples": []
+  },
+  "repairs_by_transition": {
+    "'' -> 'NA'": 12708
+  },
+  "basin_distribution_before": {
+    "EP": 14246,
+    "": 12708
+  },
+  "basin_distribution_after": {
+    "EP": 14246,
+    "NA": 12708
+  },
+  "valid_event_basin_before": {
+    "EP": 8888,
+    "": 7892
+  },
+  "valid_event_basin_after": {
+    "EP": 8888,
+    "NA": 7892
+  },
+  "genesis_basin_count": {
+    "EP": 578,
+    "NA": 414
+  },
+  "multibasin_storm_count": 6,
+  "multibasin_storms": [
+    {
+      "sid": "1988285N09318",
+      "name": "JOAN:MIRIAM",
+      "basins": [
+        "EP",
+        "NA"
+      ],
+      "event_count": 88
+    },
+    {
+      "sid": "2022179N08310",
+      "name": "BONNIE",
+      "basins": [
+        "EP",
+        "NA"
+      ],
+      "event_count": 50
+    },
+    {
+      "sid": "1993258N11279",
+      "name": "GERT",
+      "basins": [
+        "EP",
+        "NA"
+      ],
+      "event_count": 42
+    },
+    {
+      "sid": "2016323N13279",
+      "name": "OTTO",
+      "basins": [
+        "EP",
+        "NA"
+      ],
+      "event_count": 32
+    },
+    {
+      "sid": "1988245N20269",
+      "name": "DEBBY",
+      "basins": [
+        "EP",
+        "NA"
+      ],
+      "event_count": 29
+    },
+    {
+      "sid": "2010247N15266",
+      "name": "HERMINE",
+      "basins": [
+        "EP",
+        "NA"
+      ],
+      "event_count": 22
+    }
+  ],
+  "expected_checks": {
+    "valid_events_per_point": {
+      "expected": {
+        "EP": 8888,
+        "NA": 7892,
+        "total": 16780
+      },
+      "obtained": {
+        "EP": 8888,
+        "NA": 7892,
+        "total": 16780
+      },
+      "match": true
+    },
+    "valid_storms_genesis": {
+      "expected": {
+        "EP": 578,
+        "NA": 414,
+        "total": 992
+      },
+      "obtained": {
+        "EP": 578,
+        "NA": 414,
+        "total": 992
+      },
+      "match": true
+    }
+  }
+}
