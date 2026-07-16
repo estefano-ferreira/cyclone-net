@@ -99,12 +99,14 @@ export function renderTrack(map, geojson, slot = 'A', options = {}) {
 
     const color = windColor(p.wind_kt);
 
+    // Tri-state ri_candidate: true / false / null (undefined label).
+    const riUndefined = p.ri_candidate === null;
     const marker = L.circleMarker([lat, lon], {
       radius: BASE_RADIUS,
-      color: p.ri_candidate ? '#ffffff' : color,
-      weight: p.ri_candidate ? 2 : 1,
+      color: p.ri_candidate ? '#ffffff' : riUndefined ? '#9aa0a6' : color,
+      weight: p.ri_candidate || riUndefined ? 2 : 1,
       fillColor: color,
-      fillOpacity: 0.9
+      fillOpacity: riUndefined ? 0.6 : 0.9
     });
 
     const dvSign = p.dv24_kt !== null && p.dv24_kt !== undefined && p.dv24_kt > 0 ? '+' : '';
@@ -116,7 +118,8 @@ export function renderTrack(map, geojson, slot = 'A', options = {}) {
       `<div>Wind: ${fmtNum(p.wind_kt, ' kt')}</div>` +
       `<div>Pressure: ${fmtNum(p.pressure_mb, ' mb')}</div>` +
       `<div>dv24: ${p.dv24_kt !== null && p.dv24_kt !== undefined ? dvSign + p.dv24_kt + ' kt' : '—'} ${trendArrow(p.trend)}</div>` +
-      (p.ri_candidate ? `<div class="cn-tooltip-ri">RI candidate</div>` : '') +
+      (p.ri_candidate ? `<div class="cn-tooltip-ri">RI candidate</div>` :
+        riUndefined ? `<div class="cn-tooltip-ri">RI undefined (no 24 h track partner)</div>` : '') +
       `</div>`;
 
     marker.bindTooltip(tooltipHtml, { direction: 'top', offset: [0, -6], className: 'cn-leaflet-tooltip' });
