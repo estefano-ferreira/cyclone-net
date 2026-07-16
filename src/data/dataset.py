@@ -130,15 +130,43 @@ class PhysicsDataset(Dataset):
             raise FileNotFoundError(
                 f"Normalization stats not found: {self.stats_path}. Run: python run.py normalize")
 
-        df = pd.read_csv(self.splits_csv)
+        df = pd.read_csv(self.splits_csv, keep_default_na=False, na_values=[""])
         if "event_id" not in df.columns or "split" not in df.columns:
             raise ValueError(
                 "splits_csv must contain columns: event_id, split")
         df = df[df["split"] == split].copy()
-        self.event_ids: List[str] = df["event_id"].astype(str).tolist()
+
+        # Filter out events with NULL ri_label (undefined labels are not for RI classification).
+        # Load ri_label from each sidecar JSON to check for NULL.
+        valid_event_ids = []
+        null_count = 0
+        for eid in df["event_id"].astype(str).tolist():
+            meta_path = self.interim_dir / f"{eid}.json"
+            if meta_path.exists():
+                try:
+                    meta = _load_json(meta_path)
+                    ri_label = meta.get("ri_label", None)
+                    # ri_label is None/null if undefined; exclude from training
+                    if ri_label is not None:
+                        valid_event_ids.append(eid)
+                    else:
+                        null_count += 1
+                except Exception:
+                    # If we can't read the sidecar, include anyway (data issue, not RI task issue)
+                    valid_event_ids.append(eid)
+            else:
+                # Sidecar doesn't exist yet; include for now (will fail at load time)
+                valid_event_ids.append(eid)
+
+        self.event_ids: List[str] = valid_event_ids
+        if null_count > 0:
+            logger.info(
+                f"Excluded {null_count} events with NULL ri_label from split '{split}' "
+                f"(RI classification task requires defined labels)")
+
         if not self.event_ids:
             raise RuntimeError(
-                f"No events for split '{split}' in {self.splits_csv}")
+                f"No valid RI events for split '{split}' in {self.splits_csv}")
 
         # Input channel names
         input_names = cfg_get(cfg, "model.input_channels_names", None)
@@ -242,8 +270,14 @@ class PhysicsDataset(Dataset):
             x = torch.cat([x, a_t], dim=0)  # (C+1, T, H, W)
 
         # Targets
-        y = torch.tensor(float(int(meta.get("ri_label", 0))),
-                         dtype=torch.float32)
+        # ri_label must be defined; NULL labels should have been filtered at __init__.
+        ri_label_raw = meta.get("ri_label", None)
+        if ri_label_raw is None:
+            raise ValueError(
+                f"Event {eid} has NULL ri_label. This should have been filtered at "
+                f"index construction time. Check that NULL events are excluded by the "
+                f"dataset filter in __init__.")
+        y = torch.tensor(float(int(ri_label_raw)), dtype=torch.float32)
 
         dv12_val = _safe_float(meta.get("dv12_kt"))
         dv24_val = _safe_float(meta.get("dv24_kt"))

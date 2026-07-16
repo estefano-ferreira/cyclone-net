@@ -216,9 +216,14 @@ def _recompute_pipeline_event_list(cfg: Dict[str, Any], raw_ibtracs_path: Path) 
     """Independent re-implementation of build_event_list() + label_ri()/add_wind_deltas().
 
     Mirrors src/processors/ibtracs.py::build_event_list and
-    src/processors/ri_labeling.py exactly (row filtering + positional shift),
-    reading the RAW IBTrACS csv directly rather than importing the pipeline's
-    own functions, so this is a genuine double-implementation check.
+    src/processors/ri_labeling.py with STRICT-TEMPORAL semantics (v2 corrected):
+    - Partner = exact temporal match at t0+24h, same SID
+    - dv24_kt = NULL when no exact partner
+    - Reading the RAW IBTrACS csv directly rather than importing the pipeline's
+      own functions, so this is a genuine double-implementation check.
+
+    NOTE: pre-2026-07 event lists used positional labeling; audit of historical v1
+    artifacts requires diff-manifest to be produced by the patch script (§4).
     """
     cols = ["SID", "ISO_TIME", "LAT", "LON", "USA_WIND"]
     raw = pd.read_csv(raw_ibtracs_path, usecols=cols, keep_default_na=False, low_memory=False)
@@ -237,9 +242,7 @@ def _recompute_pipeline_event_list(cfg: Dict[str, Any], raw_ibtracs_path: Path) 
     # Mirror: out.dropna(subset=["timestamp", "lat", "lon", "wind_kt"])
     out = out.dropna(subset=["timestamp", "lat", "lon", "wind_kt"]).copy()
 
-    # Mirror: hour in {0, 6, 12, 18} (note: only .dt.hour is checked, NOT
-    # minute — this is the ERRATA item 6 root cause: HH:30 landfall rows
-    # with hour in {0,6,12,18} are NOT excluded by this filter).
+    # Mirror: hour in {0, 6, 12, 18}
     out["hour"] = out["timestamp"].dt.hour
     out = out[out["hour"].isin([0, 6, 12, 18])].copy()
     out = out.drop(columns=["hour"])
@@ -262,21 +265,34 @@ def _recompute_pipeline_event_list(cfg: Dict[str, Any], raw_ibtracs_path: Path) 
 
     out = out.sort_values(["sid", "timestamp"]).reset_index(drop=True)
 
-    # Mirror: add_wind_deltas + label_ri — POSITIONAL 4-row shift (24h at 6h
-    # cadence), computed over the filtered+sorted per-sid sequence above.
-    out["wind_kt_shift_24"] = out.groupby("sid")["wind_kt"].shift(-4)
-    out["timestamp_shift_24"] = out.groupby("sid")["timestamp"].shift(-4)
-    out["dv24_kt_recomputed"] = out["wind_kt_shift_24"] - out["wind_kt"]
+    # Strict-temporal semantics: find exact temporal partner at t0+24h.
+    # Build lookup: (sid, timestamp) -> wind_kt.
+    partners = out[["sid", "timestamp", "wind_kt"]].drop_duplicates(["sid", "timestamp"])
+
+    # For dv24: find wind at t0+24h (partner 24h in the PAST).
+    p24 = partners.assign(t_partner=partners["timestamp"] - pd.Timedelta(hours=24))
+    p24 = p24.rename(columns={"wind_kt": "wind_partner_24"})[["sid", "t_partner", "wind_partner_24"]]
+    out = out.merge(
+        p24,
+        left_on=["sid", "timestamp"],
+        right_on=["sid", "t_partner"],
+        how="left",
+    ).drop(columns=["t_partner"])
+
+    # dv24_kt: partner_wind - current_wind, NULL if no partner or wind missing.
+    out["dv24_kt_recomputed"] = out["wind_partner_24"] - out["wind_kt"]
+    out = out.drop(columns=["wind_partner_24"])
+
+    # ri_label: NULL when dv24 is undefined, else 1 if >= threshold, 0 otherwise.
     ri_threshold = float(cfg_get(cfg, "labels.ri_threshold_kt_24h", 30.0))
-    out["ri_label_recomputed"] = (out["dv24_kt_recomputed"] >= ri_threshold).astype("Int64")
+    out["ri_label_recomputed"] = pd.NA
+    mask_defined = out["dv24_kt_recomputed"].notna()
+    out.loc[mask_defined & (out["dv24_kt_recomputed"] >= ri_threshold), "ri_label_recomputed"] = 1
+    out.loc[mask_defined & (out["dv24_kt_recomputed"] < ri_threshold), "ri_label_recomputed"] = 0
+    out["ri_label_recomputed"] = out["ri_label_recomputed"].astype("Int64")
 
-    # Mirror: dropna(subset=["dv12_kt", "dv24_kt"]) — here only dv24 is
-    # computed, so drop rows lacking a future target.
-    out = out.dropna(subset=["dv24_kt_recomputed"]).copy()
-
-    # Canonical-vs-positional divergence: exact 24h gap check.
-    out["gap_hours"] = (out["timestamp_shift_24"] - out["timestamp"]).dt.total_seconds() / 3600.0
-    out["canonical_exact_24h"] = np.isclose(out["gap_hours"], 24.0)
+    # Track exact-temporal-partner info for comparison.
+    out["canonical_exact_24h"] = out["dv24_kt_recomputed"].notna()
 
     return out
 
@@ -301,7 +317,7 @@ def check_label_integrity(cfg: Dict[str, Any], paths: Dict[str, Path]) -> Dict[s
     merged = pd.merge(
         pipeline_df[["sid", "timestamp", "wind_kt", "dv24_kt", "ri_label"]],
         recomputed_df[["sid", "timestamp", "wind_kt", "dv24_kt_recomputed", "ri_label_recomputed",
-                        "canonical_exact_24h", "gap_hours"]],
+                        "canonical_exact_24h"]],
         on=["sid", "timestamp"],
         how="inner",
         suffixes=("_pipeline", "_recomputed"),
@@ -317,7 +333,12 @@ def check_label_integrity(cfg: Dict[str, Any], paths: Dict[str, Path]) -> Dict[s
                                                 "raw-IBTrACS recompute — join key or filtering logic diverged"}}
 
     # Full-population comparison under the PIPELINE convention.
-    label_mismatch_full = merged["ri_label"].astype(int) != merged["ri_label_recomputed"].astype(int)
+    # NA-safe: both labels are nullable Int64 post-v2 (NA == NA counts as match;
+    # .astype(int) would raise on NA).
+    lab_p = merged["ri_label"].astype("Int64")
+    lab_r = merged["ri_label_recomputed"].astype("Int64")
+    label_mismatch_full = ~((lab_p.isna() & lab_r.isna())
+                            | (lab_p.notna() & lab_r.notna() & (lab_p == lab_r)))
     n_full_mismatch = int(label_mismatch_full.sum())
     evidence["full_population_pipeline_convention"] = {
         "n_compared": int(len(merged)),
@@ -378,12 +399,12 @@ def check_label_integrity(cfg: Dict[str, Any], paths: Dict[str, Path]) -> Dict[s
     # required strict t+24h (i.e. dropped them as "no valid canonical target")?
     non_exact = sample[~sample["canonical_exact_24h"]]
     evidence["canonical_temporal_divergence"] = {
-        "definition": "fraction of sampled rows where timestamp[i+4] - timestamp[i] != 24h exactly "
-                       "(non-synoptic HH:30 rows slipping through the hour-only filter; ERRATA item 6)",
+        "definition": "fraction of sampled rows with NO exact same-SID partner at t0+24h "
+                       "(strict-temporal v2 semantics; these rows carry NULL labels)",
         "n_sample": int(len(sample)),
         "n_non_exact_24h_gap": n_non_exact_24h,
         "pct_non_exact_24h_gap": (n_non_exact_24h / len(sample)) if len(sample) else None,
-        "examples": non_exact[["sid", "timestamp", "gap_hours"]].astype(str).head(10).to_dict("records"),
+        "examples": non_exact[["sid", "timestamp"]].astype(str).head(10).to_dict("records"),
     }
 
     status = "PASS" if n_sample_mismatch == 0 and n_full_mismatch == 0 else "FAIL"

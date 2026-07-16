@@ -709,7 +709,7 @@ def compare_cnn(cnn_run_dirs: Sequence[Path], tabular_run_dir: Path,
                    "the CNN is not currently justified over a classical baseline.")
     else:
         verdict = (f"NULL — no detectable CNN advantage over the tabular baseline "
-                   f"(CI [{ci_low:.4f}, {ci_high:.4f}] ∋ 0).")
+                   f"(CI [{ci_low:.4f}, {ci_high:.4f}] includes 0).")
 
     # V2 verdict — architecture justification: CNN vs field-aggregates arm (F),
     # co-primary per the amended pre-registration. Scope guard: a null/negative
@@ -729,7 +729,7 @@ def compare_cnn(cnn_run_dirs: Sequence[Path], tabular_run_dir: Path,
                       "— pre-registered consequence: architecture retired/redesigned.")
     else:
         verdict_v2 = (f"NULL — full grids give this CNN nothing detectable beyond "
-                      f"aggregates (CI [{ci2_low:.4f}, {ci2_high:.4f}] ∋ 0) — pre-registered "
+                      f"aggregates (CI [{ci2_low:.4f}, {ci2_high:.4f}] includes 0) — pre-registered "
                       "consequence: architecture not justified in current form.")
 
     # Pre-registered discipline: fewer than 3 seeds has NO verdict value.

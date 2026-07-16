@@ -1,0 +1,92 @@
+{
+  "method": "cross_seed_mean_delta_pr_auc__cluster_bootstrap_by_sid",
+  "primary_comparison": {
+    "cnn": "CNN arm A_current (full-resolution spatial fields; intensity-blind)",
+    "tabular": "gbm_state_plus_fields (GBM; primary pre-registered baseline)",
+    "note": "decomposition arms (state_only / fields_only) are descriptive: SF-S isolates field information, CNN-F isolates spatial structure beyond aggregates."
+  },
+  "n_seeds": 3,
+  "common_seeds": [
+    42,
+    123,
+    456
+  ],
+  "per_seed_absolute": {
+    "42": {
+      "cnn_pr_auc": 0.16163561967748796,
+      "cnn_roc_auc": 0.7860358586013135,
+      "gbm_state_plus_fields_pr_auc": 0.2408961903731211,
+      "gbm_state_only_pr_auc": 0.19111064552141427,
+      "gbm_fields_only_pr_auc": 0.16889494099016264,
+      "logit_state_plus_fields_pr_auc": 0.2013197591455608
+    },
+    "123": {
+      "cnn_pr_auc": 0.17245729650608962,
+      "cnn_roc_auc": 0.7941823148987925,
+      "gbm_state_plus_fields_pr_auc": 0.24462253849250856,
+      "gbm_state_only_pr_auc": 0.19626646381221313,
+      "gbm_fields_only_pr_auc": 0.1586760282835604,
+      "logit_state_plus_fields_pr_auc": 0.20469769939088173
+    },
+    "456": {
+      "cnn_pr_auc": 0.17816719511328455,
+      "cnn_roc_auc": 0.784573472413297,
+      "gbm_state_plus_fields_pr_auc": 0.26095434570172277,
+      "gbm_state_only_pr_auc": 0.2182213210081304,
+      "gbm_fields_only_pr_auc": 0.18322552594868308,
+      "logit_state_plus_fields_pr_auc": 0.2040097108391626
+    }
+  },
+  "absolute_pr_auc_means": {
+    "cnn_pr_auc": 0.17075337043228736,
+    "cnn_roc_auc": 0.7882638819711344,
+    "gbm_fields_only_pr_auc": 0.1702654984074687,
+    "gbm_state_only_pr_auc": 0.20186614344725262,
+    "gbm_state_plus_fields_pr_auc": 0.2488243581891175,
+    "logit_state_plus_fields_pr_auc": 0.2033423897918684
+  },
+  "ci_level": 0.95,
+  "n_boot_requested": 10000,
+  "n_boot_skipped": 0,
+  "V1_cnn_vs_sf": {
+    "per_seed_delta_pr_auc": [
+      -0.07926057069563314,
+      -0.07216524198641894,
+      -0.08278715058843822
+    ],
+    "delta_pr_auc_point": -0.0780709877568301,
+    "delta_pr_auc_ci_low": -0.11615134723790102,
+    "delta_pr_auc_ci_high": -0.04215735593135465,
+    "n_boot_used": 10000,
+    "verdict": "tabular baseline BEATS CNN (CI [-0.1162, -0.0422] < 0) \u2014 the CNN is not currently justified over a classical baseline."
+  },
+  "V2_cnn_vs_f": {
+    "per_seed_delta_pr_auc": [
+      -0.007259321312674677,
+      0.01378126822252923,
+      -0.005058330835398528
+    ],
+    "delta_pr_auc_point": 0.0004878720248186752,
+    "delta_pr_auc_ci_low": -0.0284693918979432,
+    "delta_pr_auc_ci_high": 0.03161723232023105,
+    "n_boot_used": 10000,
+    "verdict": "NULL \u2014 full grids give this CNN nothing detectable beyond aggregates (CI [-0.0285, 0.0316] \u220b 0) \u2014 pre-registered consequence: architecture not justified in current form."
+  },
+  "per_seed_delta_pr_auc": [
+    -0.07926057069563314,
+    -0.07216524198641894,
+    -0.08278715058843822
+  ],
+  "delta_pr_auc_point": -0.0780709877568301,
+  "delta_pr_auc_ci_low": -0.11615134723790102,
+  "delta_pr_auc_ci_high": -0.04215735593135465,
+  "verdict": "tabular baseline BEATS CNN (CI [-0.1162, -0.0422] < 0) \u2014 the CNN is not currently justified over a classical baseline.",
+  "verdict_v2": "NULL \u2014 full grids give this CNN nothing detectable beyond aggregates (CI [-0.0285, 0.0316] \u220b 0) \u2014 pre-registered consequence: architecture not justified in current form.",
+  "cnn_run_dirs": [
+    "outputs\\results\\feature_ablation_cnn\\20260713T232126Z",
+    "outputs\\results\\feature_ablation_cnn\\20260714T223910Z",
+    "outputs\\results\\feature_ablation_cnn\\20260715T223350Z"
+  ],
+  "tabular_run_dir": "outputs\\results\\tabular_baseline\\20260715T123221Z",
+  "has_verdict": true
+}

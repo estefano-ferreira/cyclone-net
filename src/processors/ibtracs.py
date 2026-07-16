@@ -26,9 +26,9 @@ Minimum required output columns:
 - lon
 - wind_kt
 - pressure_mb
-- ri_label
 - dv12_kt
 - dv24_kt
+- ri_label
 
 Scientific notes
 ----------------
@@ -84,6 +84,7 @@ def build_event_list(
     year_range: Optional[Tuple[int, int]] = None,
     bbox: Optional[Tuple[float, float, float, float]] = None,
     ri_threshold_kt_24h: float = 30.0,
+    drop_undefined: bool = False,
 ) -> None:
     """Build the CycloneNet event list from IBTrACS.
 
@@ -94,9 +95,9 @@ def build_event_list(
     out_csv
         Destination path for the standardized event list.
     basin_filter
-        Optional substring filter for basin names/codes. NOTE: pandas parses
-        the literal string "NA" (North Atlantic) as a missing value when
-        reading IBTrACS, so prefer ``bbox`` for Atlantic selection.
+        Optional substring filter for basin names/codes. NOTE: fixed 2026-07-16
+        -- the file is now read with keep_default_na=False so the literal
+        basin code 'NA' (North Atlantic) survives parsing.
     min_wind_kt
         Optional minimum best-track wind threshold in knots.
     year_range
@@ -107,6 +108,10 @@ def build_event_list(
         so the event list only contains extractable events.
     ri_threshold_kt_24h
         RI threshold in knots over 24 hours.
+    drop_undefined
+        If False (default), keep rows with NULL labels (strict-temporal partners
+        do not exist). If True, drop rows without both dv12_kt and dv24_kt (old
+        positional-semantics behavior for legacy builds).
 
     Raises
     ------
@@ -117,7 +122,14 @@ def build_event_list(
     out_csv = Path(out_csv)
 
     logger.info("Reading IBTrACS file: %s", ibtracs_csv)
-    df = pd.read_csv(ibtracs_csv, low_memory=False)
+    # IBTrACS uses 'NA' as the North Atlantic basin code; pandas' default
+    # na_values converts it to NaN. Any future read of IBTrACS MUST pass
+    # keep_default_na=False. SUBBASIN has the same collision (96,909 rows)
+    # and is not currently consumed -- same rule applies if it ever is.
+    # IBTrACS encodes missing fields as a single space (verified 2026-07-16);
+    # numeric columns below go through pd.to_numeric(errors="coerce"), which
+    # is unaffected by this change.
+    df = pd.read_csv(ibtracs_csv, low_memory=False, keep_default_na=False, na_values=[" "])
 
     # ------------------------------------------------------------------
     # Resolve source columns (IBTrACS naming can vary across releases)
@@ -222,10 +234,14 @@ def build_event_list(
     # Legacy datetime string expected by parts of the older codebase.
     out["datetime"] = out["timestamp"].dt.strftime("%Y%m%d %H%M")
 
-    # Remove rows without future intensity targets.
-    out = out.dropna(subset=["dv12_kt", "dv24_kt"]).copy()
+    # Optionally remove rows without future intensity targets.
+    # Default (drop_undefined=False) keeps NULL-labeled rows for later filtering.
+    # For legacy workflows, drop_undefined=True reproduces old behavior.
+    if drop_undefined:
+        out = out.dropna(subset=["dv12_kt", "dv24_kt"]).copy()
 
     # Reorder columns for readability and reproducibility.
+    # NOTE: wind_kt_shift_* columns are NOT included (deprecated positional semantics).
     preferred_order = [
         "sid",
         "storm_name",

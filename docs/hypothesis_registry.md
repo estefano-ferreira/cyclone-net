@@ -134,7 +134,7 @@ the mapping to this registry is given in the notes of H4/H5 below.
 ### H6: Shear and mid-level RH add PR-AUC over the current channel baseline
 - **Registered:** 2026-07-13 (**first genuinely pre-registered test**:
   `docs/ablation_preregistration.md`, commit `eaa8ae8`, fixed before any
-  training result) | **Tested:** —
+  training result) | **Tested:** 2026-07-16
 - **Question:** does adding shear_850_200_mps and rh_mid to the current 9
   input channels improve RI PR-AUC?
 - **Physical motivation:** classic SHIPS predictors (see H4/H5); the open
@@ -145,10 +145,24 @@ the mapping to this registry is given in the notes of H4/H5 below.
   mean cross-seed ΔPR-AUC with 95% SID-cluster bootstrap CI
   (`--aggregate`), through the 3 pre-registered decision branches. CI read
   ONCE; no mining, no re-runs.
-- **Status:** TESTING
-- **Verdict:** — (seed 42 complete 2026-07-14, pooled-OOF Δ +0.033 is
-  INTERMEDIATE with no verdict value; seeds 123/456 pending)
-- **Notes:** operational progress in `docs/ablation_progress.md`.
+- **Status:** TESTED
+- **Verdict:** **NULL** — mean cross-seed ΔPR-AUC (B−A) = +0.0185,
+  95% SID-cluster bootstrap CI **[−0.0070, +0.0431] includes zero**
+  (10,000/10,000 valid resamples; per-seed Δ +0.033/+0.011/+0.011;
+  14,101 events / 839 SIDs; report
+  `outputs/results/feature_ablation_cnn/aggregate_20260716T120517Z.json`).
+  Read once, 2026-07-16, through the pre-registered branches: shear/rh_mid
+  add **no detectable skill at this resolution/regime for this
+  architecture**. Per pre-registration: NOT to be reinterpreted as a weak
+  positive.
+- **Notes:** operational progress in `docs/ablation_progress.md`. Runs:
+  seed 42 `20260713T232126Z` (`c608f19`), seed 123 `20260714T223910Z`
+  (`c6a3b20`), seed 456 `20260715T223350Z` (`bb7adaa`); zero incidents,
+  all detached. Claim discipline: the verdict is about THIS estimator
+  (GAP-pooling 3D-CNN) on 0.25° surface fields — it does not assert the
+  added channels carry no extractable signal for other estimators (cf.
+  H9's GBM, where scalar shear/RH means participate in arm F). Verdict
+  unlocks H8 (arm-A reuse) and the H9 `--compare-cnn` paired read.
 
 ---
 
@@ -199,19 +213,36 @@ the mapping to this registry is given in the notes of H4/H5 below.
   once through 3 pre-registered branches with FIXED consequences
   (hurt → remove; null → remove for parsimony; help → keep as
   regularization, never as validated physics).
-- **Status:** PREPARED — runs only AFTER H6 completes (harness:
-  `analysis/fuelmap_ablation_cnn.py`).
+- **Status:** **CANCELLED (2026-07-16).** H8 (FuelMap physics-loss
+  ablation) is CANCELLED, not deferred. Its question — do the FuelMap
+  physics losses help RI classification? — became undecidable when H9's
+  V2 retired the architecture those losses shape (pre-registered joint
+  reading, 2026-07-16: Δ₂ ≤ 0 → architecture retired/redesigned
+  regardless of Δ₁). Ablating a component of a retired model decides
+  nothing. The H8 pre-registration and harness
+  (`analysis/fuelmap_ablation_cnn.py`,
+  `docs/fuelmap_ablation_preregistration.md`) remain in the repo as
+  record — they are not to be run.
 - **Verdict:** —
-- **Notes:** whatever the outcome, the H1 refutation stands; a "help"
-  verdict re-frames the losses, it does not rehabilitate the energy-source
-  claim.
+- **Notes:** whatever the outcome would have been, the H1 refutation
+  stands. **Consequence closed with the cancellation — the
+  "physics-guided" label is retired:** H8 was the honesty test for the
+  name; it is moot because the architecture carrying the four
+  FuelMap-centred losses was itself retired by H9/V2. Independently of
+  H8, the label was already only weakly supported: the KL
+  prior-alignment term targets a heuristic prior whose semantics were
+  REFUTED in H1; the only equation-consistency term is disabled
+  (lambda_consistency = 0.0) and documented as near-degenerate; there
+  are no conservation laws or imposed dynamics. Do not use
+  "physics-guided" in V3 or in public descriptions. (Repo-wide label
+  inventory: PROJECT_STATE §4 relabel item.)
 
 ---
 
 ### H9: The CNN adds skill beyond a SHIPS-like tabular baseline
 - **Registered:** 2026-07-14 (**pre-registered**:
   `docs/tabular_baseline_preregistration.md`, fixed before any result) |
-  **Tested:** —
+  **Tested:** 2026-07-16 (paired read; GBM side executed 2026-07-15)
 - **Question:** does the 3D-CNN (H6 arm `A_current`) beat a
   gradient-boosting model on scalar predictors (Vmax, persistence,
   latitude, season, basin, shear/RH/SST cube means) on identical
@@ -237,9 +268,40 @@ the mapping to this registry is given in the notes of H4/H5 below.
   bootstrap (shared resampling), read ONCE after all 3 H6 seeds exist.
   SF−S and the S arm alone remain descriptive. Harness:
   `analysis/tabular_baseline_kfold.py`.
-- **Status:** PREPARED — GBM side runnable now; Δ verdict blocked on H6
-  completion.
-- **Verdict:** —
+- **Status:** TESTED
+- **Verdict (both CIs read once, 2026-07-16; report
+  `outputs/results/tabular_baseline/compare_20260716T121803Z.json`;
+  10,000/10,000 valid shared-resampling replicates):**
+  - **V1 (validity): NEGATIVE — the tabular baseline BEATS the CNN.**
+    Δ₁ = −0.0781, 95% CI **[−0.1162, −0.0422] < 0** (per-seed
+    −0.079/−0.072/−0.083). Pre-registered consequence: the CNN is not
+    justified over a classical baseline; **GBM_SF becomes the project's
+    reference model**.
+  - **V2 (architecture justification): NULL.** Δ₂ = +0.0005, 95% CI
+    **[−0.0285, +0.0316] includes zero** (per-seed
+    −0.007/+0.014/−0.005). Pre-registered consequence: **the
+    architecture is NOT justified in its current form** — full 0.25°
+    grids give this CNN nothing detectable beyond 44 aggregate scalars.
+    The CNN is reported as a documented negative; any redesign (e.g.
+    state branch) is a NEW pre-registered test.
+  - **Joint reading (pre-declared):** Δ₂ ≤ 0 (null) → architecture
+    retired/redesigned regardless of Δ₁. The Δ₂>0∧Δ₁≤0 "state branch"
+    path did NOT trigger.
+  - Absolute cross-seed mean OOF PR-AUC (descriptive): CNN_A 0.171 ·
+    GBM_F 0.170 · GBM_S 0.202 · GBM_SF 0.249 · LogReg_SF 0.203
+    (per-seed values in the report JSON).
+- **Ex-ante qualifications (all known before the read; none invented
+  after):**
+  1. **GAP:** the CNN global-average-pools before classifying — CNN ≈
+     GBM(F) was expected OF THIS ARCHITECTURE; per the scope guard, no
+     claim about spatial-structure information in the data is licensed.
+  2. **Intensity-blind:** the CNN receives no Vmax/persistence; GBM_SF
+     does. Part of the V1 gap is information diet, not model class
+     (S−F ≈ +0.03 shows how far state alone carries).
+  3. **Basin:** the mislabeled one-hot carried the true two-basin
+     partition (99.9%) — the GBM effectively used basin as a predictor;
+     the CNN never sees it (see collateral finding below).
+  4. **15-epoch budget**, identical for every arm and the CNN cells.
 - **Notes:** NULL or negative here does not kill the project — it
   redirects it (the tabular model becomes the honest reference, and the
   intensity-blindness of the CNN becomes the first fix). Positive here is
@@ -256,6 +318,15 @@ the mapping to this registry is given in the notes of H4/H5 below.
   without distinguishing; it does not invalidate any arm (same table in
   all three), but the verdict reading should not attribute all of the
   S/SF advantage to storm state alone.
+- **Reference-model decision (author, 2026-07-16 — fixed consequence of
+  this verdict):** "The project reports NO single reference model. The
+  CNN has a frozen test-set number (PR-AUC 0.251 [0.179-0.331]) but was
+  retired by H9/V2. The GBM_SF is the empirical reference ON THE DEV
+  FOLDS (0.249 pooled OOF) and has NEVER been evaluated on the frozen
+  test set — promoting it would require a second test-set read, which is
+  not justified: the released contribution is the dataset, not a model.
+  Both are reported with their protocols explicitly separated. The CNN's
+  test-set metrics stand as historical record of a retired architecture."
 
 ---
 

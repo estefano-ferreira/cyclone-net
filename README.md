@@ -73,7 +73,7 @@ cyclone-net/
 │   │   ├── cyclone_net_physics_guided.py # Main model (3D CNN + FuelMap head)
 │   │   ├── cyclone_net_ri_only.py       # Simpler baseline (optional)
 │   │   └── sta.py                # Spatio‑temporal attention module (experimental)
-│   ├── physics/                  # Physics‑guided components
+│   ├── physics/                  # Diagnostic / auxiliary-loss components (historical naming — see note below)
 │   │   ├── diagnostics.py        # Finite‑difference calculations (vorticity, divergence, gradients)
 │   │   ├── fuel_potential.py     # Heuristic prior map (SST anomaly × wind × (1+convergence))
 │   │   ├── heat_flux.py          # Bulk aerodynamic heat fluxes (latent, sensible, total)
@@ -104,7 +104,8 @@ cyclone-net/
 - **Unique Event Identification** – Each event now has an ID combining timestamp and SID in the format `era5_{YYYY_MM_DD_HHMM}_{SID}` (e.g., `era5_2015_08_28_1200_2015238N10255`), eliminating any risk of collision between concurrent storms.
 - **Physical Unit Checks & NaN‑Free Guarantee** – SST and MSLP are normalised to Kelvin and Pascal; unrealistic values cause event rejection. After preprocessing, every cube is verified to contain **no NaN or Inf values** – any such event is discarded.
 - **Self‑Contained Metadata** – Each event’s JSON contains the full list of timestamps, centre coordinates, channel names, and (if available) TCHP maxima – enabling validation independent of the original event list.
-- **Physics‑guided losses** – Controlled entirely by the `training.physics` block in `config.yaml`; when every weight there is `0.0` the model degrades to a plain 3D‑CNN. Active terms by default:
+- **Naming note (label retired 2026‑07‑16):** Internal naming (`CycloneNetPhysicsGuided`, `src/physics/`, `physics_guided.*` config keys) is historical legacy; the label was retired 2026‑07‑16 — see `docs/hypothesis_registry.md` (H8 entry). The released checkpoint references these identifiers, so they are kept for reproducibility; the project no longer describes the model as "physics‑guided".
+- **Auxiliary FuelMap losses** – Controlled entirely by the `training.physics` block in `config.yaml`; when every weight there is `0.0` the model degrades to a plain 3D‑CNN. Active terms by default:
   - **`lambda_prior_align`** – KL alignment of the learned FuelMap with a physical prior map (SST anomaly × wind speed × (1+convergence), or total heat flux when available).
   - **`lambda_forward`** – a forward physical constraint: the energy the FuelMap concentrates over the (heuristic) prior map must predict the 24 h intensity change (`dv24`), tying "localized surface energy → intensification" **as training‑time supervision** — not a validated physical attribution.
   - **`lambda_tv` / `lambda_l1`** – smoothness / sparsity regularizers keeping the FuelMap physically plausible (compact, contiguous).
@@ -229,7 +230,7 @@ python run.py preprocess-tchp
 # 6. Compute normalization statistics on the training split (only after preprocessing)
 python run.py normalize
 
-# 7. Train the model (physics‑guided losses are enabled by default)
+# 7. Train the model (auxiliary FuelMap losses are enabled by default)
 python run.py train
 
 # 8. Evaluate on the test set (includes spatial error metrics if TCHP metadata is available)
@@ -245,12 +246,12 @@ All results (metrics, predictions, logs) will be saved in `outputs/`.
 
 ## 🔬 New in This Release: Enhanced Preprocessing & TCHP Validation
 
-### Physics‑guided preprocessing
+### Scientific preprocessing
 
 The preprocessing step (`preprocess_scientific.py`) now:
 
 - Computes **diagnostic channels**: wind speed, vorticity, divergence, MSLP gradient magnitude, and SST anomaly – using finite differences with careful handling of grid spacing.
-- Calculates **heat fluxes** (latent, sensible, total) when `t2m` and `d2m` are available in the ERA5 files. These are stored in the cubes but **not used as model inputs** (they are reserved for future physics‑guided losses or validation).
+- Calculates **heat fluxes** (latent, sensible, total) when `t2m` and `d2m` are available in the ERA5 files. These are stored in the cubes but **not used as model inputs** (they are reserved for future auxiliary losses or validation).
 - Generates a **physical prior map** (fuel potential) – by default the total heat flux (if available) or a heuristic product of SST anomaly, wind speed, and convergence. This map is saved alongside each event (`*_fuel_potential.npy`) and used to supervise the model’s FuelMap via KL divergence during training.
 - **Guarantees data integrity**: Each cube is checked for NaNs/Infs; any event containing invalid values is discarded, ensuring the dataset presented to the model is clean.
 
@@ -268,7 +269,19 @@ To **test the hypothesis** that the FuelMap localizes the thermodynamic energy s
 
 ---
 
-## 📊 Final Test‑Set Performance
+## 📊 Final Test‑Set Performance (retired CNN — historical record)
+
+> **Model status (2026‑07‑16):** the CNN below was **retired** by the
+> pre‑registered H9/V2 verdict: on identical SID‑grouped dev folds, full
+> spatial grids gave this architecture nothing detectable beyond 44
+> aggregate scalars (Δ₂ CI [−0.0285, +0.0316] ∋ 0), and the tabular
+> baseline beat it outright (Δ₁ CI [−0.1162, −0.0422] < 0). The project
+> reports **no single reference model**: these frozen test‑set metrics
+> stand as historical record; the GBM_SF baseline (0.249 pooled dev‑OOF)
+> was **never** evaluated on the test set and will not be — the released
+> contribution is the **dataset**, not a model. The two protocols are not
+> comparable; see [`BENCHMARK.md`](./BENCHMARK.md) for both, explicitly
+> separated, with the ex‑ante qualifications.
 
 The model was trained and evaluated on the full **1980–2023 two‑basin archive (East Pacific + North Atlantic)**: **16,780 valid events / 802 RI positives / 992 storms** (578 EP / 414 NA by genesis basin — the first point of each storm's IBTrACS record; per‑point, events split 8,888 EP / 7,892 NA, and six storms genuinely cross between the basins — basin is a per‑point IBTrACS attribute. The extraction bounding box cuts the EP basin west of 140°W), with hash‑deterministic storm‑level splits (adding storms never reassigns existing ones). Earlier wording here said "North Atlantic sector" — incorrect (a `basin`‑metadata parsing bug masked the East Pacific majority; see [ERRATA.md](./ERRATA.md) item 7). The two basins have different RI climatologies and basin is not a controlled variable in the current experiments — a declared limitation. The held‑out test split — **2,679 events / 115 RI positives / 153 storms** — was never used during development. The threshold was selected on the validation split via `precision_at_recall` and applied unchanged to the test set. These numbers are reproducible from the public repository and dataset.
 
@@ -299,7 +312,7 @@ A post‑hoc **calibration analysis** of the released test predictions (2026‑0
 - **Heat flux channels** – Although computed, latent and sensible heat fluxes are **not part of the model inputs** in the current version. They are stored for future enhancements.
 - **Interpretability** – The model produces a spatial FuelMap via **soft‑argmax on a learned logit map**; this is retained for transparency but does **NOT** localize the energy source (see *Spatial validation* above). Gradient‑based attribution methods (e.g., integrated gradients) in `interpretability.py` remain experimental and not integrated into the evaluation pipeline.
 - **Equation consistency** – The loss that enforces vorticity/divergence derived from wind fields to match diagnostic channels is implemented, but its accuracy depends on the grid spacing (0.25°). This is documented in the code. It is **disabled by default** (`lambda_consistency: 0.0`) and documented as a weak representational regularizer, not a physical‑discovery constraint.
-- **Intensity‑blind model** – The CNN's inputs are spatial fields only; current intensity (Vmax) and its recent trend (persistence) — among the strongest known RI predictors — are **not** model inputs. A pre‑registered classical‑baseline comparison that includes them is prepared (see below); until it reads out, the CNN's skill has no classical reference on the same data.
+- **Intensity‑blind model** – The CNN's inputs are spatial fields only; current intensity (Vmax) and its recent trend (persistence) — among the strongest known RI predictors — are **not** model inputs. The pre‑registered classical‑baseline comparison (H9) was read on 2026‑07‑16: the state‑aware tabular baseline **beats** the CNN on identical folds (Δ₁ = −0.078), and the architecture was retired by the co‑primary V2 verdict. Details and ex‑ante qualifications in [`BENCHMARK.md`](./BENCHMARK.md).
 
 ---
 
@@ -313,9 +326,17 @@ decision consequences are frozen in advance
 ([`docs/ablation_preregistration.md`](./docs/ablation_preregistration.md) — shear/RH features, H6;
 [`docs/fuelmap_ablation_preregistration.md`](./docs/fuelmap_ablation_preregistration.md) — FuelMap physics losses, H8;
 [`docs/tabular_baseline_preregistration.md`](./docs/tabular_baseline_preregistration.md) — classical baseline, H9).
-No results from these are reported here yet — verdicts are read once, after
-completion. An initial literature survey positioning this project relative
-to the RI field is in [`docs/literature_review.md`](./docs/literature_review.md).
+**The campaign closed on 2026‑07‑16, each CI read once:** H6 **NULL**
+(shear/RH add no detectable skill for this architecture); H9/V1
+**negative** (the tabular baseline beats the CNN); H9/V2 **null** (the
+architecture is not justified at a fixed information diet and was
+retired); H8 **cancelled** (its question became undecidable once V2
+retired the architecture whose losses it would ablate — pre‑registration
+and harness preserved as record). All numbers, fixed consequences and
+ex‑ante qualifications: [`BENCHMARK.md`](./BENCHMARK.md) and
+[`docs/hypothesis_registry.md`](./docs/hypothesis_registry.md). An initial
+literature survey positioning this project relative to the RI field is in
+[`docs/literature_review.md`](./docs/literature_review.md).
 
 ---
 

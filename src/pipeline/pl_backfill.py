@@ -196,7 +196,9 @@ def _window_events_from_list(event_list_csv: Path, y0: int, y1: int) -> pd.DataF
     Mirrors ``windowed._window_events`` (duplicated intentionally -- see
     module docstring on decoupling from windowed.py internals).
     """
-    df = pd.read_csv(event_list_csv)
+    # keep_default_na=False: the basin code "NA" (North Atlantic) must survive;
+    # empty fields (pandas' NaN representation on write) still map to NaN.
+    df = pd.read_csv(event_list_csv, keep_default_na=False, na_values=[""])
     if "timestamp" in df.columns:
         dt = pd.to_datetime(df["timestamp"])
     elif "datetime" in df.columns:

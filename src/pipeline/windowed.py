@@ -90,7 +90,9 @@ def _dir_size_bytes(path: Path) -> int:
 
 def _window_events(event_list_csv: Path, y0: int, y1: int) -> pd.DataFrame:
     """Rows of the global event list whose t0 falls inside [y0, y1]."""
-    df = pd.read_csv(event_list_csv)
+    # keep_default_na=False: the basin code "NA" (North Atlantic) must survive;
+    # empty fields (pandas' NaN representation on write) still map to NaN.
+    df = pd.read_csv(event_list_csv, keep_default_na=False, na_values=[""])
     if "timestamp" in df.columns:
         dt = pd.to_datetime(df["timestamp"])
     elif "datetime" in df.columns:

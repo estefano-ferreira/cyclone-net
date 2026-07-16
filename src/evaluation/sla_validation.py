@@ -99,9 +99,13 @@ def _covered_events(cfg: Dict[str, Any], year: int, months: List[int],
             continue
         t = pd.to_datetime(ts).tz_localize(None) if pd.to_datetime(ts).tzinfo else pd.to_datetime(ts)
         if t.year == year and t.month in months and lat_min <= clat <= lat_max and lon_min <= clon <= lon_max:
+            # Exclude NULL labels (undefined RI classification) from the RI/non-RI contrast.
+            ri_label_raw = m.get("ri_label", None)
+            if ri_label_raw is None:
+                continue
             out.append({"event_id": m.get("event_id", Path(f).stem),
                         "timestamp": t, "center_lat": float(clat), "center_lon": float(clon),
-                        "ri_label": int(m.get("ri_label", 0))})
+                        "ri_label": int(ri_label_raw)})
     return out
 
 
