@@ -11,10 +11,13 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-16 ~18:00 (…morning: H6 NULL; H9 V1 NEG / V2 NULL;
+_Last updated: 2026-07-16 ~20:30 (…morning: H6 NULL; H9 V1 NEG / V2 NULL;
 H8 CANCELLED; label RETIRED; freeze LIFTED; basin REPAIRED. Afternoon:
-**dv24/dv12 CORRECTED — DATASET v2 APPLIED**; "Defect 0" diagnosis
-RETRACTED; raw-replication gate now a permanent rule)._
+**dv24/dv12 CORRECTED — DATASET v2 APPLIED**; "Defect 0" RETRACTED;
+raw-replication gate permanent; keep_default_na class CLOSED. Evening:
+**T5 PACKAGE BUILT AND VERIFIED** — 46 files / 6.03 GiB in `dist/`,
+awaiting the author's Zenodo upload; layer-A identity pass done, dual
+license MIT + CC BY 4.0)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
@@ -132,6 +135,53 @@ asset. **The CNN test-set PR-AUC 0.251 STAYS in BENCHMARK** (author,
 16/07): labels proven reproducible from raw; historical record of a
 retired architecture, separate protocol.
 
+**keep_default_na CLASS CLOSED (2026-07-16, post-v2 sweep):** the T5
+release sweep found the class in 7 more readers and fixed all of them
+(kfold family via `load_dev_events` — now also EXCLUDES NULL v2 labels
+with a logged count; pl_gate_census; era5/tchp downloaders; audit;
+ri_precursors ×2; platform `build_events.py:267`). **6th occurrence, the
+instructive one:** the platform read the event list with default NA
+parsing — the 15/07 basin fix never actually reached it; it WORKED BY
+ACCIDENT because its own raw-IBTrACS basin lookup (line ~110) re-injected
+what the read had just destroyed. A workaround compensating a bug nobody
+knew existed — this is why class sweeps, not spot fixes. Also:
+`make_splits` now FAILS LOUDLY on missing/unmappable sid (the silent
+dropna on the inviolable path is gone); `_clean_text_column` NA-handling
+reordered (the phase-1 "latent-grave" rating was RETRACTED — a
+second-line replace defense already existed). Tests:
+`tests/test_na_handling_readers.py` (6, each designed to fail against
+the old behavior). Census counts (14,101) intentionally still include
+NULL-label events (coverage ≠ classification); no downstream consumer
+joins census with training.
+
+**T5 — DATASET PACKAGE BUILT AND VERIFIED (2026-07-16 evening):**
+`analysis/package_dataset_release.py` (manifest-first, canonical-number
+asserts, dry-run default) built `dist/cyclonenet-dataset-v2-zips/`:
+**44 per-year cube shards + metadata zip + ZIP_CHECKSUMS = 46 files,
+6.03 GiB** (Zenodo caps: 100 files / 50 GB). Contents verified FROM THE
+BUILT ARTIFACTS: 16,780 events / 992 storms / 799 pos / 19 NULL read from
+inside the package; 16,780 sidecars rewritten (`fuel_potential_saved=
+false` — priors not distributed; divergence + reason recorded in
+`package_manifest.json`); NULL labels are genuine JSON `null` (no NaN, no
+0-coercion); 45 provenance manifests included; NOTICE carries the
+PRIMARY-SOURCE-VERIFIED citations (Hersbach et al. 2018, DOIs
+10.24381/cds.adbb2d47 + .bd0915c6; IBTrACS v04r00, NCEI DOI
+10.25921/82ty-9e16, "full and open access" per WDC policy / WMO Res 40 —
+the unverifiable "public domain" claim was REMOVED). Approved release
+docs (DATA_DICTIONARY v2, TECHNICAL_VALIDATION data-only per venue rule,
+NOTICE) are the package's documentation. Author decisions closed: Zenodo
++ separate dataset concept-DOI; per-year shards; rejected events as CSV
+only; fuel-priors OUT; **dual license: code MIT, dataset CC BY 4.0**
+(layer-A pass `f229cc8`: LICENSE/LICENSE-DATA/README/CITATION.cff/
+pyproject; "physics-guided" retired from all citable identity — the CFF
+abstract no longer attributes retired-model skill to the dataset).
+PENDING (author, manual): (1) Zenodo upload of the 46 files → mint the
+dataset DOI; (2) fill the DOI slots (CITATION.cff references,
+LICENSE-DATA, DATA_DICTIONARY §1) + same-day software-record update +
+GitHub About (the single public-face change); (3) PR #15 (feature/tchp →
+main, 6 commits, pushed through `712c9d3`). `data/` untouched throughout;
+staging lives only in `dist/` (gitignored, check-ignore verified).
+
 **DATED RECORDS (author, 2026-07-16):** (a) test-set carve-out for the
 dv24 impact assessment/correction — AGGREGATE LABEL COUNTS ONLY, no
 features, no model, no metric, no test event_ids listed; not an open
@@ -143,15 +193,17 @@ basin repair.
 Next steps:
 1. **DONE 16/07 — dv24 label correction applied (dataset v2).** See block
    above; nothing pending on labels.
-2. T5 packaging WITH cubes (~7.7 GB valid subset) + CC BY 4.0 + Copernicus
-   attribution notices; repository choice (PANGAEA vs Zenodo versioned);
-   coordinate with the Zenodo re-publication so the public face changes
-   once. APC decision: Scientific Data GBP 2,190 / USD 2,850 vs ESSD
-   EUR 1,400 flat (both have waiver policies; no automatic waiver for
-   Brazil at either).
-3. "physics-guided" relabel pass (inventory in §4; coordinate with the
-   same re-release).
-4. V3 skeleton (also unlocks the coauthor-contact gate).
+2. **T5 packaging: BUILT AND VERIFIED 16/07** (block above). Remaining is
+   the author's manual tail: Zenodo upload → DOI → slot fill + software
+   record + About (one public-face change) → PR #15. APC decision still
+   open: Scientific Data GBP 2,190 vs ESSD EUR 1,400 flat (ESSD leaning;
+   both accept Zenodo — verified).
+3. **"physics-guided" relabel: layer-A DONE 16/07** (`f229cc8` — citable
+   title, license fields, facade docstrings, pyproject). Code identifiers
+   (CycloneNetPhysicsGuided, src/physics/, config keys) intentionally
+   KEPT — released checkpoint references them (README legacy note).
+4. V3 skeleton (also unlocks the coauthor-contact gate) — next major
+   work item after the upload.
 
 **H9 executed 15/07** (run `20260715T123221Z`, commits `d6cc930` fix +
 `143756f` results; 3rd dated pre-reg amendment: median imputation for the

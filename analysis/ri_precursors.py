@@ -158,7 +158,8 @@ def main() -> None:
 
     interim = Path(cfg_get(cfg, "paths.interim_data", "./data/interim")).resolve()
 
-    events = pd.read_csv(PROJECT_ROOT / "data" / "event_list_augmented.csv")
+    events = pd.read_csv(PROJECT_ROOT / "data" / "event_list_augmented.csv",
+                         keep_default_na=False, na_values=[""])
     events["ts"] = pd.to_datetime(events["timestamp"])
     events = events.sort_values(["sid", "ts"]).reset_index(drop=True)
     events["event_id"] = [

@@ -1,1 +1,1 @@
-"""CycloneNet — physics-guided tropical cyclone rapid intensification research code."""
+"""CycloneNet — tropical cyclone rapid intensification research code."""

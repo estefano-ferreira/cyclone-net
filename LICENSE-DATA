@@ -1,0 +1,29 @@
+CycloneNet Dataset — License
+
+This file records the licensing terms for the CycloneNet dataset
+(per-event ERA5-derived cubes, metadata sidecars, event lists, labels,
+splits, and accompanying documentation). The dataset release is in
+preparation; these terms take effect with its publication (the dataset
+record and DOI will be referenced here and in CITATION.cff when minted).
+
+License: Creative Commons Attribution 4.0 International (CC BY 4.0).
+
+Under CC BY 4.0 you are free to share and adapt the dataset for any
+purpose, including commercially, provided you give appropriate credit.
+
+Full legal code:
+https://creativecommons.org/licenses/by/4.0/legalcode
+
+MANDATORY ATTRIBUTIONS — the dataset contains and derives from third-party
+data whose attribution requirements CANNOT be stripped and must be preserved
+in any redistribution. The dataset package will include a NOTICE file with
+the full texts:
+
+- Copernicus Climate Change Service (ERA5): "Contains modified Copernicus
+  Climate Change Service information (1980-2023)" + EC/ECMWF liability
+  disclaimer.
+- IBTrACS v04r00 (NOAA NCEI): Knapp et al. (2010).
+- Copernicus Marine Service (ADT extras, 2020-2023 subset).
+
+The CycloneNet SOFTWARE (pipeline and analysis code in this repository) is
+a distinct artifact, licensed under MIT — see LICENSE.

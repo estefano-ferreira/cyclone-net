@@ -70,8 +70,14 @@ def _standardize_longitude(lon: pd.Series) -> pd.Series:
 
 
 def _clean_text_column(series: pd.Series, default: str = "") -> pd.Series:
-    """Convert a text-like column to a safe string series."""
-    out = series.astype(str).fillna(default)
+    """Convert a text-like column to a safe string series.
+
+    NA is handled BEFORE stringification: `astype(str)` turns NaN into the
+    literal string "nan", which would poison keys like `sid`. The trailing
+    replace stays as a second line of defense against stringified NA forms
+    that arrive already encoded in the source.
+    """
+    out = series.fillna(default).astype(str)
     out = out.replace({"nan": default, "None": default, "<NA>": default})
     return out
 

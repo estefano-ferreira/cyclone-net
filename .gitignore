@@ -75,3 +75,4 @@ outputs/results/tabular_baseline/**
 CLAUDE.md
 .claude/
 .mcp.json
+dist/

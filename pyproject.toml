@@ -5,10 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cyclonenet"
 version = "2.0.0"
-description = "Physics-guided deep learning for tropical cyclone rapid intensification (research code)"
+description = "Reproducible pipeline for forensic analysis of tropical-cyclone rapid intensification (research code; dataset under CC BY 4.0, see LICENSE-DATA)"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { file = "LICENSE" }
+license = { text = "MIT" }  # code license; the dataset is CC BY 4.0 (LICENSE-DATA)
 dynamic = ["dependencies"]
 
 [tool.setuptools.dynamic]

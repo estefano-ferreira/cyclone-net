@@ -308,7 +308,8 @@ def check_label_integrity(cfg: Dict[str, Any], paths: Dict[str, Path]) -> Dict[s
                                                 "event_list_path": rel_to_root(event_list_path),
                                                 "raw_ibtracs_path": rel_to_root(raw_path)}}
 
-    pipeline_df = pd.read_csv(event_list_path, low_memory=False)
+    pipeline_df = pd.read_csv(event_list_path, low_memory=False,
+                              keep_default_na=False, na_values=[""])
     pipeline_df["timestamp"] = pd.to_datetime(pipeline_df["timestamp"], errors="coerce")
     pipeline_df["sid"] = pipeline_df["sid"].astype(str)
 

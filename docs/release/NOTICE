@@ -1,0 +1,47 @@
+CycloneNet Dataset v2 — attribution notices
+============================================
+
+This dataset is licensed under Creative Commons Attribution 4.0
+International (CC BY 4.0). The following attributions are required and
+must be preserved in redistributions.
+
+ERA5 / Copernicus Climate Change Service (C3S)
+----------------------------------------------
+Contains modified Copernicus Climate Change Service information
+(1980-2023). Neither the European Commission nor ECMWF is responsible for
+any use that may be made of the Copernicus information or data it
+contains.
+
+Source citations (CDS catalogue entries, verified 2026-07-16):
+
+- Hersbach, H., Bell, B., Berrisford, P., Biavati, G., Horanyi, A.,
+  Munoz Sabater, J., Nicolas, J., Peubey, C., Radu, R., Rozum, I.,
+  Schepers, D., Simmons, A., Soci, C., Dee, D., Thepaut, J-N. (2018):
+  ERA5 hourly data on single levels from 1940 to present. Copernicus
+  Climate Change Service (C3S) Climate Data Store (CDS).
+  DOI: 10.24381/cds.adbb2d47
+- Hersbach, H., et al. (2018): ERA5 hourly data on pressure levels from
+  1940 to present. Copernicus Climate Change Service (C3S) Climate Data
+  Store (CDS). DOI: 10.24381/cds.bd0915c6
+
+IBTrACS (best-track data, storm identities, positions, intensities, RI labels)
+------------------------------------------------------------------------------
+International Best Track Archive for Climate Stewardship (IBTrACS)
+Project, Version v04r00 (the version used to build this dataset). NOAA
+National Centers for Environmental Information. Dataset DOI (IBTrACS v4,
+per NCEI citation guidance): 10.25921/82ty-9e16. Foundational reference:
+Knapp, K. R., M. C. Kruk, D. H. Levinson, H. J. Diamond, and
+C. J. Neumann, 2010: The International Best Track Archive for Climate
+Stewardship (IBTrACS): Unifying tropical cyclone best track data.
+Bull. Amer. Meteor. Soc., 91, 363-376.
+
+Access status (NOAA NCEI, verified 2026-07-16): IBTrACS follows the World
+Data Center for Meteorology policy, "which provides full and open access
+to the data"; WMO Resolution 40 is used "as the guide for commercial use".
+NOAA/NCEI provide the data without warranty (see the NCEI ISO metadata,
+gov.noaa.ncdc:C01552).
+
+ADT extras (subset of events, 2020-2023)
+----------------------------------------
+Absolute Dynamic Topography derived from Copernicus Marine Service
+products. Generated using E.U. Copernicus Marine Service information.

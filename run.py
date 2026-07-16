@@ -7,7 +7,7 @@ CycloneNet — End-to-End Pipeline Runner
 This script provides a command-line interface to all CycloneNet pipeline stages.
 It automatically locates the project root (where config.yaml resides) so that
 it can be invoked from any working directory. All scientific safeguards
-(leakage-free splits, train-only normalization, physics‑guided losses) are
+(leakage-free splits, train-only normalization, auxiliary losses) are
 preserved by delegating to the dedicated modules.
 
 Usage examples:

@@ -90,7 +90,8 @@ def main() -> None:
     pairs = pd.read_csv(PROJECT_ROOT / "outputs" / "results" / "ri_precursor_pairs.csv")
 
     # Best-track wind history: event_id -> (sid, ts, wind_kt) lookup.
-    events = pd.read_csv(PROJECT_ROOT / "data" / "event_list_augmented.csv")
+    events = pd.read_csv(PROJECT_ROOT / "data" / "event_list_augmented.csv",
+                         keep_default_na=False, na_values=[""])
     events["ts"] = pd.to_datetime(events["timestamp"])
     events["event_id"] = [
         f"era5_{ts.strftime('%Y_%m_%d_%H%M')}_{sid}" for ts, sid in zip(events["ts"], events["sid"])

@@ -87,7 +87,7 @@ def generate_required_timestamps(
     """
     Create required_timestamps.csv from event list, optionally filtering by year range.
     """
-    df = pd.read_csv(event_list_csv)
+    df = pd.read_csv(event_list_csv, keep_default_na=False, na_values=[""])
     if "timestamp" in df.columns:
         df["dt"] = pd.to_datetime(df["timestamp"])
     elif "datetime" in df.columns:

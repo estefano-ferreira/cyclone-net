@@ -127,7 +127,7 @@ async def normalize(timeout_seconds: float = DEFAULT_TIMEOUT_S) -> str:
 
 @mcp.tool()
 async def train(timeout_seconds: float = LONG_TIMEOUT_S) -> str:
-    """Train the physics-guided CycloneNet model (requires `normalize` first;
+    """Train the CycloneNet model (requires `normalize` first;
     may take hours)."""
     return await _run_cli(["train"], timeout_seconds)
 

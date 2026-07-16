@@ -249,6 +249,16 @@ def _build_model(cfg: Dict[str, Any]) -> torch.nn.Module:
             len(cfg_get(cfg, "model.input_channels_names", [])),
         )
     )
+    # A mismatch between the explicit count and the names list would only
+    # surface as an opaque conv-shape error at the first batch — fail here
+    # with a message that says what to fix instead.
+    _names = cfg_get(cfg, "model.input_channels_names", [])
+    if _names and in_ch != len(_names):
+        raise ValueError(
+            f"model.input_channels ({in_ch}) != len(model.input_channels_names) "
+            f"({len(_names)}). Fix the config: the two must agree (or drop "
+            f"model.input_channels to derive it from the names list)."
+        )
     # The dataset appends one extra ADT ocean channel when enabled; the model's first
     # conv must account for it. Single source of truth: the config flag.
     if bool(cfg_get(cfg, "model.use_adt_input", False)):
