@@ -34,10 +34,14 @@ sanity:
 # Download: ERA5 and TCHP download settings
 # ----------------------------------------------------------------------
 download:
-  cds_api: # Copernicus Climate Data Store API credentials
-    url: https://cds.climate.copernicus.eu/api
-    key:
-  dataset: reanalysis-era5-single-levels # ERA5 dataset name
+  # CREDENTIALS ARE NEVER STORED IN THIS FILE. The downloaders read them
+  # exclusively from the standard per-user stores:
+  #   - ERA5/CDS:            ~/.cdsapirc          (url + key)
+  #   - TCHP FTP fallback:   ~/.netrc             (host entry)
+  #   - Copernicus Marine:   `copernicusmarine login` (client's own store)
+  # Any credential-looking field added here is a leak vector (see
+  # src/utils/redaction.py and the ERRATA history) and is IGNORED by the code.
+  dataset: reanalysis-era5-single-levels # ERA5 dataset name (single levels)
   variables: # Variables to download
     - sea_surface_temperature
     - mean_sea_level_pressure
@@ -45,8 +49,17 @@ download:
     - 10m_v_component_of_wind
     - 2m_temperature
     - 2m_dewpoint_temperature
+  # ERA5 pressure-level channels (shear_850_200_mps, rh_mid — cube channels
+  # 13-14). WITHOUT this block a rebuild does NOT reproduce the released
+  # 14-channel cubes.
+  pressure_levels:
+    enabled: true
+    dataset: reanalysis-era5-pressure-levels
+    wind_levels: [850, 200] # hPa — deep-layer shear (SHIPS SHRD analog)
+    rh_levels: [700, 600, 500] # hPa — mid-level moisture layer (SHIPS RHMD analog)
+
   years: [1980, 2025] # Inclusive range of years (full archive; processed in windows — see run.py process-windows)
-  months: [6, 7, 8, 9, 10, 11] # Atlantic hurricane season months
+  months: [6, 7, 8, 9, 10, 11] # Hurricane-season months — the released dataset covers Jun-Nov ONLY (no off-season coverage)
   days: ALL # Download all days
   times: ["00:00", "06:00", "12:00", "18:00"] # 6‑hourly synoptic times
   grid: [0.25, 0.25] # 0.25° resolution (ERA5 native)
@@ -68,10 +81,8 @@ download:
     variables: # Variables requested from source
       - Tropical_Cyclone_Heat_Potential
       - D26
-    copernicus: # Credentials for Copernicus Marine Service (if needed)
+    copernicus: # Copernicus Marine Service (auth via `copernicusmarine login`, never here)
       dataset_id: "cmems_mod_glo_phy_my_0.25deg_P1D-m"
-      username: ""
-      password: ""
 
   # Sea Level Anomaly / Absolute Dynamic Topography — surface signature of the
   # subsurface ocean heat reservoir. ADT is used as an extra MODEL INPUT (see
