@@ -134,7 +134,7 @@ the mapping to this registry is given in the notes of H4/H5 below.
 ### H6: Shear and mid-level RH add PR-AUC over the current channel baseline
 - **Registered:** 2026-07-13 (**first genuinely pre-registered test**:
   `docs/ablation_preregistration.md`, commit `eaa8ae8`, fixed before any
-  training result) | **Tested:** —
+  training result) | **Tested:** 2026-07-16
 - **Question:** does adding shear_850_200_mps and rh_mid to the current 9
   input channels improve RI PR-AUC?
 - **Physical motivation:** classic SHIPS predictors (see H4/H5); the open
@@ -145,10 +145,24 @@ the mapping to this registry is given in the notes of H4/H5 below.
   mean cross-seed ΔPR-AUC with 95% SID-cluster bootstrap CI
   (`--aggregate`), through the 3 pre-registered decision branches. CI read
   ONCE; no mining, no re-runs.
-- **Status:** TESTING
-- **Verdict:** — (seed 42 complete 2026-07-14, pooled-OOF Δ +0.033 is
-  INTERMEDIATE with no verdict value; seeds 123/456 pending)
-- **Notes:** operational progress in `docs/ablation_progress.md`.
+- **Status:** TESTED
+- **Verdict:** **NULL** — mean cross-seed ΔPR-AUC (B−A) = +0.0185,
+  95% SID-cluster bootstrap CI **[−0.0070, +0.0431] includes zero**
+  (10,000/10,000 valid resamples; per-seed Δ +0.033/+0.011/+0.011;
+  14,101 events / 839 SIDs; report
+  `outputs/results/feature_ablation_cnn/aggregate_20260716T120517Z.json`).
+  Read once, 2026-07-16, through the pre-registered branches: shear/rh_mid
+  add **no detectable skill at this resolution/regime for this
+  architecture**. Per pre-registration: NOT to be reinterpreted as a weak
+  positive.
+- **Notes:** operational progress in `docs/ablation_progress.md`. Runs:
+  seed 42 `20260713T232126Z` (`c608f19`), seed 123 `20260714T223910Z`
+  (`c6a3b20`), seed 456 `20260715T223350Z` (`bb7adaa`); zero incidents,
+  all detached. Claim discipline: the verdict is about THIS estimator
+  (GAP-pooling 3D-CNN) on 0.25° surface fields — it does not assert the
+  added channels carry no extractable signal for other estimators (cf.
+  H9's GBM, where scalar shear/RH means participate in arm F). Verdict
+  unlocks H8 (arm-A reuse) and the H9 `--compare-cnn` paired read.
 
 ---
 

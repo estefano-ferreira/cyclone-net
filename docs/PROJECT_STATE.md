@@ -11,28 +11,28 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-15 ~10:00 (session close; seed 123 committed
-`c6a3b20`; H9 GBM EXECUTED `143756f`; night 3 tonight 19:30 — machine
-must be ON)._
+_Last updated: 2026-07-16 ~09:30 (seed 456 complete `bb7adaa`; H6
+AGGREGATED and CLOSED: verdict NULL; next: H8 night 1)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
-**⚠️ TONIGHT 15/07 19:30 — seed 456 (night 3), ALREADY SCHEDULED**
-(`CycloneNet-Ablation-Night3-Seed456` + heartbeat 19:41). The machine was
-shut down after the 15/07 morning session: **if it is off at 19:30 the
-trigger does NOT re-fire** → launch manually:
-`powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\cyclone-net-ops\ablation_night3_seed456.ps1"`
-(ASCII-safe launcher with pre-checks, smoke tested).
+**H6 IS CLOSED — verdict NULL (read once 16/07):** mean cross-seed
+ΔPR-AUC +0.0185, 95% CI **[−0.0070, +0.0431] includes zero**; per-seed
++0.033/+0.011/+0.011. Formulation fixed by the pre-registration:
+shear/rh_mid add no detectable skill at this resolution/regime for this
+architecture; NOT a weak positive. Report:
+`outputs/results/feature_ablation_cnn/aggregate_20260716T120517Z.json`.
+Registry entry updated (H6 TESTED/NULL).
 
-After seed 456 completes (16/07 morning):
-1. Verify 6/6 cells + `seed456/oof_predictions.csv` + `summary.json`
-   (heartbeat log: `~/cyclone-net-ops/seed456_heartbeat.log`); commit.
-2. `--aggregate` → read the CI ONCE → H6 verdict through the 3
-   pre-registered branches.
-3. H8 (`fuelmap_ablation_cnn.py --reuse-arm-a <H6 run dirs>`, ~5.5 h/seed,
-   phased nights) → verdict on the "physics-guided" name.
-4. H9 `--compare-cnn` (V1/V2 co-primary, consequences fixed) — H9 GBM runs
-   are DONE (see §4 item 2); only the paired comparison remains.
+Next steps, in order:
+1. **H8 night 1** — `analysis/fuelmap_ablation_cnn.py --reuse-arm-a
+   <3 H6 run dirs> --execute` (~5.5 h/seed, phased nights, detached via
+   Task Scheduler launcher like nights 1–3; §6 rules). Verdict decides the
+   "physics-guided" name. Pre-reg: `docs/fuelmap_ablation_preregistration.md`.
+2. H9 `--compare-cnn` (V1/V2 co-primary, consequences fixed) — GBM runs
+   DONE (§4 item 2); the paired read is now UNBLOCKED by H6 close (cheap,
+   minutes; author decides when).
+3. After H8 closes: basin metadata REPAIR + unfreeze `src/` (T2/V4 work).
 
 **H9 executed 15/07** (run `20260715T123221Z`, commits `d6cc930` fix +
 `143756f` results; 3rd dated pre-reg amendment: median imputation for the
@@ -71,24 +71,26 @@ threw under `ErrorActionPreference=Stop`. Fix (permanent rule): every
 operational `.ps1` is ASCII-only with paths via `$env:USERPROFILE`, saved
 with BOM. Re-fired 19:35 via `Start-ScheduledTask`, pre-checks passed.
 
-## 2. STATE OF ONGOING EXPERIMENT (CNN feature ablation)
+## 2. STATE OF ONGOING EXPERIMENT (H8 FuelMap physics-loss ablation)
 
-Protocol: `docs/ablation_preregistration.md` (locked in at `eaa8ae8`,
-before any results). Operational detail: `docs/ablation_progress.md`.
+**H6 (feature ablation) is CLOSED — verdict NULL, see §1 and the registry.**
+Seeds 42/123/456 complete (`c608f19`/`c6a3b20`/`bb7adaa`); aggregate read
+once 16/07 (`aggregate_20260716T120517Z.json`). No re-runs, no re-reads.
 
-| Seed | Status |
+**Current experiment: H8** — pre-reg
+`docs/fuelmap_ablation_preregistration.md`; arm A reused from H6
+`A_current` cells (fold-identity validated), arm B (all physics lambdas 0)
+trains ~5.5 h/seed, phased one seed per night, detached (§6). Same
+discipline: verdict = mean cross-seed ΔPR-AUC (B−A), 95% SID-cluster CI,
+read ONCE after 3 seeds through the 3 pre-registered branches with FIXED
+consequences (hurt → remove; null → remove for parsimony; help → keep as
+regularization, never as validated physics).
+
+| Seed | H8 status |
 |---|---|
-| 42 | **COMPLETE** (run `20260713T232126Z`, commit `c608f19`; Δ PR-AUC OOF +0.033 — intermediate, NO verdict) |
-| 123 | **COMPLETE** (run `20260714T223910Z`, commit `c6a3b20`; Δ PR-AUC OOF +0.011 [−0.031, +0.049] per-seed — intermediate, NO verdict; per-fold Δ −0.010/+0.035/+0.015; ΔROC +0.027 [+0.011, +0.044]) |
-| 456 | **SCHEDULED** — night 3, task `CycloneNet-Ablation-Night3-Seed456` 15/07 19:30 |
-
-**HIGHLIGHTED RULE: Do NOT run `--aggregate` with fewer than 3 seeds. No
-conclusions before aggregated CI — one seed is initialization noise. The
-CI is read ONCE; no mining, no re-run.** Final aggregation:
-
-```
-./venv/Scripts/python.exe analysis/feature_ablation_cnn.py --aggregate outputs/results/feature_ablation_cnn
-```
+| 42 | pending (night 1) |
+| 123 | pending |
+| 456 | pending |
 
 ## 3. PROJECT PERMANENT RULES (inviolable)
 
@@ -107,22 +109,23 @@ CI is read ONCE; no mining, no re-run.** Final aggregation:
 
 ## 4. PENDING QUEUE (by priority)
 
-1. **IN PROGRESS — Phased ablation (H6):** seed 123 (today at 19:30) →
-   seed 456 (15/07) → `--aggregate` → verdict through the 3 pre-registered
-   decision branches.
-2. **PREPARED — post-H6 experiments:**
-   - **H8** FuelMap physics-loss ablation: `analysis/fuelmap_ablation_cnn.py
-     --reuse-arm-a <H6 run dirs> --execute` (~5.5 h/seed, phased, detached).
+1. **DONE 16/07 — H6 closed (verdict NULL, read once).** Registry updated;
+   aggregate JSON committed. No further reads.
+2. **IN PROGRESS — post-H6 experiments:**
+   - **H8** FuelMap physics-loss ablation (CURRENT, night 1 pending):
+     `analysis/fuelmap_ablation_cnn.py --reuse-arm-a <H6 run dirs>
+     --execute` (~5.5 h/seed, phased, detached).
      Pre-reg: `docs/fuelmap_ablation_preregistration.md`.
    - **H9** factorial tabular baseline: GBM runs **DONE 15/07** (run
-     `20260715T123221Z`, `143756f`; numbers in §1). V1/V2 verdicts via
-     `--compare-cnn` ONLY after H6 closes. Pre-reg (3 amendments, CNN−F
-     co-primary): `docs/tabular_baseline_preregistration.md`.
+     `20260715T123221Z`, `143756f`). V1/V2 verdicts via `--compare-cnn`
+     now UNBLOCKED (H6 closed); paired read pending, author triggers.
+     Pre-reg (3 amendments, CNN−F co-primary):
+     `docs/tabular_baseline_preregistration.md`.
    - Harness: `analysis/tabular_baseline_kfold.py`. Local TODO/context:
      `.claude/TODO_recomendacoes.md`.
    - **`basin` metadata REPAIR** (audit done 15/07, see §1 — empty ≡ NA):
      fix `ibtracs.py:120` + rebuild or SID→basin repair map. Blocked until
-     H6/H8 close; still gates T5/benchmark release. Public relabel already
+     H8 closes; still gates T5/benchmark release. Public relabel already
      done (ERRATA item 7).
 3. **PR flow (corrected 15/07):** PRs #9/#10/#11/#12 (`feature/tchp` →
    `main`) are all MERGED (#12 on 14/07 19:22 absorbed up to `6691fc9`).
@@ -168,7 +171,10 @@ CI is read ONCE; no mining, no re-run.** Final aggregation:
 - Ablation pre-registration locked in before any results (`eaa8ae8`).
 - Post-backfill re-test of RI precursors on frozen pairs: H1–H4
   significant under Bonferroni ×4, H2/H4 with 394/394 pairs (`970a419`).
-- Ablation night 1 / seed 42 complete (`c608f19`).
+- Ablation night 1 / seed 42 complete (`c608f19`); night 2 / seed 123
+  (`c6a3b20`); night 3 / seed 456 (`bb7adaa`).
+- **H6 CLOSED 16/07 — verdict NULL** (Δ +0.0185, CI [−0.0070, +0.0431],
+  read once; `aggregate_20260716T120517Z.json`). Do not re-read or re-run.
 - Dataset 1980–2023: 16,780 valid events / 802 RI positives / 992
   storms; splits with no leakage; frozen benchmark intact.
 

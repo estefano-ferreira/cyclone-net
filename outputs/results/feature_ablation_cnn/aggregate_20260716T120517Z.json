@@ -1,0 +1,24 @@
+{
+  "method": "cross_seed_mean_delta_pr_auc__cluster_bootstrap_by_sid",
+  "n_seeds": 3,
+  "oof_csvs": [
+    "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/oof_predictions.csv",
+    "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/oof_predictions.csv",
+    "outputs/results/feature_ablation_cnn/20260715T223350Z/seed456/oof_predictions.csv"
+  ],
+  "n_events": 14101,
+  "n_storms": 839,
+  "per_seed_delta_pr_auc": [
+    0.033067155175500795,
+    0.011057373893991362,
+    0.011260623600938074
+  ],
+  "delta_pr_auc_mean_across_seeds": 0.018461717556810076,
+  "ci_level": 0.95,
+  "n_boot_requested": 10000,
+  "n_boot_used": 10000,
+  "n_boot_skipped_single_class": 0,
+  "delta_pr_auc_ci_low": -0.0069736304262440554,
+  "delta_pr_auc_ci_high": 0.04308976470011222,
+  "verdict": "CI [-0.0070, 0.0431] includes zero: NULL -- the added channels do not add detectable skill at this resolution/regime."
+}
