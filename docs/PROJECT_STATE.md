@@ -11,13 +11,16 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-16 ~20:30 (…morning: H6 NULL; H9 V1 NEG / V2 NULL;
-H8 CANCELLED; label RETIRED; freeze LIFTED; basin REPAIRED. Afternoon:
-**dv24/dv12 CORRECTED — DATASET v2 APPLIED**; "Defect 0" RETRACTED;
-raw-replication gate permanent; keep_default_na class CLOSED. Evening:
-**T5 PACKAGE BUILT AND VERIFIED** — 46 files / 6.03 GiB in `dist/`,
-awaiting the author's Zenodo upload; layer-A identity pass done, dual
-license MIT + CC BY 4.0)._
+_Last updated: 2026-07-16 ~22:30 (…morning: campaign closed (H6/H9/H8);
+basin REPAIRED. Afternoon: DATASET v2 APPLIED; "Defect 0" RETRACTED;
+replication gate permanent; keep_default_na class CLOSED. Evening: T5
+PACKAGE BUILT AND VERIFIED (46 files / 6.03 GiB in `dist/`); layer-A done
+(dual license MIT + CC BY 4.0, **merged to main via PR #15**); Zenodo v3
+status document + metadata READY; platform REBUILT serving v2 labels with
+tri-state ri_candidate; **citable title FINALIZED** ("A Reproducible
+Pipeline and Leakage-Safe Two-Basin Dataset…"). PENDING: PR #16 (3
+commits), the author's two Zenodo uploads, GitHub About, credential
+rotation)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
@@ -190,20 +193,44 @@ repair of DERIVED METADATA; the test set remains unread in the sense that
 matters (no model evaluated, no metric computed); same category as the
 basin repair.
 
+**LATE-EVENING ADDENDUM (16/07 ~21-22h):** (a) **PR #15 MERGED by the
+author** — origin/main carries the whole day through `02ad7a8`, including
+MIT. (b) **Zenodo v3 READY**: status document
+(`docs/release/zenodo_v3_supersession_note.tex` — restructured
+status-first: §1 what it is, §2 campaign, §3 correction record with the
+no-softening rule, §4 dry provenance; author added their author block) +
+paste-ready metadata (`zenodo_v3_metadata.md`). (c) **Citable title
+FINALIZED and cascaded** (`1d51154`): "CycloneNet: A Reproducible
+Pipeline and Leakage-Safe Two-Basin Dataset for Tropical-Cyclone
+Rapid-Intensification Analysis" — names the tool, not the process; the
+"Honest Audit" variant retired before public use; CFF/CITATION.md/
+metadata/.tex all match. (d) **Platform REBUILT on v2 labels with
+TRI-STATE `ri_candidate` (true/false/null)** (`4d573ec`): markers
+1,875→1,871, 55 undefined rendered as such (gray triangle + tooltip),
+storm badges 497→496 (`2016270N12223`), TAMMY intact, env panel verified
+unchanged; served build version `0309837+…`. Platform reads labels from
+the event list — no independent label implementation (the served-build
+defect was staleness, not code).
+
 Next steps:
-1. **DONE 16/07 — dv24 label correction applied (dataset v2).** See block
-   above; nothing pending on labels.
-2. **T5 packaging: BUILT AND VERIFIED 16/07** (block above). Remaining is
-   the author's manual tail: Zenodo upload → DOI → slot fill + software
-   record + About (one public-face change) → PR #15. APC decision still
-   open: Scientific Data GBP 2,190 vs ESSD EUR 1,400 flat (ESSD leaning;
-   both accept Zenodo — verified).
-3. **"physics-guided" relabel: layer-A DONE 16/07** (`f229cc8` — citable
-   title, license fields, facade docstrings, pyproject). Code identifiers
-   (CycloneNetPhysicsGuided, src/physics/, config keys) intentionally
-   KEPT — released checkpoint references them (README legacy note).
-4. V3 skeleton (also unlocks the coauthor-contact gate) — next major
-   work item after the upload.
+1. **PR #16** (author, one click):
+   github.com/estefano-ferreira/cyclone-net/compare/main...feature/tchp —
+   3 commits (`0309837` Zenodo docs, `4d573ec` platform, `1d51154`
+   title). No `gh` on this machine; PRs are author-side.
+2. **Zenodo uploads (author, manual):** (a) dataset record — 46 files in
+   `dist/cyclonenet-dataset-v2-zips/`, new concept DOI, CC BY 4.0;
+   (b) software record v3.0.0 — compile the .tex, paste
+   `zenodo_v3_metadata.md` (title final; description's "SUPERSESSION
+   NOTE" wording → "Project Status and Correction Record" pending the
+   author's word), record license CC BY 4.0. Then fill DOI slots
+   (CITATION.cff references, LICENSE-DATA, DATA_DICTIONARY §1) + GitHub
+   About — the single public-face change.
+3. APC/venue decision still open: ESSD EUR 1,400 leaning vs Scientific
+   Data GBP 2,190 (both accept Zenodo — verified).
+4. **Credential rotation STILL PENDING** (CDS key + Copernicus password,
+   leaked in git history; redaction implemented, rotation not done).
+5. V3 skeleton / Data Descriptor rewrite of MANUSCRIPT_honest (unlocks
+   the coauthor-contact gate) — next major work item.
 
 **H9 executed 15/07** (run `20260715T123221Z`, commits `d6cc930` fix +
 `143756f` results; 3rd dated pre-reg amendment: median imputation for the
