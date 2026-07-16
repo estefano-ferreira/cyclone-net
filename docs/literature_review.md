@@ -72,6 +72,18 @@ Two trends matter for positioning:
    reproducible pipeline (rather than a new SOTA number) have an
    established niche.
 
+**Direct precedent found 2026-07-15 (weakens any release-novelty claim):**
+An & Jeong (2026, *JGR: Machine Learning and Computation*) predict WNP RI
+with a tabular ML model (TabNet; SMOTE augmentation and loss-function
+comparison as the stated contributions) over **ERA5-derived predictors**
+(single + pressure levels, 1977–2021, JMA best track) and **release the
+derived dataset + code publicly on Zenodo** (DOI 10.5281/zenodo.15833650).
+Their feature construction differs from ours — distance-weighted averages
+of the 4 grid points nearest the storm center (scalar features), not
+spatial cubes — but this IS the precedent of "publicly released,
+peer-reviewed, ERA5-derived RI dataset". See §5 for the positioning
+consequence.
+
 ## 3. Where CycloneNet sits (honest positioning)
 
 - **Not a physical discovery.** Our environmental-precursor findings
@@ -98,7 +110,14 @@ Two trends matter for positioning:
   the physical-discovery category.
 - **Appropriate venue:** reproducibility tracks, applied-ML venues, or
   workshops, with a domain (meteorology) coauthor validating the
-  scientific framing before submission.
+  scientific framing before submission. **Added 2026-07-15:** data
+  journals — *Earth System Science Data* (Copernicus) and *Scientific
+  Data* (Nature) — publish **datasets as the primary, peer-reviewed
+  contribution**, and both already carry ERA5-derived TC datasets (§4,
+  entries 13–14). Given that this project's real contribution is the
+  auditable dataset + pipeline rather than the model, a data journal is
+  arguably the best-matched route for the dataset component (with the
+  measurement/benchmark analysis published separately or as companion).
 
 ## 4. References (to complete)
 
@@ -111,8 +130,9 @@ Two trends matter for positioning:
 > V3 rule: only [PEER-REVIEWED] work may be cited as "established".
 
 Bibliographic details (authors/title/venue/DOI) were verified against
-publisher pages via web search on 2026-07-14. **Every entry below is
-[abstract-only]** — none read in full yet (see §5).
+publisher pages via web search on 2026-07-14 (entries 1–11) and 2026-07-15
+(entries 12–14). **Every entry below is [abstract-only]** — none read in
+full yet (see §5).
 
 **Foundational — RI climatology and operational prediction:**
 
@@ -182,6 +202,39 @@ publisher pages via web search on 2026-07-14. **Every entry below is
     Forecasting. *Frontiers in Earth Science*, 10, 902596.
     DOI: 10.3389/feart.2022.902596.
 
+**ERA5-derived TC/RI datasets released publicly (added 2026-07-15):**
+
+12. **[PEER-REVIEWED]** [abstract-only] An, S., & Jeong, J. (2026).
+    Machine Learning Based Prediction of Tropical Cyclone Rapid
+    Intensification in the Western North Pacific: Importance of Data
+    Augmentation and Loss Function. *Journal of Geophysical Research:
+    Machine Learning and Computation*, 3, e2025JH000876.
+    DOI: 10.1029/2025JH000876. Derived data + code:
+    Zenodo, DOI 10.5281/zenodo.15833650 (verified: notebook + CSVs with
+    track and environmental data, WNP). — TabNet on ERA5-derived scalar
+    predictors (single + pressure levels, 1977–2021, JMA best track;
+    distance-weighted average of the 4 grid points nearest the center —
+    NOT spatial cubes); contributions framed as SMOTE augmentation +
+    loss-function choice. **The direct precedent of a publicly released,
+    peer-reviewed, ERA5-derived RI dataset.** (Publisher article page is
+    bot-blocked; bibliography verified via the publisher's search
+    listing, the Zenodo record, and an institutional repository listing.
+    Method details from abstract-level search — confirm on full read.)
+13. **[PEER-REVIEWED]** [abstract-only] Xu, Z., Guo, J., Zhang, G., Ye,
+    Y., Zhao, H., & Chen, H. (2024). Global tropical cyclone size and
+    intensity reconstruction dataset for 1959–2022 based on IBTrACS and
+    ERA5 data. *Earth System Science Data*, 16, 5753.
+    DOI: 10.5194/essd-16-5753-2024 — ML reconstruction merging IBTrACS +
+    ERA5; dataset as the primary peer-reviewed contribution (data
+    journal).
+14. **[PEER-REVIEWED]** [abstract-only] Liu, G., Jiang, S., Zheng, M.,
+    Lin, S., Kong, Y., & Zhan, P. (2025). A Global ERA5-based Tropical
+    Cyclone Wind Field Dataset Enhanced by Integrated Parametric
+    Correction Methods. *Scientific Data*.
+    DOI: 10.1038/s41597-025-05789-w — corrected ERA5 TC wind fields
+    validated against SMAP/WindSat/SFMR; dataset as the primary
+    peer-reviewed contribution (data journal).
+
 No [PREPRINT]-only or [SECONDARY]-only entries remain in this list: the
 one arXiv item (#9) was confirmed as later peer-reviewed. Secondary
 sources (ResearchGate/Wikipedia) were used only to locate primary pages
@@ -210,3 +263,13 @@ during verification and are not cited.
   for the domain co-author. If the hypothesis falls, the V3 framing
   ("measuring the limit" as the contribution) must be downgraded to
   replication/benchmark.
+  - **Update 2026-07-15 — one component REFUTED:** the search found a
+    direct precedent of a **publicly released, peer-reviewed,
+    ERA5-derived RI dataset** (An & Jeong 2026, entry 12; data + code on
+    Zenodo). Any claim of pioneering "releasing a reanalysis-derived RI
+    dataset" is refuted — do not make it. The STRICT hypothesis above
+    (measuring the lower bound from coarse surface reanalysis ALONE,
+    with storm-level leakage control, no satellite/NWP mixing) remains
+    unverified either way: none of the precedents found does exactly
+    that — but this is abstract-level search, not a review, so absence
+    still cannot be claimed. The downgrade consequence stands unchanged.
