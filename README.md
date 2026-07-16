@@ -348,6 +348,12 @@ All code is written with **type hints using the union syntax** (`X | Y`), availa
 
 ## 📜 License
 
-This project is licensed under the **Creative Commons Attribution‑NonCommercial 4.0 International (CC BY‑NC 4.0)**. Commercial use requires explicit written permission from the author.
+Dual license — code and data are distinct artifacts:
+
+- **Code** (pipeline, analysis, platform): **MIT** — see [`LICENSE`](LICENSE).
+- **Dataset** (cubes, sidecars, event lists, labels, splits): **CC BY 4.0** —
+  see [`LICENSE-DATA`](LICENSE-DATA). Redistribution must preserve the
+  mandatory third-party attributions (Copernicus/ERA5, IBTrACS, Copernicus
+  Marine) listed in the dataset's `NOTICE` file.
 
 © 2026 Estefano Senhor Ferreira
