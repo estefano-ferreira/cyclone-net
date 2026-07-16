@@ -89,12 +89,38 @@ crossers); `valid_events.csv`/`splits.csv` byte-identical. Manifest:
 ERRATA item 7 updated to REPAIRED. Released artifacts keep the old label
 (historical record; next re-release).
 
+**PAPER 1 PREMISE VERIFIED (2026-07-16) — the cubes CAN ship:**
+the TODO's "no cubes (license/size)" assumption is WRONG on both counts.
+(a) Size, measured on disk: 448 KB/event exactly (40x40x5x14 float32);
+data/interim totals 12.4 GB (11.26 GB cubes incl. 1,257 ADT extras);
+valid-events-only subset ~7.7 GB — far under Zenodo's 50 GB/record.
+(b) License: CDS/ERA5 moved to CC-BY on 2025-07-02, and even the prior
+Copernicus licence allowed redistributing adapted products with the
+notice "Contains modified Copernicus Climate Change Service information
+(Year)" + EC/ECMWF liability disclaimer. IBTrACS is NOAA/public domain.
+CONSEQUENCE: dataset license must be CC BY 4.0 (NOT CC0 — the Copernicus
+attribution requirement cannot be stripped); the Data Descriptor has a
+real product (per-event spatial cubes), not a recipe.
+
+**dv24 STATUS UPGRADE (author, 2026-07-16):** for a Data Descriptor the
+ri_label is the primary product — ERRATA item 6 (positional 4-row vs
+strictly temporal 24 h delta, ~1.3% of points) is a DEFECT in the
+primary data, not a caveat. Correcting before release is the path;
+declaring is the minimum. Note: correcting changes ~1.3% of labels →
+new dataset version (v2) with the v1 verdicts kept as record.
+
 Next steps:
-1. "physics-guided" relabel pass (inventory in §4; coordinate with the
-   next re-release so public artifacts change once).
-2. V3: tabular reference vs historical CNN record (open item above).
-3. T5 benchmark release + coauthor gate: basin repair no longer blocks;
-   remaining gate items are the H-verdicts (done) and the V3 skeleton.
+1. **dv24 label correction** (release-gating for Paper 1; design the fix
+   + impact assessment before touching anything).
+2. T5 packaging WITH cubes (~7.7 GB valid subset) + CC BY 4.0 + Copernicus
+   attribution notices; repository choice (PANGAEA vs Zenodo versioned);
+   coordinate with the Zenodo re-publication so the public face changes
+   once. APC decision: Scientific Data GBP 2,190 / USD 2,850 vs ESSD
+   EUR 1,400 flat (both have waiver policies; no automatic waiver for
+   Brazil at either).
+3. "physics-guided" relabel pass (inventory in §4; coordinate with the
+   same re-release).
+4. V3 skeleton (also unlocks the coauthor-contact gate).
 
 **H9 executed 15/07** (run `20260715T123221Z`, commits `d6cc930` fix +
 `143756f` results; 3rd dated pre-reg amendment: median imputation for the
