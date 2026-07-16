@@ -11,8 +11,9 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-16 ~09:30 (seed 456 complete `bb7adaa`; H6
-AGGREGATED and CLOSED: verdict NULL; next: H8 night 1)._
+_Last updated: 2026-07-16 ~10:40 (H6 CLOSED: NULL; H9 CLOSED: V1
+NEGATIVE / V2 NULL; H8 CANCELLED; "physics-guided" label RETIRED; src/
+freeze LIFTED; basin repair = critical path)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
@@ -24,15 +25,60 @@ architecture; NOT a weak positive. Report:
 `outputs/results/feature_ablation_cnn/aggregate_20260716T120517Z.json`.
 Registry entry updated (H6 TESTED/NULL).
 
-Next steps, in order:
-1. **H8 night 1** — `analysis/fuelmap_ablation_cnn.py --reuse-arm-a
-   <3 H6 run dirs> --execute` (~5.5 h/seed, phased nights, detached via
-   Task Scheduler launcher like nights 1–3; §6 rules). Verdict decides the
-   "physics-guided" name. Pre-reg: `docs/fuelmap_ablation_preregistration.md`.
-2. H9 `--compare-cnn` (V1/V2 co-primary, consequences fixed) — GBM runs
-   DONE (§4 item 2); the paired read is now UNBLOCKED by H6 close (cheap,
-   minutes; author decides when).
-3. After H8 closes: basin metadata REPAIR + unfreeze `src/` (T2/V4 work).
+**H9 IS ALSO CLOSED (read once 16/07, order corrected by the author:
+--compare-cnn BEFORE H8, because V2 gates H8):**
+- **V1 NEGATIVE:** Δ₁(CNN−GBM_SF) = −0.0781, CI [−0.1162, −0.0422] < 0 —
+  the tabular baseline beats the CNN; **GBM_SF is now the project's
+  reference model** (pre-registered consequence).
+- **V2 NULL:** Δ₂(CNN−GBM_F) = +0.0005, CI [−0.0285, +0.0316] ∈ 0 —
+  **architecture NOT justified in its current form**; CNN = documented
+  negative; redesign only as NEW pre-registration.
+- Ex-ante qualifications recorded in the registry (GAP, intensity-blind,
+  basin one-hot, 15-epoch budget). Report:
+  `outputs/results/tabular_baseline/compare_20260716T121803Z.json`.
+
+**H8 CANCELLED (author decision, 2026-07-16):** "H8 (FuelMap
+physics-loss ablation) is CANCELLED, not deferred. Its question — do the
+FuelMap physics losses help RI classification? — became undecidable when
+H9's V2 retired the architecture those losses shape (pre-registered
+joint reading, 2026-07-16: Δ₂ ≤ 0 → architecture retired/redesigned
+regardless of Δ₁). Ablating a component of a retired model decides
+nothing. The H8 pre-registration and harness
+(analysis/fuelmap_ablation_cnn.py,
+docs/fuelmap_ablation_preregistration.md) remain in the repo as record —
+they are not to be run."
+
+**"Physics-guided" label RETIRED (2026-07-16):** "The 'physics-guided'
+label is retired. H8 was the honesty test for the name; it is moot
+because the architecture carrying the four FuelMap-centred losses was
+itself retired by H9/V2. Independently of H8, the label was already only
+weakly supported: the KL prior-alignment term targets a heuristic prior
+whose semantics were REFUTED in H1; the only equation-consistency term
+is disabled (lambda_consistency = 0.0) and documented as
+near-degenerate; there are no conservation laws or imposed dynamics. Do
+not use 'physics-guided' in V3 or in public descriptions." Repo-wide
+occurrence inventory: §4 relabel item (fix is a coordinated pass, not
+piecemeal).
+
+**`src/` FREEZE LIFTED (2026-07-16):** the freeze existed solely so
+H8's arm B could train with the identical trainer that produced the
+reused arm A. With H8 cancelled that reason is gone. Verified before
+lifting: no training/backfill running; no pre-registered experiment
+awaits the frozen code (H6/H9 closed, H7 deferred, H10/T2 design-only).
+
+**OPEN ITEM (registered, NOT resolved):** "What, if anything, is the
+project's reference model now? H9/V1 makes GBM_SF the empirical
+reference on this dataset. Decide whether V3 reports the retired CNN's
+frozen test-set metrics as historical record, or whether the tabular
+baseline becomes the reported model. This changes what the released
+benchmark ships."
+
+Next steps:
+1. **basin metadata REPAIR is now the critical path** (unblocked by the
+   freeze lift; gates T5/benchmark release and the coauthor-contact gate).
+2. "physics-guided" relabel pass (inventory in §4; coordinate with the
+   basin-repair retrain/re-release so public artifacts change once).
+3. V3: tabular reference vs historical CNN record (open item above).
 
 **H9 executed 15/07** (run `20260715T123221Z`, commits `d6cc930` fix +
 `143756f` results; 3rd dated pre-reg amendment: median imputation for the
@@ -71,26 +117,16 @@ threw under `ErrorActionPreference=Stop`. Fix (permanent rule): every
 operational `.ps1` is ASCII-only with paths via `$env:USERPROFILE`, saved
 with BOM. Re-fired 19:35 via `Start-ScheduledTask`, pre-checks passed.
 
-## 2. STATE OF ONGOING EXPERIMENT (H8 FuelMap physics-loss ablation)
+## 2. STATE OF EXPERIMENTS
 
-**H6 (feature ablation) is CLOSED — verdict NULL, see §1 and the registry.**
-Seeds 42/123/456 complete (`c608f19`/`c6a3b20`/`bb7adaa`); aggregate read
-once 16/07 (`aggregate_20260716T120517Z.json`). No re-runs, no re-reads.
+**H6 (feature ablation) CLOSED — NULL** (seeds `c608f19`/`c6a3b20`/
+`bb7adaa`; aggregate read once 16/07, `aggregate_20260716T120517Z.json`).
+**H9 (tabular baseline) CLOSED — V1 NEGATIVE / V2 NULL** (paired read once
+16/07, `compare_20260716T121803Z.json`). No re-runs, no re-reads of either.
 
-**Current experiment: H8** — pre-reg
-`docs/fuelmap_ablation_preregistration.md`; arm A reused from H6
-`A_current` cells (fold-identity validated), arm B (all physics lambdas 0)
-trains ~5.5 h/seed, phased one seed per night, detached (§6). Same
-discipline: verdict = mean cross-seed ΔPR-AUC (B−A), 95% SID-cluster CI,
-read ONCE after 3 seeds through the 3 pre-registered branches with FIXED
-consequences (hurt → remove; null → remove for parsimony; help → keep as
-regularization, never as validated physics).
-
-| Seed | H8 status |
-|---|---|
-| 42 | pending (night 1) |
-| 123 | pending |
-| 456 | pending |
+**H8 CANCELLED (2026-07-16, §1):** no launcher scheduled, no cells run,
+none will be. Pre-registration and harness preserved in the repo as
+record; not to be run.
 
 ## 3. PROJECT PERMANENT RULES (inviolable)
 
@@ -111,22 +147,35 @@ regularization, never as validated physics).
 
 1. **DONE 16/07 — H6 closed (verdict NULL, read once).** Registry updated;
    aggregate JSON committed. No further reads.
-2. **IN PROGRESS — post-H6 experiments:**
-   - **H8** FuelMap physics-loss ablation (CURRENT, night 1 pending):
-     `analysis/fuelmap_ablation_cnn.py --reuse-arm-a <H6 run dirs>
-     --execute` (~5.5 h/seed, phased, detached).
-     Pre-reg: `docs/fuelmap_ablation_preregistration.md`.
-   - **H9** factorial tabular baseline: GBM runs **DONE 15/07** (run
-     `20260715T123221Z`, `143756f`). V1/V2 verdicts via `--compare-cnn`
-     now UNBLOCKED (H6 closed); paired read pending, author triggers.
-     Pre-reg (3 amendments, CNN−F co-primary):
-     `docs/tabular_baseline_preregistration.md`.
-   - Harness: `analysis/tabular_baseline_kfold.py`. Local TODO/context:
-     `.claude/TODO_recomendacoes.md`.
-   - **`basin` metadata REPAIR** (audit done 15/07, see §1 — empty ≡ NA):
-     fix `ibtracs.py:120` + rebuild or SID→basin repair map. Blocked until
-     H8 closes; still gates T5/benchmark release. Public relabel already
+2. **Experiments:**
+   - **H9 CLOSED 16/07** — V1 NEGATIVE (GBM_SF beats CNN), V2 NULL
+     (architecture not justified). Registry updated with ex-ante
+     qualifications. GBM runs `20260715T123221Z` (`143756f`); paired
+     report `compare_20260716T121803Z.json`.
+   - **H8 CANCELLED 16/07** (see §1; registry has the verbatim record).
+   - Local TODO/context: `.claude/TODO_recomendacoes.md`.
+   - **`basin` metadata REPAIR — CRITICAL PATH (unblocked 16/07):**
+     fix `ibtracs.py:120` + rebuild or SID→basin repair map. Still gates
+     T5/benchmark release and the coauthor gate. Public relabel already
      done (ERRATA item 7).
+   - **"physics-guided" RELABEL (new 16/07, label retired — see §1):**
+     inventory of occurrences (16/07): README.md (§structure/§losses/
+     §preprocessing), MANUSCRIPT_honest.md (title + 7 mentions),
+     cyclonenet_honest.tex (title + 6), CITATION.cff + docs/CITATION.md
+     (title), ERRATA.md (historical mentions — keep, they describe the
+     old paper), pyproject.toml (description), run.py, mcp_server.py,
+     src/__init__.py, src/training/trainer.py,
+     src/models/cyclone_net_physics_guided.py (class
+     CycloneNetPhysicsGuided + filename), src/physics/* (module name +
+     physics_guided_losses.py), src/processors/preprocess_scientific.py,
+     src/data/dataset.py + normalization.py (config keys
+     `physics_guided.*`), config-template.yaml (block name),
+     tests/test_physics_losses.py + test_adt_input.py,
+     analysis/fuelmap_ablation_cnn.py + fuelmap_ablation_
+     preregistration.md (H8 record — keep as-is), docs/diagnostic.md,
+     docs/scalar_branch_design.md. Historical/record files (ERRATA, H8
+     pre-reg, registry) KEEP the term; public-facing and structural ones
+     change in a coordinated pass.
 3. **PR flow (corrected 15/07):** PRs #9/#10/#11/#12 (`feature/tchp` →
    `main`) are all MERGED (#12 on 14/07 19:22 absorbed up to `6691fc9`).
    **The live PR is #13** (opened 15/07 ~09:56, head `443ffe5`, 8 commits,
@@ -175,6 +224,9 @@ regularization, never as validated physics).
   (`c6a3b20`); night 3 / seed 456 (`bb7adaa`).
 - **H6 CLOSED 16/07 — verdict NULL** (Δ +0.0185, CI [−0.0070, +0.0431],
   read once; `aggregate_20260716T120517Z.json`). Do not re-read or re-run.
+- **H9 CLOSED 16/07 — V1 NEGATIVE / V2 NULL** (read once;
+  `compare_20260716T121803Z.json`): GBM_SF is the reference model; the
+  GAP-CNN is a documented negative. Do not re-read or re-run.
 - Dataset 1980–2023: 16,780 valid events / 802 RI positives / 992
   storms; splits with no leakage; frozen benchmark intact.
 
