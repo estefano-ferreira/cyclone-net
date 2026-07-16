@@ -66,12 +66,16 @@ reused arm A. With H8 cancelled that reason is gone. Verified before
 lifting: no training/backfill running; no pre-registered experiment
 awaits the frozen code (H6/H9 closed, H7 deferred, H10/T2 design-only).
 
-**OPEN ITEM (registered, NOT resolved):** "What, if anything, is the
-project's reference model now? H9/V1 makes GBM_SF the empirical
-reference on this dataset. Decide whether V3 reports the retired CNN's
-frozen test-set metrics as historical record, or whether the tabular
-baseline becomes the reported model. This changes what the released
-benchmark ships."
+**REFERENCE-MODEL DECISION (author, 2026-07-16 — closes the open item
+from `c1d3831`):** "The project reports NO single reference model. The
+CNN has a frozen test-set number (PR-AUC 0.251 [0.179-0.331]) but was
+retired by H9/V2. The GBM_SF is the empirical reference ON THE DEV FOLDS
+(0.249 pooled OOF) and has NEVER been evaluated on the frozen test set —
+promoting it would require a second test-set read, which is not
+justified: the released contribution is the dataset, not a model. Both
+are reported with their protocols explicitly separated. The CNN's
+test-set metrics stand as historical record of a retired architecture."
+Consequence: do NOT evaluate the GBM on the test set.
 
 **basin metadata REPAIRED (2026-07-16, same session):** parser fixed at
 the origin (`ibtracs.py` + 3 event-list readers, `keep_default_na=False`;

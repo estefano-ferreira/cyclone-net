@@ -318,6 +318,15 @@ the mapping to this registry is given in the notes of H4/H5 below.
   without distinguishing; it does not invalidate any arm (same table in
   all three), but the verdict reading should not attribute all of the
   S/SF advantage to storm state alone.
+- **Reference-model decision (author, 2026-07-16 — fixed consequence of
+  this verdict):** "The project reports NO single reference model. The
+  CNN has a frozen test-set number (PR-AUC 0.251 [0.179-0.331]) but was
+  retired by H9/V2. The GBM_SF is the empirical reference ON THE DEV
+  FOLDS (0.249 pooled OOF) and has NEVER been evaluated on the frozen
+  test set — promoting it would require a second test-set read, which is
+  not justified: the released contribution is the dataset, not a model.
+  Both are reported with their protocols explicitly separated. The CNN's
+  test-set metrics stand as historical record of a retired architecture."
 
 ---
 

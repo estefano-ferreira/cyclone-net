@@ -1,4 +1,23 @@
-## CycloneNet – Test-Set Validation Report
+## CycloneNet – Validation Report
+
+> **⚠️ TWO PROTOCOLS, TWO SECTIONS — DO NOT COMPARE ACROSS THEM.**
+> This report contains numbers from two different measurement protocols:
+> **(1)** the frozen test set (single read, 2,679 events) and **(2)**
+> dev-fold out-of-fold measurement (SID-grouped 3-fold CV, 3 seeds,
+> 14,101 events). The test-set PR-AUC 0.251 and the dev-OOF PR-AUC 0.249
+> are **not comparable** — different events, different protocol, different
+> prevalence. Every table below is labeled with its protocol.
+
+**Reference-model status (author decision, 2026-07-16):** the project
+reports **no single reference model**. The CNN has a frozen test-set
+number (PR-AUC 0.251 [0.179–0.331]) but was **retired by H9/V2** (see the
+dev-fold section). The GBM_SF is the empirical reference **on the dev
+folds** (0.249 pooled OOF) and has **never** been evaluated on the frozen
+test set — promoting it would require a second test-set read, which is
+not justified: the released contribution is the **dataset**, not a model.
+Both are reported below with their protocols explicitly separated. The
+CNN's test-set metrics stand as historical record of a retired
+architecture.
 
 **Dataset:** full 1980–2023 **two-basin archive (East Pacific + North
 Atlantic)** — 16,780 valid events / 802 RI positives / 992 storms (578 EP /
@@ -27,6 +46,13 @@ wording here ("≥ 0.85 achieved") conflated the validation target with the
 test-set outcome.
 
 ---
+
+## PROTOCOL 1 — Frozen test set (retired CNN; historical record)
+
+> **Architecture retired 2026-07-16 by the pre-registered H9/V2 verdict**
+> (see Protocol 2). These metrics are the single authorized read of the
+> frozen test set and stand as the historical record of that model. They
+> are NOT comparable to the dev-fold numbers below.
 
 ### 📊 Global Test-Set Metrics
 
@@ -130,16 +156,82 @@ Event identifiers carry the storm ID: `era5_{YYYY_MM_DD_HHMM}_{SID}`
 
 ---
 
+## PROTOCOL 2 — Dev-fold measurement (SID-grouped 3-fold CV × 3 seeds; closed verdicts of 2026-07-16)
+
+All numbers in this section are **pooled out-of-fold PR-AUC on the
+PL-gated dev set** (14,101 events / 687 RI positives / 839 storms;
+StratifiedGroupKFold by SID, k=3, seeds {42, 123, 456}, identical folds
+for every model; 15-epoch budget for every CNN cell). **These numbers are
+NOT comparable to the test-set numbers above — different protocol.** The
+test set was never read by any of these experiments.
+
+### The measurement ladder (cross-seed mean OOF PR-AUC)
+
+| Model (information diet) | Pooled OOF PR-AUC (mean of 3 seeds) |
+| --- | --- |
+| GBM **S** — storm state only (Vmax, persistence, lat, season, basin) | **0.202** |
+| GBM **F** — field aggregates only (mean/std/min/max of the 11 cube channels) | **0.170** |
+| CNN (arm A) — full-resolution spatial fields (intensity-blind) | **0.171** |
+| GBM **SF** — state + field aggregates (strongest tabular baseline) | **0.249** |
+| Logistic regression on SF (linear reference) | 0.203 |
+
+### Closed pre-registered verdicts (each CI read once)
+
+- **H6 — shear/RH feature ablation: NULL.** ΔPR-AUC(B−A) = +0.0185, 95%
+  CI **[−0.0070, +0.0431] includes zero**: the added channels give no
+  detectable skill at this resolution/regime for this architecture.
+  Not a weak positive (pre-registered reading).
+- **H9/V1 — validity vs tabular baseline: NEGATIVE.** Δ₁ = PR-AUC(CNN) −
+  PR-AUC(GBM_SF) = −0.0781, 95% CI **[−0.1162, −0.0422] < 0**: the
+  tabular baseline **beats** the CNN. Pre-registered consequence: the CNN
+  is not justified over a classical baseline.
+- **H9/V2 — architecture justification: NULL.** Δ₂ = PR-AUC(CNN) −
+  PR-AUC(GBM_F) = +0.0005, 95% CI **[−0.0285, +0.0316] includes zero**:
+  at a fixed information diet, full 0.25° grids give this CNN nothing
+  detectable beyond 44 aggregate scalars. Pre-registered consequence:
+  **the architecture is not justified in its current form and was
+  retired**; any redesign is a new pre-registered test.
+- **H8 — FuelMap physics-loss ablation: CANCELLED** (2026-07-16). Its
+  question became undecidable once H9/V2 retired the architecture those
+  losses shape; ablating a component of a retired model decides nothing.
+  Pre-registration and harness remain in the repo as record.
+
+**Scope guard for V2 (fixed before the read):** a null/negative Δ₂
+unjustifies THIS architecture; it does NOT establish that "spatial
+structure carries no RI information" — a stronger spatial reader could
+extract what this one cannot. The claim licensed is about the model, not
+the physics.
+
+### Ex-ante qualifications (all known before the read; none invented after)
+
+1. **Global average pooling:** the CNN aggregates spatially before
+   classifying — CNN ≈ GBM_F was expected *of this architecture* and
+   licenses no claim about spatial signal in the data.
+2. **Intensity-blind:** the CNN receives no Vmax/persistence; GBM_SF
+   does. Part of the V1 gap is information diet, not model class
+   (S − F ≈ +0.03 shows how far state alone carries).
+3. **Basin:** the (then-mislabeled) basin one-hot carried the true
+   two-basin partition — the GBM effectively used basin as a predictor;
+   the CNN never sees it.
+4. **15-epoch budget**, identical for every arm and every CNN cell.
+
+Full protocol and fixed consequences:
+`docs/tabular_baseline_preregistration.md` (H9, two co-primary verdicts),
+`docs/ablation_preregistration.md` (H6). Verdict artifacts:
+`outputs/results/feature_ablation_cnn/aggregate_20260716T120517Z.json`,
+`outputs/results/tabular_baseline/compare_20260716T121803Z.json`.
+
+---
+
 ### ⚠️ Important Considerations
 
 - **Diagnostic, not predictive:** hindcast evaluation only; no real-time
   forecasting claim, and no comparison against operational baselines
-  (SHIPS-RII) executed yet. Note that SHIPS-RII is fitted **per basin**; a
+  (SHIPS-RII) executed. Note that SHIPS-RII is fitted **per basin**; a
   direct comparison against this two-basin model is not possible without
-  separating the basins. A **pre-registered classical-baseline
-  comparison** (gradient boosting on SHIPS-like scalars, factorial
-  state/fields design, identical SID-grouped folds) is prepared — see
-  `docs/tabular_baseline_preregistration.md` (H9); results pending.
+  separating the basins. The **pre-registered classical-baseline
+  comparison** (H9) was executed and read on 2026-07-16 — see Protocol 2
+  above: the tabular baseline beats the CNN on the dev folds.
 - **Two-basin heterogeneity:** the dataset mixes two basins (East Pacific +
   North Atlantic) with different RI climatologies (shear, TCHP,
   seasonality); basin is not used as a control in the current experiments,
@@ -147,15 +239,18 @@ Event identifiers carry the storm ID: `era5_{YYYY_MM_DD_HHMM}_{SID}`
   heterogeneity is a **declared limitation, not a controlled variable**
   (see ERRATA.md item 7).
 - **Model note:** the CNN receives only spatial fields — current intensity
-  and persistence are NOT inputs. The pre-registered baseline above
-  measures exactly what that omission costs.
+  and persistence are NOT inputs. The H9 measurement (Protocol 2)
+  quantified what that omission costs: V1 Δ = −0.078 against the
+  state-aware baseline, with the ex-ante qualification that this is
+  information diet as much as model class.
 - **Deliberate bias:** recall-first thresholding accepts many false
   positives by design.
 - **Spatial attribution is unsupported** (see above) — the classification
   skill does not extend to energy-source localization.
-- **Ongoing pre-registered work** (no results yet; verdicts read once,
-  after completion): feature ablation of shear/RH (H6), FuelMap
-  physics-loss ablation (H8), tabular baseline (H9). The full hypothesis
-  ledger — including refuted ones — is `docs/hypothesis_registry.md`.
+- **Pre-registered campaign CLOSED (2026-07-16):** H6 NULL, H9/V1
+  negative, H9/V2 null (architecture retired), H8 cancelled — all
+  verdicts and their fixed consequences in Protocol 2 above. The full
+  hypothesis ledger — including refuted ones — is
+  `docs/hypothesis_registry.md`.
 
-_Last updated: 2026-07-14_
+_Last updated: 2026-07-16_
