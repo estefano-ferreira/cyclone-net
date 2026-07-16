@@ -11,9 +11,10 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-16 ~13:15 (H6 NULL; H9 V1 NEG / V2 NULL; H8
-CANCELLED; label RETIRED; freeze LIFTED; **basin REPAIRED** — parser fix
-+ rebuild + 12,708 JSONs, audit-exact verification)._
+_Last updated: 2026-07-16 ~18:00 (…morning: H6 NULL; H9 V1 NEG / V2 NULL;
+H8 CANCELLED; label RETIRED; freeze LIFTED; basin REPAIRED. Afternoon:
+**dv24/dv12 CORRECTED — DATASET v2 APPLIED**; "Defect 0" diagnosis
+RETRACTED; raw-replication gate now a permanent rule)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
@@ -109,9 +110,39 @@ primary data, not a caveat. Correcting before release is the path;
 declaring is the minimum. Note: correcting changes ~1.3% of labels →
 new dataset version (v2) with the v1 verdicts kept as record.
 
+**dv24/dv12 CORRECTED — DATASET v2 APPLIED (2026-07-16 ~17:55):**
+labels recomputed with strict-temporal semantics (exact t0+12h/t0+24h,
+same SID; no partner → NULL, never 0; `ri_label ∈ {0,1,NULL}`, NULL events
+stay in the dataset, the RI task view excludes them). True defect (v5,
+measured against raw IBTrACS): 148/32,989 rows misaligned (0.45%; dv12 77);
+**ZERO valid-set label flips**; 19 valid events → NULL (11 train / 2 val /
+6 test); positives 802→799 (−3, all test); **dev PL-gated 687→687 INTACT —
+H6/H9 verdicts immune by construction, no v1 anchoring needed**; 1 test
+storm loses its positives. Applied surgically (event list + 25 sidecars +
+valid_events.csv), diff-manifest `data/normalized/label_diff_v1_v2.csv`
+(v1 values preserved), provenance
+`outputs/provenance/dv24_label_correction_20260716_175443.json`; re-run is
+idempotent; splits md5-unchanged. Design doc:
+`docs/dv24_label_correction_design.md`. ERRATA: item 6 REWRITTEN (real
+defect), item 8 NEW (retraction of the "Defect 0 / cross-storm leakage"
+misdiagnosis — ran on a derived artifact; refuted from raw), plus a
+standalone technical-validation note: **the shipped event list is
+byte-reproducible from raw IBTrACS (32,989/32,989)** — Data Descriptor
+asset. **The CNN test-set PR-AUC 0.251 STAYS in BENCHMARK** (author,
+16/07): labels proven reproducible from raw; historical record of a
+retired architecture, separate protocol.
+
+**DATED RECORDS (author, 2026-07-16):** (a) test-set carve-out for the
+dv24 impact assessment/correction — AGGREGATE LABEL COUNTS ONLY, no
+features, no model, no metric, no test event_ids listed; not an open
+precedent. (b) Authorization to patch test-split interim JSON sidecars —
+repair of DERIVED METADATA; the test set remains unread in the sense that
+matters (no model evaluated, no metric computed); same category as the
+basin repair.
+
 Next steps:
-1. **dv24 label correction** (release-gating for Paper 1; design the fix
-   + impact assessment before touching anything).
+1. **DONE 16/07 — dv24 label correction applied (dataset v2).** See block
+   above; nothing pending on labels.
 2. T5 packaging WITH cubes (~7.7 GB valid subset) + CC BY 4.0 + Copernicus
    attribution notices; repository choice (PANGAEA vs Zenodo versioned);
    coordinate with the Zenodo re-publication so the public face changes
@@ -184,6 +215,15 @@ record; not to be run.
 - SID-based hash-deterministic splits + `frozen_splits.json`; frozen test
   set, never read in development.
 - Epistemic honesty: FuelMap = hypothesis maps; no inflating results.
+- **REPLICATION GATE (permanent, author rule 2026-07-16):** any diagnosis
+  of a defect in a DERIVED artifact must FIRST replicate the shipped
+  artifact byte-exactly from the raw source
+  (`data/raw/ibtracs.ALL.list.v04r00.csv` for the event chain) and abort
+  if replication is not exact. On a derived file, "partner never existed"
+  and "partner was used then dropped by the builder" are indistinguishable
+  — this fabricated the retracted "Defect 0" (ERRATA item 8). Lesson:
+  arithmetic consistency across scopes does NOT detect wrong-reference
+  errors. Template: `analysis/dv24_impact_assessment_v5_raw_reference.py`.
 
 ## 4. PENDING QUEUE (by priority)
 

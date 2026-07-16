@@ -1,0 +1,69 @@
+{
+  "generated_utc": "2026-07-16T15:25:25.038340+00:00",
+  "method": {
+    "reference": "raw IBTrACS (data/raw/ibtracs.ALL.list.v04r00.csv), pre-dropna series rebuilt with build_event_list's exact filter chain",
+    "temporal_rule": "exact match at t0+12h / t0+24h, same SID",
+    "undefined_semantics": "no exact temporal partner -> NULL, never 0",
+    "supersedes": [
+      "report_20260716_144350",
+      "report_v2_20260716_145238",
+      "report_v3_20260716_145921",
+      "report_v4_20260716_151027"
+    ],
+    "retracted_findings": [
+      "DEFECT 0 / cross-SID bleed / 84 phantom positives (artifact of recomputing on the post-dropna file)",
+      "EFFECT 2 / 3,062 undefined valid events (same artifact)"
+    ],
+    "read_only": true
+  },
+  "replication_check": {
+    "rows_rebuilt": 32989,
+    "rows_shipped": 32989,
+    "rows_matched": 32989,
+    "dv24_equal": 32989,
+    "dv12_equal": 32989,
+    "ri_equal": 32989
+  },
+  "event_list_32989": {
+    "rows": 32989,
+    "mis24_rows": 148,
+    "mis24_pct": 0.449,
+    "mis12_rows": 77,
+    "label_flips_1_to_0": 1,
+    "label_flips_0_to_1": 0,
+    "ri_to_null": 55,
+    "ri_to_null_positives": 3,
+    "dropped_rows_temporally_definable": 2,
+    "dropped_rows_temporally_positive": 0,
+    "dv24_value_changes": 67,
+    "dv12_value_changes": 37,
+    "dv12_to_null": 31
+  },
+  "valid_set_16780": {
+    "events": 16780,
+    "label_flips": 0,
+    "ri_to_null": 19,
+    "ri_to_null_by_split": {
+      "train": 11,
+      "test": 6,
+      "val": 2
+    },
+    "ri_to_null_positives": 3,
+    "ri_to_null_positives_by_split": {
+      "test": 3
+    },
+    "positives_v1": 802,
+    "positives_v2": 799,
+    "sids_losing_all_positives": 1,
+    "sids_losing_all_positives_by_split": {
+      "test": 1
+    },
+    "dv12_value_changes": 3,
+    "dv12_to_null": 8,
+    "dv12_to_null_by_split": {
+      "train": 5,
+      "test": 2,
+      "val": 1
+    }
+  }
+}

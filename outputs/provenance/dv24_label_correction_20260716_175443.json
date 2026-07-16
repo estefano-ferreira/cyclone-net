@@ -1,0 +1,149 @@
+{
+  "timestamp_utc": "2026-07-16T17:54:43.734794+00:00",
+  "mode": "apply",
+  "reference_report": "report_v5_20260716_152525",
+  "reference_dryrun": "dryrun_verification_20260716_175442.json",
+  "repo_relative_paths": true,
+  "files_patched": {
+    "data/event_list_augmented.csv": {
+      "pre_md5": "eb7c5874a896ea691099924e209bf7f5",
+      "post_md5": "c26e32cd42f4c2f96b41dc5e3f7f7874",
+      "rows": 32989,
+      "changes": "dv12_kt/dv24_kt/ri_label updated; wind_kt_shift_12/24 dropped"
+    },
+    "data/normalized/valid_events.csv": {
+      "pre_md5": "d58bfc14f2fe73fc5f4caafd74682736",
+      "post_md5": "681afb0c732df599a5bab208568873e9",
+      "rows": 16780,
+      "ri_label_null_count": 19,
+      "changes": "ri_label emptied for NULL events"
+    },
+    "interim_json_sidecars_by_split": {
+      "train": [
+        {
+          "event_id": "era5_1997_08_09_1800_1997212N11265",
+          "pre_md5": "839d73c5178b0aff8e2ed08191bce7dd",
+          "post_md5": "6c36e403ac865a6d3354eea4869ad5b2"
+        },
+        {
+          "event_id": "era5_2014_10_18_0030_2014285N16305",
+          "pre_md5": "139e909cf787ebfd6b6c4771305357d7",
+          "post_md5": "f44353352bd5192e1a867b3086ad9b56"
+        },
+        {
+          "event_id": "era5_2015_10_19_1200_2015288N10243",
+          "pre_md5": "407817ba3c82e30cccccea6a19a69b78",
+          "post_md5": "ff4008731a8f2ecf9b25d9e238f5d7e2"
+        },
+        {
+          "event_id": "era5_2014_10_18_0000_2014285N16305",
+          "pre_md5": "a23a88f8b061c6df0448e19c138f56ac",
+          "post_md5": "3b2466c77b33a529d53cfb3d3b625cda"
+        },
+        {
+          "event_id": "era5_2006_09_19_1800_2006254N20306",
+          "pre_md5": "3e14b425ffa87366e50c46d64e372800",
+          "post_md5": "da1978bb4ad3c61e02c7d1cd60bb2e9f"
+        },
+        {
+          "event_id": "era5_2015_10_19_1800_2015288N10243",
+          "pre_md5": "d5f1093de71d19b1caf92b11431a5996",
+          "post_md5": "db640442cb8f0310f849af8031bed339"
+        },
+        {
+          "event_id": "era5_1997_08_09_0600_1997212N11265",
+          "pre_md5": "6a4051c15642a53f81a6d3615007aadd",
+          "post_md5": "90808d803e5f284cfe4b02b87aa1c990"
+        },
+        {
+          "event_id": "era5_2015_10_08_1800_2015274N13201",
+          "pre_md5": "5c69ebfded9cc51eff7b3de48f21ee1b",
+          "post_md5": "8ad047ac289f7e431c7d99994dde66cd"
+        },
+        {
+          "event_id": "era5_1997_08_09_0000_1997212N11265",
+          "pre_md5": "5bb47bffb24f5690ef8ec311a7ea4f34",
+          "post_md5": "18ea800c4a8f18b8314558f3e96d82f0"
+        },
+        {
+          "event_id": "era5_1997_08_09_1200_1997212N11265",
+          "pre_md5": "45979a9db3d085683130cd7339b97f4c",
+          "post_md5": "c4b9d0c5bb9b9fac32cfd043333fe439"
+        },
+        {
+          "event_id": "era5_2015_10_20_0600_2015288N10243",
+          "pre_md5": "8535ab4f83d90e9fd95632586e8409d9",
+          "post_md5": "2d5857b9e3d2b0fb5d1dbb39905c5d05"
+        },
+        {
+          "event_id": "era5_2023_06_26_0000_2023173N10320",
+          "pre_md5": "0cf8ca6a191f9a1f60d5a3af3abb40c1",
+          "post_md5": "b10c43c69318bbce9748427461a1a2bd"
+        },
+        {
+          "event_id": "era5_2014_10_17_0600_2014285N16305",
+          "pre_md5": "9eb2129f6d99312b83058c00430e0a8d",
+          "post_md5": "d786148542a86f0f6dec56802e803ba7"
+        },
+        {
+          "event_id": "era5_2014_10_17_1800_2014285N16305",
+          "pre_md5": "eae8d02cba19c77c62eb1318886df32d",
+          "post_md5": "e1e44555f0833dd178641f994a75aeb1"
+        },
+        {
+          "event_id": "era5_2014_10_17_1200_2014285N16305",
+          "pre_md5": "3e3fb35663008442723f09739e935d77",
+          "post_md5": "a9911cc807d279cc0944d2bb27c72667"
+        },
+        {
+          "event_id": "era5_2015_10_20_0000_2015288N10243",
+          "pre_md5": "414d84cae996713613af13387efb878d",
+          "post_md5": "512ba769a732208dc617f448b1706ca6"
+        }
+      ],
+      "val": [
+        {
+          "event_id": "era5_2010_09_01_1800_2010234N11329",
+          "pre_md5": "545ecf6e07e9f2a86c03cf119dad82f0",
+          "post_md5": "8e70cf5b964984b84d0a27c1c9a559c9"
+        },
+        {
+          "event_id": "era5_2010_09_01_0600_2010234N11329",
+          "pre_md5": "fcb3258f4f397e67a028887a17f200cd",
+          "post_md5": "a43a3a09245f0c6b9598e23ccfd8f7ae"
+        },
+        {
+          "event_id": "era5_2011_09_16_0000_2011250N12324",
+          "pre_md5": "d472b468d24c89c92eb1d049b9f3629d",
+          "post_md5": "94b677a5daf4db9e049f4cbedd2f4067"
+        }
+      ],
+      "test": {
+        "count": 6,
+        "combined_pre_md5": "a3f7cb47bd8975292e9feb6b7bd782fd",
+        "combined_post_md5": "4d9ca38e08e909f9231d538b782e7708"
+      }
+    }
+  },
+  "verification_results": {
+    "event_list_rows": 32989,
+    "label_flips_1_to_0": 1,
+    "label_flips_0_to_1": 0,
+    "ri_label_to_null": 55,
+    "ri_label_to_null_positives": 3,
+    "dv24_value_changes": 67,
+    "dv12_value_changes": 37,
+    "dv12_to_null": 31,
+    "valid_label_flips": 0,
+    "valid_ri_label_to_null": 19,
+    "valid_ri_label_to_null_by_split": {
+      "train": 11,
+      "test": 6,
+      "val": 2
+    },
+    "valid_positives_v1": 802,
+    "valid_positives_v2": 799,
+    "dev_positives_v1": 687,
+    "dev_positives_v2": 687
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "generated_utc": "2026-07-16T14:43:00.539064+00:00",
+  "method": {
+    "description": "Exact-match temporal RI labeling vs positional shift-based labeling",
+    "temporal_rule": "Partner identified by exact timestamp match (t0+12h, t0+24h) within same SID",
+    "nan_semantics": "UNDEFINED (pd.NA) when no temporal partner or wind is NaN; never coerce to 0",
+    "read_only": true
+  },
+  "inputs": {
+    "event_list": "data/event_list_augmented.csv",
+    "valid_events": "data/normalized/valid_events.csv",
+    "splits": "data/normalized/splits.csv"
+  },
+  "sanity": {
+    "unsorted_sids": [],
+    "unsorted_sids_count": 0,
+    "duplicate_timestamps_count": 0,
+    "duplicate_sid_timestamp_pairs": []
+  },
+  "positional_verification": {
+    "dv12_matches": 30016,
+    "dv12_mismatches": 2973,
+    "dv24_matches": 27160,
+    "dv24_mismatches": 5829,
+    "ri_label_matches": 32905,
+    "ri_label_mismatches": 84
+  },
+  "temporal_grid": {
+    "time_delta_distribution": {
+      "0.25": 2,
+      "0.3333333333333333": 1,
+      "0.5": 11,
+      "0.75": 4,
+      "0.8333333333333334": 1,
+      "5.166666666666667": 1,
+      "5.25": 4,
+      "5.5": 10,
+      "5.666666666666667": 1,
+      "5.75": 2,
+      "6": 31448,
+      "24": 1,
+      "30": 1,
+      "54": 1,
+      "90": 1,
+      "156": 1,
+      "246": 1
+    },
+    "sids_with_non_6h_delta": 25,
+    "rows_with_non_6h_next_delta": 43,
+    "sub_6h_extra_points": 37
+  },
+  "full_list_impact": {
+    "dv12": {
+      "rows_pos_not_tmp": 29,
+      "rows_pos_not_tmp_pct": 0.09,
+      "continuous_value_changes": {
+        "count": 29987,
+        "min": 0.0,
+        "median": 0.0,
+        "p95": 0.0,
+        "max": 50.0
+      }
+    },
+    "dv24": {
+      "rows_pos_not_tmp": 37,
+      "rows_pos_not_tmp_pct": 0.11,
+      "continuous_value_changes": {
+        "count": 27123,
+        "min": 0.0,
+        "median": 0.0,
+        "p95": 0.0,
+        "max": 50.0
+      },
+      "transition_matrix": {
+        "pos_0_to_tmp_0": 25336,
+        "pos_0_to_tmp_1": 0,
+        "pos_0_to_tmp_undef": 5862,
+        "pos_1_to_tmp_0": 0,
+        "pos_1_to_tmp_1": 1788,
+        "pos_1_to_tmp_undef": 3
+      },
+      "border_defect_count": 5862
+    },
+    "positives_shipped": 1791,
+    "positives_temporal": 1788,
+    "positives_difference": -3
+  },
+  "valid_set_impact": {
+    "join_coverage": 16780,
+    "join_coverage_total": 16780,
+    "join_misses": 0,
+    "valid_transitions_by_split": {
+      "train": {
+        "pos_0_to_tmp_0": 8544,
+        "pos_0_to_tmp_1": 0,
+        "pos_0_to_tmp_undef": 2097,
+        "pos_1_to_tmp_0": 0,
+        "pos_1_to_tmp_1": 509,
+        "pos_1_to_tmp_undef": 0
+      },
+      "val": {
+        "pos_0_to_tmp_0": 2322,
+        "pos_0_to_tmp_1": 0,
+        "pos_0_to_tmp_undef": 493,
+        "pos_1_to_tmp_0": 0,
+        "pos_1_to_tmp_1": 136,
+        "pos_1_to_tmp_undef": 0
+      },
+      "test": {
+        "pos_0_to_tmp_0": 2101,
+        "pos_0_to_tmp_1": 0,
+        "pos_0_to_tmp_undef": 469,
+        "pos_1_to_tmp_0": 0,
+        "pos_1_to_tmp_1": 106,
+        "pos_1_to_tmp_undef": 3
+      }
+    },
+    "valid_transitions_by_basin": {
+      "EP": {
+        "pos_0_to_tmp_0": 6492,
+        "pos_0_to_tmp_1": 0,
+        "pos_0_to_tmp_undef": 1939,
+        "pos_1_to_tmp_0": 0,
+        "pos_1_to_tmp_1": 454,
+        "pos_1_to_tmp_undef": 3
+      },
+      "NA": {
+        "pos_0_to_tmp_0": 6475,
+        "pos_0_to_tmp_1": 0,
+        "pos_0_to_tmp_undef": 1120,
+        "pos_1_to_tmp_0": 0,
+        "pos_1_to_tmp_1": 297,
+        "pos_1_to_tmp_undef": 0
+      }
+    },
+    "sids_gaining_first_positive": [],
+    "sids_losing_last_positive": [],
+    "sids_gaining_first_positive_count": 0,
+    "sids_losing_last_positive_count": 0,
+    "test_sids_gaining_first_positive": 0,
+    "test_sids_losing_last_positive": 1,
+    "valid_events_becoming_undefined": {
+      "train": 2097,
+      "val": 493,
+      "test": 472
+    }
+  }
+}

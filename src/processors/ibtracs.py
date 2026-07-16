@@ -26,9 +26,9 @@ Minimum required output columns:
 - lon
 - wind_kt
 - pressure_mb
-- ri_label
 - dv12_kt
 - dv24_kt
+- ri_label
 
 Scientific notes
 ----------------
@@ -84,6 +84,7 @@ def build_event_list(
     year_range: Optional[Tuple[int, int]] = None,
     bbox: Optional[Tuple[float, float, float, float]] = None,
     ri_threshold_kt_24h: float = 30.0,
+    drop_undefined: bool = False,
 ) -> None:
     """Build the CycloneNet event list from IBTrACS.
 
@@ -107,6 +108,10 @@ def build_event_list(
         so the event list only contains extractable events.
     ri_threshold_kt_24h
         RI threshold in knots over 24 hours.
+    drop_undefined
+        If False (default), keep rows with NULL labels (strict-temporal partners
+        do not exist). If True, drop rows without both dv12_kt and dv24_kt (old
+        positional-semantics behavior for legacy builds).
 
     Raises
     ------
@@ -229,10 +234,14 @@ def build_event_list(
     # Legacy datetime string expected by parts of the older codebase.
     out["datetime"] = out["timestamp"].dt.strftime("%Y%m%d %H%M")
 
-    # Remove rows without future intensity targets.
-    out = out.dropna(subset=["dv12_kt", "dv24_kt"]).copy()
+    # Optionally remove rows without future intensity targets.
+    # Default (drop_undefined=False) keeps NULL-labeled rows for later filtering.
+    # For legacy workflows, drop_undefined=True reproduces old behavior.
+    if drop_undefined:
+        out = out.dropna(subset=["dv12_kt", "dv24_kt"]).copy()
 
     # Reorder columns for readability and reproducibility.
+    # NOTE: wind_kt_shift_* columns are NOT included (deprecated positional semantics).
     preferred_order = [
         "sid",
         "storm_name",

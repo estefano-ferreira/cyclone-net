@@ -1,0 +1,29 @@
+{
+  "timestamp_utc": "2026-07-16T17:23:57.444803+00:00",
+  "mode": "dry-run",
+  "verification": {
+    "event_list_rows": 32989,
+    "label_flips_1_to_0": 1,
+    "label_flips_0_to_1": 0,
+    "ri_label_to_null": 55,
+    "ri_label_to_null_positives": 3,
+    "dv24_value_changes": 67,
+    "dv12_value_changes": 37,
+    "dv12_to_null": 31,
+    "valid_label_flips": 0,
+    "valid_ri_label_to_null": 19,
+    "valid_ri_label_to_null_by_split": {
+      "train": 11,
+      "test": 6,
+      "val": 2
+    },
+    "valid_positives_v1": 802,
+    "valid_positives_v2": 799,
+    "dev_positives_v1": 687,
+    "dev_positives_v2": 687
+  },
+  "reason_counts": {
+    "unchanged": 32989
+  },
+  "manifest_rows": 32989
+}

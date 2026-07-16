@@ -108,34 +108,51 @@ source feeding hurricanes." The title term "Atmospheric Singularity Mapping" ove
 the scope and **has been removed** from the project's documentation and citation
 metadata; the revised manuscript carries an honest title.
 
-## 6. dv24 is a positional shift, not a strictly temporal 24 h delta
+## 6. dv24/dv12 were positional shifts, not strictly temporal deltas — **CORRECTED IN DATASET v2 (2026-07-16)**
 
-**Discovered during cross-validation of the web platform against raw IBTrACS**
-(the platform's served values match the source point-by-point; this item is
-about the *definition* both the platform and the scientific pipeline share).
+*(This item was REWRITTEN on 2026-07-16. The previous text, based on a
+235-point sample, estimated "~1.3% of points" and anticipated positional
+label flips; the full-population measurement against raw IBTrACS showed the
+flips are effectively zero and the incidence lower. Keeping the old text
+would have declared the wrong defect.)*
 
-**What the code does:** dv24 — the 24 h intensity change underlying the RI
-label — is computed as a **positional shift of 4 rows** in the best-track
-series, not as a temporal join at t + 24 h.
+**The real defect (measured against raw IBTrACS on the full population;
+authoritative report `outputs/results/dv24_impact/report_v5_20260716_152525.*`):**
+dv24/dv12 — the intensity changes underlying the RI label — were computed as
+**positional shifts** (−4/−2 rows per storm), assuming a perfect 6 h grid.
+Where the filtered best-track series is not 6 h-regular, the positional
+partner is not at t0+24 h / t0+12 h:
 
-**When it is exact:** on standard synoptic rows (6 h spacing), 4 rows = 24 h
-exactly. This is the overwhelming majority of points.
+- **148 / 32,989 event-list rows misaligned for dv24 (0.45%); 77 for dv12.**
+- **Label flips: ZERO in the valid set** (the full event list has exactly
+  one, a row outside the valid set: dv24 75.0 → 20.0 kt, RI 1→0).
+- **19 valid events have no exact temporal partner** → label is UNDEFINED
+  under the canonical definition (11 train / 2 val / 6 test). The old code
+  silently coerced undefined to 0 upstream and dropped such rows at build
+  time.
+- **Impact:** valid-set positives 802 → 799 (−3, all in the frozen test
+  split); dev PL-gated positives 687 → 687 (**intact** — H6/H9 verdicts are
+  unaffected by construction); one storm (test split) loses its positives.
+- **Mechanism (hypothesis, untested):** 84% of misalignments (125/148) are
+  in the North Atlantic basin — consistent with IBTrACS extra entries /
+  odd-minute timestamps (e.g. HH:30) that pass the synoptic-hour filter
+  (`dt.hour ∈ {0,6,12,18}` accepts any minute). Dispersed across all
+  decades (1980s–2020s), 39 storms.
 
-**When it deviates:** IBTrACS includes rare non-synoptic special rows (e.g.
-landfall entries at HH:30). When one enters the series, "4 rows ahead"
-corresponds to 23.5 h or 24.5 h instead of 24 h — a small deviation from the
-canonical RI definition (Kaplan & DeMaria 2003).
-
-**Magnitude:** ~1.3% of points in the validation sample (3/235, five
-well-documented storms), concentrated at landfall rows. The scientific
-pipeline's `ri_label` uses the **same** positional convention, so the platform
-and the model are internally consistent — there is no discrepancy between what
-the model saw and what the platform displays.
-
-**Status:** documented. The correction (filter to `minute == 0` rows, or a
-temporal join) will be applied at the next retrain (together with the
-pressure-level backfill), because it alters labels of the frozen dataset and
-does not justify reopening the current milestone on its own.
+**Resolution — dataset v2 (2026-07-16, this commit):** labels recomputed
+with **strict-temporal semantics** — partner = exact match at t0+12 h /
+t0+24 h, same storm; no partner → **NULL, never 0**
+(`ri_label ∈ {0, 1, NULL}`; NULL events remain in the dataset, the RI task
+view excludes them). Code fixed at the origin
+(`src/processors/ri_labeling.py`: temporal join, nullable Int64; builder +
+NULL-safe readers). Stored artifacts patched surgically (event list, 25
+interim sidecars, `valid_events.csv`) with per-file verification;
+diff-manifest `data/normalized/label_diff_v1_v2.csv` (v1 values preserved =
+provenance); provenance manifest
+`outputs/provenance/dv24_label_correction_20260716_175443.json`. Verified by
+raw-replication gate, target assertions, and independent recomputation from
+the patched files; the patch run is idempotent. Splits unchanged (by SID;
+md5-verified).
 
 ## 7. The dataset is two-basin (EP + NA), not "North Atlantic sector" (2026-07-15)
 
@@ -221,6 +238,51 @@ still carry the old "North Atlantic sector" label: they are the historical recor
 of the retired model release and are deliberately **not** edited in place; they
 will be corrected at the next retrain/re-release.
 
+## 8. Retraction: the "Defect 0 / cross-storm label leakage" diagnosis (2026-07-16)
+
+**What was diagnosed (impact-assessment reports v1–v4, 2026-07-16):**
+cross-SID leakage in the shipped labels — "84 phantom positives", "12 storms
+losing all their positives", "3,062 undefined labels (18.2% of the valid
+set)".
+
+**What it was: the defect DOES NOT EXIST.** Reconstruction from raw IBTrACS
+refuted the diagnosis in full.
+
+**Why the error happened (the part that matters):** the diagnosis was run on
+`data/event_list_augmented.csv` — a **derived artifact**, from which the
+builder's `dropna` (`ibtracs.py:233`) had already removed the partner rows
+used in the original label computation. On that file, "partner never
+existed" and "partner was used and then dropped" are indistinguishable, so
+legitimate trailing-row labels looked like cross-storm bleed. The supporting
+"global shift" evidence (959/5,829 matches) was chance collision of
+5-kt-quantized deltas — real leakage would have matched ~100%, not 16%.
+
+**The lesson (verbatim):** "consistência aritmética entre escopos NÃO
+detecta erro de referência — os números fecham entre si e medem a coisa
+errada." (*Arithmetic consistency across scopes does NOT detect a
+wrong-reference error — the numbers agree with each other while measuring
+the wrong thing.*) Consequence: the **raw-replication gate** is now a
+permanent project rule (PROJECT_STATE §3) — any defect diagnosis on a
+derived artifact must first replicate the shipped artifact byte-exactly from
+the raw source, and abort if it cannot.
+
+**Trail preserved:** `outputs/results/dv24_impact/SUPERSEDED.md` retracts
+reports v1–v4 (kept on disk as the audit trail);
+`report_v5_20260716_152525.*` is the authoritative assessment.
+
+---
+
+## Technical validation note (2026-07-16) — positive result, not an erratum
+
+Reconstruction of the event list from
+`data/raw/ibtracs.ALL.list.v04r00.csv`, replicating the builder chain
+(filters, synoptic-hour selection, per-storm labeling, target dropna),
+reproduces the shipped file **byte-for-byte** — 32,989/32,989 rows, dv24 and
+`ri_label` identical on every row. **The labeling pipeline is fully
+reproducible from the raw source.** This is a Technical Validation result
+for the Data Descriptor, established independently of (and prior to) the v2
+correction.
+
 ---
 
 ## Summary
@@ -239,12 +301,22 @@ validated contribution is the auditable pipeline and the RI classification skill
 spatial energy-source attribution is documented as a validated-negative hypothesis
 (item 4 above, three independent angles).
 
-A sixth item, found after the above were closed, is documented in item 6: the
-dv24/RI label is a positional (4-row) rather than strictly temporal (24 h)
-delta, deviating from the canonical definition at rare non-synoptic best-track
-rows (~1.3% of points in the validation sample). Platform and model share the
-convention (internally consistent); the correction is scheduled for the next
-retrain rather than a reopening of the current milestone.
+A sixth item, found after the above were closed and **corrected on
+2026-07-16 (dataset v2)**: the dv24/dv12 labels were positional (4-row/2-row)
+rather than strictly temporal deltas. Measured on the full population against
+raw IBTrACS: 0.45% of rows misaligned, ZERO label flips in the valid set,
+19 valid events relabeled NULL under strict semantics, positives 802→799
+(−3, all test), dev set intact. Corrected at the origin and in the stored
+artifacts, with diff-manifest and provenance (item 6 above).
+
+An eighth item (2026-07-16, item 8 above) records a RETRACTION: an
+intermediate diagnosis of "cross-storm label leakage / 84 phantom positives"
+(assessment reports v1–v4) was refuted by reconstruction from raw IBTrACS —
+the diagnosis had been run on a derived artifact from which the builder had
+already dropped the partner rows. The raw-replication gate is now a permanent
+project rule. A standalone technical validation note (above) records the
+positive counterpart: the shipped event list is byte-reproducible from the
+raw source.
 
 A seventh item (2026-07-15, item 7 above): the dataset is **two-basin
 (East Pacific majority + North Atlantic)**, not the "North Atlantic sector"

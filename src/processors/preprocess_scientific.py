@@ -338,7 +338,7 @@ class EventMeta:
     timestamp: str
     storm_name: str
     basin: str
-    ri_label: int
+    ri_label: int | None
     dv12_kt: float | None
     dv24_kt: float | None
     wind_kt: float | None
@@ -371,7 +371,12 @@ def process_event(row: pd.Series, cfg: Dict[str, Any], raw_dir: Path, out_dir: P
     basin = str(row.get("basin", "")) if pd.notna(row.get("basin", "")) else ""
     lat0 = float(row["lat"])
     lon0 = float(row["lon"])
-    ri_label = int(row.get("ri_label", 0))
+    # ri_label must propagate None (NULL) to avoid silent coercion; NULL labels exist per §3.3.
+    ri_label_raw = row.get("ri_label", None)
+    if ri_label_raw is None or (isinstance(ri_label_raw, float) and pd.isna(ri_label_raw)):
+        ri_label = None
+    else:
+        ri_label = int(ri_label_raw)
     dv12 = float(row["dv12_kt"]) if "dv12_kt" in row and pd.notna(row["dv12_kt"]) else None
     dv24 = float(row["dv24_kt"]) if "dv24_kt" in row and pd.notna(row["dv24_kt"]) else None
 

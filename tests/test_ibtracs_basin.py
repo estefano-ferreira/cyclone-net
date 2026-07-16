@@ -76,13 +76,18 @@ def test_na_basin_survives_parser(mini_ibtracs_csv: Path, tmp_path: Path) -> Non
 
 
 def test_numeric_blank_pressure_is_nan(mini_ibtracs_csv: Path, tmp_path: Path) -> None:
-    """Blank pressure fields (single space in IBTrACS) must map to NaN."""
+    """Blank pressure fields (single space in IBTrACS) must map to NaN.
+
+    Uses drop_undefined=True (old positional-semantics behavior) to drop rows
+    without dv12/dv24 partners, so expectations match the old test format.
+    """
     out_csv = tmp_path / "event_list.csv"
     build_event_list(
         ibtracs_csv=mini_ibtracs_csv,
         out_csv=out_csv,
         bbox=None,
         ri_threshold_kt_24h=30.0,
+        drop_undefined=True,  # old behavior: drop rows without dv12/dv24
     )
 
     df = pd.read_csv(out_csv, keep_default_na=False, na_values=[""])
@@ -103,13 +108,18 @@ def test_numeric_blank_pressure_is_nan(mini_ibtracs_csv: Path, tmp_path: Path) -
 
 
 def test_units_row_dropped(mini_ibtracs_csv: Path, tmp_path: Path) -> None:
-    """Units row (line 2) must not appear in the event list."""
+    """Units row (line 2) must not appear in the event list.
+
+    Uses drop_undefined=True (old positional-semantics behavior) to drop rows
+    without dv12/dv24 partners, so expectations match the old test format.
+    """
     out_csv = tmp_path / "event_list.csv"
     build_event_list(
         ibtracs_csv=mini_ibtracs_csv,
         out_csv=out_csv,
         bbox=None,
         ri_threshold_kt_24h=30.0,
+        drop_undefined=True,  # old behavior: drop rows without dv12/dv24
     )
 
     df = pd.read_csv(out_csv, keep_default_na=False, na_values=[""])

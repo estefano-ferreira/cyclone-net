@@ -1,0 +1,831 @@
+{
+  "generated_utc": "2026-07-16T15:10:26.782360+00:00",
+  "method": {
+    "three_effect_decomposition": true,
+    "defect_0_diagnosis": true,
+    "temporal_rule": "Exact-match t0+12h/t0+24h within same SID",
+    "nan_semantics": "UNDEFINED (pd.NA) for no partner or missing wind",
+    "read_only": true
+  },
+  "defect_0_diagnosis": {
+    "shipped_vs_correct_pos_full": {
+      "dv12_mismatches": 2973,
+      "dv24_mismatches": 5829
+    },
+    "trailing_row_analysis": {
+      "dv24_trailing_mismatches": 5829,
+      "dv24_interior_exact_matches": 27160,
+      "dv24_trailing_global_shift_matches_sorted_order": 771,
+      "dv24_trailing_global_shift_matches_original_order": 959
+    },
+    "sids_losing_all_positives": {
+      "full_list_count": 20,
+      "sids": [
+        "1980245N16322",
+        "1985202N13226",
+        "1986264N12221",
+        "1990272N10223",
+        "1994197N09229",
+        "1994222N11267",
+        "1994253N13303",
+        "2003240N14230",
+        "2007221N13234",
+        "2007227N24269",
+        "2008280N18268",
+        "2010302N26299",
+        "2013257N15259",
+        "2015218N12231",
+        "2015236N12231",
+        "2017219N16279",
+        "2017257N16258",
+        "2021225N15313",
+        "2023276N11254",
+        "2023281N14260"
+      ]
+    }
+  },
+  "irregular_grid": {
+    "total_non_6h_deltas": 43,
+    "affected_sids_by_category": {
+      "train": {
+        "count": 9,
+        "sids": [
+          "1989221N16339",
+          "1996237N14339",
+          "1997212N11265",
+          "2004247N10332",
+          "2005192N11318",
+          "2014285N16305",
+          "2015288N10243",
+          "2016148N27288",
+          "2021182N09317"
+        ]
+      },
+      "val": {
+        "count": 2,
+        "sids": [
+          "2019236N10314",
+          "2020251N17319"
+        ]
+      },
+      "test": {
+        "count": 3
+      },
+      "unsplit_rejected": {
+        "count": 11,
+        "sids": [
+          "1995212N22287",
+          "1997259N13258",
+          "2002245N29281",
+          "2005186N12299",
+          "2006200N32287",
+          "2008203N18276",
+          "2008229N18293",
+          "2009245N17303",
+          "2010257N16282",
+          "2010293N17277",
+          "2020212N13340"
+        ]
+      }
+    },
+    "deltas_by_years": {
+      "1989": 1,
+      "1995": 1,
+      "1996": 1,
+      "1997": 2,
+      "1998": 1,
+      "1999": 1,
+      "2002": 1,
+      "2004": 1,
+      "2005": 2,
+      "2006": 1,
+      "2008": 2,
+      "2009": 1,
+      "2010": 2,
+      "2014": 1,
+      "2015": 1,
+      "2016": 2,
+      "2019": 1,
+      "2020": 2,
+      "2021": 1
+    },
+    "deltas_by_basin": {
+      "NA": 21,
+      "EP": 4
+    },
+    "deltas_by_category_years": {
+      "train": {
+        "1989": 1,
+        "1996": 1,
+        "1997": 1,
+        "2004": 1,
+        "2005": 1,
+        "2014": 1,
+        "2015": 1,
+        "2016": 1,
+        "2021": 1
+      },
+      "val": {
+        "2019": 1,
+        "2020": 1
+      },
+      "unsplit_rejected": {
+        "1995": 1,
+        "1997": 1,
+        "2002": 1,
+        "2005": 1,
+        "2006": 1,
+        "2008": 2,
+        "2009": 1,
+        "2010": 2,
+        "2020": 1
+      }
+    },
+    "deltas_by_category_basin": {
+      "train": {
+        "NA": 7,
+        "EP": 2
+      },
+      "val": {
+        "NA": 2
+      },
+      "unsplit_rejected": {
+        "NA": 10,
+        "EP": 1
+      }
+    }
+  },
+  "pl_gate": {
+    "derived_count": 14101,
+    "expected_count": 14101,
+    "match": true
+  },
+  "effects_by_scope": {
+    "full_list": {
+      "label": "Full event list (32,989)",
+      "row_count": 32989,
+      "dv12": {
+        "effect_0": {
+          "both_defined": 30016,
+          "ship_defined_only": 2973,
+          "correct_defined_only": 0
+        },
+        "effect_1": {
+          "dv_changes": {
+            "rows_with_change": 28,
+            "min": 5.0,
+            "median": 10.0,
+            "p95": 35.0,
+            "max": 50.0
+          }
+        },
+        "effect_2": {
+          "correct_0_no_tmp": 4,
+          "correct_1_no_tmp": 0,
+          "correct_undef_no_tmp": 2973
+        },
+        "combined_shipped_vs_temporal": {
+          "shipped_defined": 32989,
+          "temporal_defined": 29987
+        }
+      },
+      "dv24": {
+        "effect_0": {
+          "both_defined": 27160,
+          "ship_defined_only": 5829,
+          "correct_defined_only": 0,
+          "ri_label_transition_matrix": {
+            "ship_0_to_pos_0": 25369,
+            "ship_0_to_pos_1": 0,
+            "ship_0_to_pos_undef": 5745,
+            "ship_1_to_pos_0": 0,
+            "ship_1_to_pos_1": 1791,
+            "ship_1_to_pos_undef": 84
+          },
+          "phantom_positives_ship1_to_undef": 84,
+          "positives_shipped": 1875,
+          "positives_pos_correct": 1791,
+          "positives_difference": -84
+        },
+        "effect_1": {
+          "ri_label_transition_matrix": {
+            "pos_0_to_tmp_0": 25335,
+            "pos_0_to_tmp_1": 0,
+            "pos_1_to_tmp_0": 0,
+            "pos_1_to_tmp_1": 1788
+          },
+          "dv_changes": {
+            "rows_with_change": 46,
+            "min": 5.0,
+            "median": 10.0,
+            "p95": 32.5,
+            "max": 50.0
+          }
+        },
+        "effect_2": {
+          "correct_0_no_tmp": 4,
+          "correct_1_no_tmp": 0,
+          "correct_undef_no_tmp": 5828
+        },
+        "combined_shipped_vs_temporal": {
+          "shipped_defined": 32989,
+          "temporal_defined": 27124,
+          "ri_label_transition_matrix": {
+            "ship_0_to_tmp_0": 25336,
+            "ship_0_to_tmp_1": 0,
+            "ship_0_to_tmp_undef": 5778,
+            "ship_1_to_tmp_0": 0,
+            "ship_1_to_tmp_1": 1788,
+            "ship_1_to_tmp_undef": 87
+          },
+          "positives_shipped": 1875,
+          "positives_temporal": 1788
+        }
+      }
+    },
+    "valid_set": {
+      "label": "Valid dataset (16,780)",
+      "row_count": 16780,
+      "dv12": {
+        "effect_0": {
+          "both_defined": 15229,
+          "ship_defined_only": 1551,
+          "correct_defined_only": 0
+        },
+        "effect_1": {
+          "dv_changes": {
+            "rows_with_change": 2,
+            "min": 5.0,
+            "median": 5.0,
+            "p95": 5.0,
+            "max": 5.0
+          }
+        },
+        "effect_2": {
+          "correct_0_no_tmp": 0,
+          "correct_1_no_tmp": 0,
+          "correct_undef_no_tmp": 1551
+        },
+        "combined_shipped_vs_temporal": {
+          "shipped_defined": 16780,
+          "temporal_defined": 15222
+        }
+      },
+      "dv12_by_split": {
+        "train": {
+          "effect_0": {
+            "both_defined": 10089,
+            "ship_defined_only": 1061,
+            "correct_defined_only": 0
+          },
+          "effect_1": {
+            "dv_changes": {
+              "rows_with_change": 2,
+              "min": 5.0,
+              "median": 5.0,
+              "p95": 5.0,
+              "max": 5.0
+            }
+          },
+          "effect_2": {
+            "correct_0_no_tmp": 0,
+            "correct_1_no_tmp": 0,
+            "correct_undef_no_tmp": 1061
+          }
+        },
+        "val": {
+          "effect_0": {
+            "both_defined": 2699,
+            "ship_defined_only": 252,
+            "correct_defined_only": 0
+          },
+          "effect_1": {
+            "dv_changes": {
+              "rows_with_change": 0,
+              "min": null,
+              "median": null,
+              "p95": null,
+              "max": null
+            }
+          },
+          "effect_2": {
+            "correct_0_no_tmp": 0,
+            "correct_1_no_tmp": 0,
+            "correct_undef_no_tmp": 252
+          }
+        },
+        "test": {
+          "effect_0": {
+            "both_defined": 2441,
+            "ship_defined_only": 238,
+            "correct_defined_only": 0
+          },
+          "effect_1": {
+            "dv_changes": {
+              "rows_with_change": 0,
+              "min": null,
+              "median": null,
+              "p95": null,
+              "max": null
+            }
+          },
+          "effect_2": {
+            "correct_0_no_tmp": 0,
+            "correct_1_no_tmp": 0,
+            "correct_undef_no_tmp": 238
+          }
+        }
+      },
+      "dv24": {
+        "effect_0": {
+          "both_defined": 13731,
+          "ship_defined_only": 3049,
+          "correct_defined_only": 0,
+          "ri_label_transition_matrix": {
+            "ship_0_to_pos_0": 12977,
+            "ship_0_to_pos_1": 0,
+            "ship_0_to_pos_undef": 3001,
+            "ship_1_to_pos_0": 0,
+            "ship_1_to_pos_1": 754,
+            "ship_1_to_pos_undef": 48
+          },
+          "phantom_positives_ship1_to_undef": 48,
+          "positives_shipped": 802,
+          "positives_pos_correct": 754,
+          "positives_difference": -48
+        },
+        "effect_1": {
+          "ri_label_transition_matrix": {
+            "pos_0_to_tmp_0": 12967,
+            "pos_0_to_tmp_1": 0,
+            "pos_1_to_tmp_0": 0,
+            "pos_1_to_tmp_1": 751
+          },
+          "dv_changes": {
+            "rows_with_change": 2,
+            "min": 5.0,
+            "median": 5.0,
+            "p95": 5.0,
+            "max": 5.0
+          }
+        },
+        "effect_2": {
+          "correct_0_no_tmp": 0,
+          "correct_1_no_tmp": 0,
+          "correct_undef_no_tmp": 3049
+        },
+        "combined_shipped_vs_temporal": {
+          "shipped_defined": 16780,
+          "temporal_defined": 13718,
+          "ri_label_transition_matrix": {
+            "ship_0_to_tmp_0": 12967,
+            "ship_0_to_tmp_1": 0,
+            "ship_0_to_tmp_undef": 3011,
+            "ship_1_to_tmp_0": 0,
+            "ship_1_to_tmp_1": 751,
+            "ship_1_to_tmp_undef": 51
+          },
+          "positives_shipped": 802,
+          "positives_temporal": 751
+        }
+      },
+      "dv24_by_split": {
+        "train": {
+          "effect_0": {
+            "both_defined": 9062,
+            "ship_defined_only": 2088,
+            "correct_defined_only": 0,
+            "ri_label_transition_matrix": {
+              "ship_0_to_pos_0": 8553,
+              "ship_0_to_pos_1": 0,
+              "ship_0_to_pos_undef": 2052,
+              "ship_1_to_pos_0": 0,
+              "ship_1_to_pos_1": 509,
+              "ship_1_to_pos_undef": 36
+            },
+            "phantom_positives_ship1_to_undef": 36,
+            "positives_shipped": 545,
+            "positives_pos_correct": 509,
+            "positives_difference": -36
+          },
+          "effect_1": {
+            "ri_label_transition_matrix": {
+              "pos_0_to_tmp_0": 8544,
+              "pos_0_to_tmp_1": 0,
+              "pos_1_to_tmp_0": 0,
+              "pos_1_to_tmp_1": 509
+            },
+            "dv_changes": {
+              "rows_with_change": 2,
+              "min": 5.0,
+              "median": 5.0,
+              "p95": 5.0,
+              "max": 5.0
+            }
+          },
+          "effect_2": {
+            "correct_0_no_tmp": 0,
+            "correct_1_no_tmp": 0,
+            "correct_undef_no_tmp": 2088
+          },
+          "combined_shipped_vs_temporal": {
+            "ri_label_transition_matrix": {
+              "ship_0_to_tmp_0": 8544,
+              "ship_0_to_tmp_1": 0,
+              "ship_0_to_tmp_undef": 2061,
+              "ship_1_to_tmp_0": 0,
+              "ship_1_to_tmp_1": 509,
+              "ship_1_to_tmp_undef": 36
+            },
+            "positives_shipped": 545,
+            "positives_temporal": 509
+          }
+        },
+        "val": {
+          "effect_0": {
+            "both_defined": 2458,
+            "ship_defined_only": 493,
+            "correct_defined_only": 0,
+            "ri_label_transition_matrix": {
+              "ship_0_to_pos_0": 2322,
+              "ship_0_to_pos_1": 0,
+              "ship_0_to_pos_undef": 487,
+              "ship_1_to_pos_0": 0,
+              "ship_1_to_pos_1": 136,
+              "ship_1_to_pos_undef": 6
+            },
+            "phantom_positives_ship1_to_undef": 6,
+            "positives_shipped": 142,
+            "positives_pos_correct": 136,
+            "positives_difference": -6
+          },
+          "effect_1": {
+            "ri_label_transition_matrix": {
+              "pos_0_to_tmp_0": 2322,
+              "pos_0_to_tmp_1": 0,
+              "pos_1_to_tmp_0": 0,
+              "pos_1_to_tmp_1": 136
+            },
+            "dv_changes": {
+              "rows_with_change": 0,
+              "min": null,
+              "median": null,
+              "p95": null,
+              "max": null
+            }
+          },
+          "effect_2": {
+            "correct_0_no_tmp": 0,
+            "correct_1_no_tmp": 0,
+            "correct_undef_no_tmp": 493
+          },
+          "combined_shipped_vs_temporal": {
+            "ri_label_transition_matrix": {
+              "ship_0_to_tmp_0": 2322,
+              "ship_0_to_tmp_1": 0,
+              "ship_0_to_tmp_undef": 487,
+              "ship_1_to_tmp_0": 0,
+              "ship_1_to_tmp_1": 136,
+              "ship_1_to_tmp_undef": 6
+            },
+            "positives_shipped": 142,
+            "positives_temporal": 136
+          }
+        },
+        "test": {
+          "effect_0": {
+            "both_defined": 2211,
+            "ship_defined_only": 468,
+            "correct_defined_only": 0,
+            "ri_label_transition_matrix": {
+              "ship_0_to_pos_0": 2102,
+              "ship_0_to_pos_1": 0,
+              "ship_0_to_pos_undef": 462,
+              "ship_1_to_pos_0": 0,
+              "ship_1_to_pos_1": 109,
+              "ship_1_to_pos_undef": 6
+            },
+            "phantom_positives_ship1_to_undef": 6,
+            "positives_shipped": 115,
+            "positives_pos_correct": 109,
+            "positives_difference": -6
+          },
+          "effect_1": {
+            "ri_label_transition_matrix": {
+              "pos_0_to_tmp_0": 2101,
+              "pos_0_to_tmp_1": 0,
+              "pos_1_to_tmp_0": 0,
+              "pos_1_to_tmp_1": 106
+            },
+            "dv_changes": {
+              "rows_with_change": 0,
+              "min": null,
+              "median": null,
+              "p95": null,
+              "max": null
+            }
+          },
+          "effect_2": {
+            "correct_0_no_tmp": 0,
+            "correct_1_no_tmp": 0,
+            "correct_undef_no_tmp": 468
+          },
+          "combined_shipped_vs_temporal": {
+            "ri_label_transition_matrix": {
+              "ship_0_to_tmp_0": 2101,
+              "ship_0_to_tmp_1": 0,
+              "ship_0_to_tmp_undef": 463,
+              "ship_1_to_tmp_0": 0,
+              "ship_1_to_tmp_1": 106,
+              "ship_1_to_tmp_undef": 9
+            },
+            "positives_shipped": 115,
+            "positives_temporal": 106
+          }
+        }
+      }
+    },
+    "dev_pl_gated": {
+      "label": "Dev PL-gated (train+val)",
+      "row_count": 14101,
+      "dv12": {
+        "effect_0": {
+          "both_defined": 12788,
+          "ship_defined_only": 1313,
+          "correct_defined_only": 0
+        },
+        "effect_1": {
+          "dv_changes": {
+            "rows_with_change": 2,
+            "min": 5.0,
+            "median": 5.0,
+            "p95": 5.0,
+            "max": 5.0
+          }
+        },
+        "effect_2": {
+          "correct_0_no_tmp": 0,
+          "correct_1_no_tmp": 0,
+          "correct_undef_no_tmp": 1313
+        },
+        "combined_shipped_vs_temporal": {
+          "shipped_defined": 14101,
+          "temporal_defined": 12783
+        }
+      },
+      "dv12_by_split": {
+        "train": {
+          "effect_0": {
+            "both_defined": 10089,
+            "ship_defined_only": 1061,
+            "correct_defined_only": 0
+          },
+          "effect_1": {
+            "dv_changes": {
+              "rows_with_change": 2,
+              "min": 5.0,
+              "median": 5.0,
+              "p95": 5.0,
+              "max": 5.0
+            }
+          },
+          "effect_2": {
+            "correct_0_no_tmp": 0,
+            "correct_1_no_tmp": 0,
+            "correct_undef_no_tmp": 1061
+          }
+        },
+        "val": {
+          "effect_0": {
+            "both_defined": 2699,
+            "ship_defined_only": 252,
+            "correct_defined_only": 0
+          },
+          "effect_1": {
+            "dv_changes": {
+              "rows_with_change": 0,
+              "min": null,
+              "median": null,
+              "p95": null,
+              "max": null
+            }
+          },
+          "effect_2": {
+            "correct_0_no_tmp": 0,
+            "correct_1_no_tmp": 0,
+            "correct_undef_no_tmp": 252
+          }
+        }
+      },
+      "dv24": {
+        "effect_0": {
+          "both_defined": 11520,
+          "ship_defined_only": 2581,
+          "correct_defined_only": 0,
+          "ri_label_transition_matrix": {
+            "ship_0_to_pos_0": 10875,
+            "ship_0_to_pos_1": 0,
+            "ship_0_to_pos_undef": 2539,
+            "ship_1_to_pos_0": 0,
+            "ship_1_to_pos_1": 645,
+            "ship_1_to_pos_undef": 42
+          },
+          "phantom_positives_ship1_to_undef": 42,
+          "positives_shipped": 687,
+          "positives_pos_correct": 645,
+          "positives_difference": -42
+        },
+        "effect_1": {
+          "ri_label_transition_matrix": {
+            "pos_0_to_tmp_0": 10866,
+            "pos_0_to_tmp_1": 0,
+            "pos_1_to_tmp_0": 0,
+            "pos_1_to_tmp_1": 645
+          },
+          "dv_changes": {
+            "rows_with_change": 2,
+            "min": 5.0,
+            "median": 5.0,
+            "p95": 5.0,
+            "max": 5.0
+          }
+        },
+        "effect_2": {
+          "correct_0_no_tmp": 0,
+          "correct_1_no_tmp": 0,
+          "correct_undef_no_tmp": 2581
+        },
+        "combined_shipped_vs_temporal": {
+          "shipped_defined": 14101,
+          "temporal_defined": 11511,
+          "ri_label_transition_matrix": {
+            "ship_0_to_tmp_0": 10866,
+            "ship_0_to_tmp_1": 0,
+            "ship_0_to_tmp_undef": 2548,
+            "ship_1_to_tmp_0": 0,
+            "ship_1_to_tmp_1": 645,
+            "ship_1_to_tmp_undef": 42
+          },
+          "positives_shipped": 687,
+          "positives_temporal": 645
+        }
+      },
+      "dv24_by_split": {
+        "train": {
+          "effect_0": {
+            "both_defined": 9062,
+            "ship_defined_only": 2088,
+            "correct_defined_only": 0,
+            "ri_label_transition_matrix": {
+              "ship_0_to_pos_0": 8553,
+              "ship_0_to_pos_1": 0,
+              "ship_0_to_pos_undef": 2052,
+              "ship_1_to_pos_0": 0,
+              "ship_1_to_pos_1": 509,
+              "ship_1_to_pos_undef": 36
+            },
+            "phantom_positives_ship1_to_undef": 36,
+            "positives_shipped": 545,
+            "positives_pos_correct": 509,
+            "positives_difference": -36
+          },
+          "effect_1": {
+            "ri_label_transition_matrix": {
+              "pos_0_to_tmp_0": 8544,
+              "pos_0_to_tmp_1": 0,
+              "pos_1_to_tmp_0": 0,
+              "pos_1_to_tmp_1": 509
+            },
+            "dv_changes": {
+              "rows_with_change": 2,
+              "min": 5.0,
+              "median": 5.0,
+              "p95": 5.0,
+              "max": 5.0
+            }
+          },
+          "effect_2": {
+            "correct_0_no_tmp": 0,
+            "correct_1_no_tmp": 0,
+            "correct_undef_no_tmp": 2088
+          },
+          "combined_shipped_vs_temporal": {
+            "ri_label_transition_matrix": {
+              "ship_0_to_tmp_0": 8544,
+              "ship_0_to_tmp_1": 0,
+              "ship_0_to_tmp_undef": 2061,
+              "ship_1_to_tmp_0": 0,
+              "ship_1_to_tmp_1": 509,
+              "ship_1_to_tmp_undef": 36
+            },
+            "positives_shipped": 545,
+            "positives_temporal": 509
+          }
+        },
+        "val": {
+          "effect_0": {
+            "both_defined": 2458,
+            "ship_defined_only": 493,
+            "correct_defined_only": 0,
+            "ri_label_transition_matrix": {
+              "ship_0_to_pos_0": 2322,
+              "ship_0_to_pos_1": 0,
+              "ship_0_to_pos_undef": 487,
+              "ship_1_to_pos_0": 0,
+              "ship_1_to_pos_1": 136,
+              "ship_1_to_pos_undef": 6
+            },
+            "phantom_positives_ship1_to_undef": 6,
+            "positives_shipped": 142,
+            "positives_pos_correct": 136,
+            "positives_difference": -6
+          },
+          "effect_1": {
+            "ri_label_transition_matrix": {
+              "pos_0_to_tmp_0": 2322,
+              "pos_0_to_tmp_1": 0,
+              "pos_1_to_tmp_0": 0,
+              "pos_1_to_tmp_1": 136
+            },
+            "dv_changes": {
+              "rows_with_change": 0,
+              "min": null,
+              "median": null,
+              "p95": null,
+              "max": null
+            }
+          },
+          "effect_2": {
+            "correct_0_no_tmp": 0,
+            "correct_1_no_tmp": 0,
+            "correct_undef_no_tmp": 493
+          },
+          "combined_shipped_vs_temporal": {
+            "ri_label_transition_matrix": {
+              "ship_0_to_tmp_0": 2322,
+              "ship_0_to_tmp_1": 0,
+              "ship_0_to_tmp_undef": 487,
+              "ship_1_to_tmp_0": 0,
+              "ship_1_to_tmp_1": 136,
+              "ship_1_to_tmp_undef": 6
+            },
+            "positives_shipped": 142,
+            "positives_temporal": 136
+          }
+        }
+      }
+    }
+  },
+  "concentration": {
+    "effect_1_dv24_changed": {
+      "dv_col": "dv24",
+      "total_affected": 46,
+      "by_basin": {
+        "NA": 46
+      },
+      "by_decade": {
+        "1990": 13,
+        "2000": 21,
+        "2010": 9,
+        "2020": 3
+      }
+    },
+    "effect_1_dv12_changed": {
+      "dv_col": "dv12",
+      "total_affected": 28,
+      "by_basin": {
+        "NA": 28
+      },
+      "by_decade": {
+        "1990": 8,
+        "2000": 12,
+        "2010": 7,
+        "2020": 1
+      }
+    }
+  },
+  "sids_losing_all_positives_valid": {
+    "total": 12,
+    "train": {
+      "count": 6,
+      "sids": [
+        "1980245N16322",
+        "1990272N10223",
+        "1994222N11267",
+        "2003240N14230",
+        "2010302N26299",
+        "2015236N12231"
+      ]
+    },
+    "val": {
+      "count": 2,
+      "sids": [
+        "1986264N12221",
+        "2023276N11254"
+      ]
+    },
+    "test": {
+      "count": 4
+    }
+  }
+}
