@@ -249,12 +249,12 @@ methodology/precedent refs promoted to literature_review (16–23).
 (b) **Raw-ERA5 volume corrected everywhere**: "hundreds of GB" was an
 estimate-in-a-gap; measured from the 42 window manifests = **≈57 GB**
 (≈24 single-level + ≈33 pressure-level) — fixed in the paper,
-TECHNICAL_VALIDATION and the DD draft. (c) **T5 PACKAGE REBUILD launched
-DETACHED 17/07 ~03:05** (PID 23516, log
-`%USERPROFILE%\cyclone-net-ops\t5_rebuild_20260717.log`) to refresh the
-in-package TECHNICAL_VALIDATION with the measured volume; dry-run passed
-all canonical numbers first; VERIFY the log + new ZIP_CHECKSUMS before
-any Zenodo upload. (d) Zenodo-files cleanup: supersession-note .tex
+TECHNICAL_VALIDATION and the DD draft. (c) **T5 PACKAGE REBUILT AND VERIFIED (17/07
+~03:24 UTC)** — BUILD COMPLETE, 46 files / 6.03 GiB; pre-upload checks
+passed: in-package TECHNICAL_VALIDATION carries the measured ~57 GB (no
+"hundreds"), canonical counts 799/15,962/19 re-verified from the staged
+artifacts, 16,780 sidecars rewritten, ZIP_CHECKSUMS regenerated (45
+entries). READY FOR ZENODO UPLOAD. (d) Zenodo-files cleanup: supersession-note .tex
 DELETED (content = paper §9), zenodo_v3_metadata updated to preprint
 reality (paper PDF + snapshot; v2 PDF not re-attached).
 (e) `docs/INDEX.md` = the document map (PROJECT_STATE header links it).
