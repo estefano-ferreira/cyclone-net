@@ -18,6 +18,7 @@ the public repo.
 | File | Status | What it is |
 |---|---|---|
 | [`MANUSCRIPT_V3.md`](../MANUSCRIPT_V3.md) | [CURRENT] | **The paper.** Zenodo v3 PREPRINT, 10 sections; supersedes the whole record line; §9 = correction record. Awaits author sign-off → PDF → upload. |
+| [`docs/cyclonenet_v3_preprint.tex`](cyclonenet_v3_preprint.tex) | [CURRENT] | Compilable LaTeX of the paper (pdflatex; needs `pipeline_figure.png` beside it — author adds). Carries the reference list and pipeline figure not yet in the .md. |
 | [`docs/manuscript_v3_skeleton.md`](manuscript_v3_skeleton.md) | [CURRENT] | The paper's spec: canonical-numbers table, 8 global rules, superseded-claim inventory. Governs any future edit to the paper. |
 | [`docs/data_descriptor_draft.md`](data_descriptor_draft.md) | [CURRENT] | Raw material for the FUTURE reduced Data Descriptor (journal submission, ESSD vs Scientific Data undecided). Not the paper. |
 | [`MANUSCRIPT_honest.md`](../MANUSCRIPT_honest.md) | [RECORD] | The v2-era audit paper. Preserved intact (same policy as the v2.0.0 PDF on Zenodo). |

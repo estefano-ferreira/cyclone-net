@@ -85,9 +85,11 @@ layer-A dual-license pass.)
 
 ## Files in the record
 
-1. `cyclonenet_v3_preprint.pdf` (compiled from `MANUSCRIPT_V3.md`) —
-   FIRST file, so the record preview opens on it. Section 9 carries the
-   correction record for the whole line.
+1. `cyclonenet_v3_preprint.pdf` (compiled with pdflatex from
+   `docs/cyclonenet_v3_preprint.tex`, the LaTeX of `MANUSCRIPT_V3.md`;
+   requires `pipeline_figure.png` beside the .tex) — FIRST file, so the
+   record preview opens on it. Section 9 carries the correction record
+   for the whole line.
 2. Repository snapshot (tag `v3.0.0`) with LICENSE + LICENSE-DATA.
 
 (The v2.0.0 manuscript PDF is NOT re-attached: its version-DOI
