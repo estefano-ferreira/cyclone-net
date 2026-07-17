@@ -1,7 +1,8 @@
 # PROJECT_STATE — state and resume
 
 **READ THIS FILE FIRST when starting a session — it says where we stopped
-and the next step.**
+and the next step.** Lost among documents? The full map with statuses and
+links is **[`docs/INDEX.md`](INDEX.md)**.
 
 Rules for maintaining this file:
 - UPDATE at the end of each session/milestone: move the "next step"
