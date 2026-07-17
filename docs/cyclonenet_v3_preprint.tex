@@ -227,7 +227,14 @@ verifiable artifacts: hash-deterministic SID-level splits, frozen override map,
 and split-integrity regression tests. The claim is one of application and
 release, not of invention: we did not find these practices implemented in the
 released artifacts of this sub-field, which is a statement about the sub-field
-rather than about the practices. The sub-field's evaluation norm is
+rather than about the practices. In most of those works, moreover, the
+storm-leakage problem is dissolved by design rather than left unaddressed:
+An \& Jeong (2026), for instance, use one sample per storm, which makes
+storm-level leakage impossible by construction (1{,}044 rows, 1{,}044 unique
+storm identifiers in their released data). This release chose the event-based
+design --- six-hourly samples along each track --- where the problem is
+unavoidable and has to be engineered away; the controls exist here because
+the design requires them. The sub-field's evaluation norm is
 temporal --- leave-one-year-out or year-based splits --- which controls a
 different leakage vector (era mixing between training and test) that the
 storm-grouped design does not; the two designs are complementary, and the
@@ -274,7 +281,12 @@ distributes: per-event spatio-temporal cubes from surface ERA5 alone, labelled
 for RI, with frozen hash-deterministic SID-level splits, tri-state labels with
 explicit NULL for undefined cases, and complete provenance documentation
 (per-window SHA-256 manifests, label-correction audit, basin-repair record).
-Each component has precedent; the assembled artifact is what is offered. Its
+Each component has precedent; the assembled artifact is what is offered.
+Bai, Chen \& Lin (2020), for example, already distribute pre-defined splits
+as files with their benchmark --- frozen by distribution, with the split
+methodology undocumented; what we did not find released is the documented,
+hash-deterministic, storm-grouped assignment with a published override map
+and integrity tests. Its
 value is that it exists and is auditable, not that any part of it is new: the
 reproduction cost from source --- ERA5 download, windowed extraction, quality
 control, and labelling --- is what the release removes, together with the

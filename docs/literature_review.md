@@ -191,6 +191,10 @@ full yet (see §5).
    later peer-reviewed, so cite the proceedings version.) — first
    satellite-image-only RI benchmark with public dataset; the
    reproducibility/benchmark precedent for this project's category.
+   Also distributes pre-defined splits as files with the benchmark
+   (frozen-by-distribution; the split methodology is not documented) —
+   the nearest precedent for the distributed-frozen-splits element,
+   acknowledged as such in MANUSCRIPT_V3 §2.
 
 **Reviews (entry points for deepening this survey):**
 
@@ -220,6 +224,11 @@ full yet (see §5).
     bot-blocked; bibliography verified via the publisher's search
     listing, the Zenodo record, and an institutional repository listing.
     Method details from abstract-level search — confirm on full read.)
+    Sampling design: ONE SAMPLE PER STORM (1,044 rows / 1,044 unique
+    storm IDs in the released Zenodo data, verified locally 2026-07-15) —
+    storm-level leakage impossible by construction; cited in
+    MANUSCRIPT_V3 §2 as the design that dissolves the problem this
+    release's event-based design must engineer away.
 13. **[PEER-REVIEWED]** [abstract-only] Xu, Z., Guo, J., Zhang, G., Ye,
     Y., Zhao, H., & Chen, H. (2024). Global tropical cyclone size and
     intensity reconstruction dataset for 1959–2022 based on IBTrACS and
