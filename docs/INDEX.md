@@ -49,8 +49,7 @@ the public repo.
 | [`docs/release/DATA_DICTIONARY.md`](release/DATA_DICTIONARY.md) | [CURRENT] | The dataset's dictionary (v2 labels). DOI slot pending. |
 | [`docs/release/TECHNICAL_VALIDATION.md`](release/TECHNICAL_VALIDATION.md) | [CURRENT] | The 7 data-only validations (byte-reproducibility leads). |
 | [`docs/release/NOTICE`](release/NOTICE) | [CURRENT] | Verbatim, primary-source-verified attributions (ERA5/Hersbach, IBTrACS/Knapp, Copernicus Marine). Data-source citations live HERE, not in the literature review — by design. |
-| [`docs/release/zenodo_v3_metadata.md`](release/zenodo_v3_metadata.md) | [CURRENT] | Paste-ready Zenodo v3 record metadata. |
-| [`docs/release/zenodo_v3_supersession_note.tex`](release/zenodo_v3_supersession_note.tex) | [SUPERSEDED] | The standalone note; its content became §9 of the paper. Does NOT go up alone. |
+| [`docs/release/zenodo_v3_metadata.md`](release/zenodo_v3_metadata.md) | [CURRENT] | Paste-ready Zenodo v3 record metadata (preprint reality: paper PDF + snapshot; v2 PDF not re-attached). |
 | `dist/cyclonenet-dataset-v2-zips/` | [PENDING] | The built package: 46 files / 6.03 GiB, verified. Waiting for the author's Zenodo upload (gitignored). |
 | [`LICENSE`](../LICENSE) / [`LICENSE-DATA`](../LICENSE-DATA) | [CURRENT] | Code MIT / dataset CC BY 4.0. Both already on `main` (PR #15). |
 | [`docs/dataset_release_plan.md`](dataset_release_plan.md) | [RECORD] | T5 planning document. |
