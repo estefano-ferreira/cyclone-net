@@ -258,6 +258,12 @@ entries). READY FOR ZENODO UPLOAD. (d) Zenodo-files cleanup: supersession-note .
 DELETED (content = paper §9), zenodo_v3_metadata updated to preprint
 reality (paper PDF + snapshot; v2 PDF not re-attached).
 (e) `docs/INDEX.md` = the document map (PROJECT_STATE header links it).
+(f) **PR #17 MERGED by the author (`a935131`) and TAG `v3.0.0` CREATED
+AND PUSHED** (annotated, on the merge commit) — the snapshot for the
+Zenodo software record is
+github.com/estefano-ferreira/cyclone-net/archive/refs/tags/v3.0.0.zip.
+Stale BY-NC headers in two live code files fixed pre-tag (`a58b284`);
+the tagged tree carries no code contradicting MIT.
 
 Next steps:
 1. **PR #16 MERGED (verified 2026-07-16, `bde2c9f` on origin/main)** —
