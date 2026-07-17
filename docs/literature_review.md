@@ -234,6 +234,17 @@ full yet (see §5).
     DOI: 10.1038/s41597-025-05789-w — corrected ERA5 TC wind fields
     validated against SMAP/WindSat/SFMR; dataset as the primary
     peer-reviewed contribution (data journal).
+15. **[PEER-REVIEWED]** [FULL-TEXT] Kapoor, S., & Narayanan, A. (2023).
+    Leakage and the reproducibility crisis in machine-learning-based
+    science. *Patterns*, 4(9), 100804.
+    DOI: 10.1016/j.patter.2023.100804 — methodology reference (outside
+    RI, cited for principle): taxonomy of data leakage.
+    "Nonindependence between train and test samples" is the exact mode
+    of storm-level leakage in event-based RI datasets (recommended
+    mitigation: blocked/grouped CV); temporal leakage is classified
+    separately — the vector that leave-one-year-out designs control and
+    SID-grouped splits do not. Cited in MANUSCRIPT_V3 §1 and §8
+    (limitations: temporal axis).
 
 No [PREPRINT]-only or [SECONDARY]-only entries remain in this list: the
 one arXiv item (#9) was confirmed as later peer-reviewed. Secondary
