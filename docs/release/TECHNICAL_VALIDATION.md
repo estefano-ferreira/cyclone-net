@@ -44,12 +44,14 @@ consumed by every subsequent experiment run).
 
 ## 5. Processing provenance
 
-Raw ERA5 monthly files (hundreds of GB for 44 seasons at 0.25°, far
-exceeding sustainable local storage) are not part of this release; they
-were discarded only through a windowed process in which every extraction
-is verified BEFORE deletion, with a provenance manifest per window (22
-windows: counts, checksums). The raws remain re-downloadable from the CDS
-with the included configuration. Basin metadata was audited and repaired at
+Raw ERA5 monthly files (≈57 GB in total, measured from the per-window
+provenance manifests: ≈24 GB of single-level fields over 22 windows,
+1980–2023, and ≈33 GB of pressure-level fields over 20 windows,
+1980–2019) are not part of this release; they were discarded only
+through a windowed process in which every extraction is verified BEFORE
+deletion, with a provenance manifest per window (counts, checksums,
+source-file sizes). The raws remain re-downloadable from the CDS with
+the included configuration. Basin metadata was audited and repaired at
 the origin in 2026-07 (a pandas NA-parsing bug had blanked the literal
 "NA" basin code), with audit-exact verification (per-point
 8,888 EP / 7,892 NA; 992 storms) — ERRATA item 7. A subsequent class-wide
