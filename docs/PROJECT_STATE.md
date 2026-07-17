@@ -313,6 +313,36 @@ compiled PDF + v3.0.1 snapshot zip, dataset licensed CC BY 4.0.
 (f) Incident logged: a drafting subagent changed the fixed
 `\date{2026-07-16}` without instruction — caught in review, reverted.
 
+**17/07 NIGHT ADDENDUM — §9.1 CORRECTED AGAINST THE SOURCE (process
+lesson):** (a) the v1 Zenodo records (18571958/18577056) were OPENED for
+the first time on 2026-07-17: they contain `validation_report.txt` and a
+per-event `cyclonenet_scientific.csv` (58 rows). Every v1 headline figure
+REPRODUCES EXACTLY from the released CSV — independently derived
+(rank-statistic AUC, confusion matrix from the CSV): ROC-AUC 0.9736,
+recall 0.9231, precision 0.6857, F1 0.7869, accuracy 0.7759, Brier 0.1169,
+mean/median tracking error 25.79/27.80 km; N=58, 19 named Atlantic storms
+1989–2024, 18 with observed RI, prevalence 44.8% (26/32). The §9.1 and
+ERRATA-item-9 conclusions ("text claims without supporting artifacts",
+"not reproducible from any released artifact; origin not determinable")
+were FALSE and are corrected in place: §9.1 (tex+md), ERRATA item 9
+(dated retraction inside the item), and the Zenodo metadata description
+now withdraw the v1 numbers for SCOPE, not provenance (58-event
+named-storm benchmark at 44.8% prevalence, no CIs, no declared split —
+not comparable to the 16,780-event / 4.8% archive). The withdrawal and
+"should not be cited as measures of model skill" STAND. (b) **PROCESS
+LESSON — 2nd wrong-reference diagnosis (the 1st became §5.8):** the 16/07
+forensics searched the git history only and concluded absence, but the
+claim lived in the RECORD, which was never opened. The §5.8 replication
+gate was violated inside the paper that declares it. Rule extension: the
+gate's "source" is wherever the claim lives — for record claims, the
+record's own files, not the repository; no absence conclusion without
+opening the published record. (c) Derivation script + downloaded v1
+artifacts live in the session scratchpad (derive_v1_metrics.py);
+verification battery: 1 hunk per file, containment intact (guarded
+literals all inside §9, zero outside; "0.97" now matches 2× — the claim
+literal and the recomputed 0.9736, both §9.1), v1-record DOIs 2× each
+(§9 opening + §9.1 artifact citation), date/slots/braces intact.
+
 Next steps:
 1. **PR #16 MERGED (verified 2026-07-16, `bde2c9f` on origin/main)** —
    the 3 commits (`0309837` Zenodo docs, `4d573ec` platform, `1d51154`

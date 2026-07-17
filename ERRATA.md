@@ -288,34 +288,43 @@ closes that gap.
 thermodynamic energy sources; mean spatial error of approximately 26 km
 (v1.0.0); a dataset of 18 hurricanes (1989–2024); "Target Lock" coordinates.
 
-**Repository forensics (2026-07-16):**
+**Repository forensics (2026-07-16) and record forensics (2026-07-17).**
+The 2026-07-16 pass searched the git history only: the headline numbers
+existed as text in the v1-era `README.md`/`BENCHMARK.md` (commits
+`93e2b2f`–`93934d8`, removed at the v2 rewrite `e41c0f5`), no evaluation
+output file exists in any versioned tree, and "~26 km" / "18 hurricanes"
+appear in no commit (`git log -S`, all branches). On that basis this item
+originally concluded "text claims without a supporting released artifact;
+origin not determinable." **That conclusion was wrong and is retracted
+(2026-07-17): the v1 records themselves had never been opened.** They
+contain a `validation_report.txt` and a per-event
+`cyclonenet_scientific.csv` (58 rows). Recomputation from the released CSV
+reproduces every figure in the report exactly — ROC-AUC 0.9736, recall
+0.9231, precision 0.6857, F1 0.7869, accuracy 0.7759, Brier 0.1169,
+mean/median tracking error 25.79/27.80 km — and identifies the benchmark:
+58 track points from 19 named Atlantic hurricanes spanning 1989–2024, 18
+with observed RI; 26 positives / 32 negatives (44.8% prevalence). This is
+the second wrong-reference diagnosis in this note (see item 8): the
+forensics measured against the repository while the claim lived in the
+record.
 
-- **ROC-AUC 0.97 / Recall 0.92 / "sub-pixel spatial accuracy"** existed as
-  text in the v1-era `README.md` and `BENCHMARK.md` (from the initial
-  release commit `93e2b2f` through `93934d8`) and were removed at the v2
-  rewrite (`e41c0f5`, "chore(v2): v2 start"). **No metrics artifact in any
-  versioned tree ever recorded these values** — at the v1-era tree
-  (`ee3296c`) the repository contains no evaluation output files at all.
-  They are text claims without a supporting released artifact.
-- **"~26 km mean spatial error" and "18 hurricanes (1989–2024)"** appear
-  **nowhere in the git history at any commit** (`git log -S`, all
-  branches). They exist only in the Zenodo record descriptions. **Not
-  reproducible from any released artifact; origin not determinable from
-  the repository or its history.**
-- **"Target Lock"** (as branding) was removed at the v2 rewrite; the
-  lowercase term survives only as a technical descriptor of the
-  `pred_lat`/`pred_lon` columns in the validation documentation.
-
-**Correction.** None of these numbers or claims should be cited, from any
-version of the record line. The reproducible chain that replaces them is
-the one documented in item 3 and the current BENCHMARK: full released
-1980–2023 dataset, deterministic retraining, ROC-AUC 0.796 [0.753–0.837]
-and PR-AUC 0.251 [0.179–0.331] (historical record of a retired
-architecture; see the hypothesis registry for the H9 verdict). Spatial
-localization claims of any precision — sub-pixel, 26 km, or otherwise —
-are withdrawn: the FuelMap localization hypothesis was tested externally
-and is unsupported (item 4). "Atmospheric Singularity Mapping" and "Target
-Lock" are withdrawn as framing (item 5).
+**Correction (rewritten 2026-07-17).** The v1 numbers are withdrawn for
+**scope, not provenance**: they were measured on a 58-event benchmark of
+selected named storms at 44.8% RI prevalence, with no confidence intervals
+and no train/test separation declared in the record, and were presented as
+a general characterization of the model. They are not comparable to any
+evaluation on the full archive (16,780 events, 4.8% prevalence) and should
+not be cited as measures of model skill. The evaluation chain that
+replaces them is the one documented in item 3 and the current BENCHMARK:
+full released 1980–2023 dataset, deterministic retraining, ROC-AUC 0.796
+[0.753–0.837] and PR-AUC 0.251 [0.179–0.331] (historical record of a
+retired architecture; see the hypothesis registry for the H9 verdict).
+Spatial-localization framing beyond the measured tracking errors is
+withdrawn: the FuelMap localization hypothesis was tested externally and
+is unsupported (item 4). "Atmospheric Singularity Mapping" and "Target
+Lock" are withdrawn as framing (item 5); "Target Lock" survives only as a
+technical descriptor of the `pred_lat`/`pred_lon` columns in the
+validation documentation.
 
 ---
 
