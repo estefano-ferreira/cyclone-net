@@ -246,7 +246,55 @@ full yet (see §5).
     SID-grouped splits do not. Cited in MANUSCRIPT_V3 §1 and §8
     (limitations: temporal axis).
 
-No [PREPRINT]-only or [SECONDARY]-only entries remain in this list: the
+### Methodology and precedent references (outside RI, cited for principle in MANUSCRIPT_V3)
+
+All verified against primary pages 2026-07-16 (publisher / PubMed / PMLR /
+arXiv / Zenodo / GitHub). Entries 21 and 23 are PREPRINTS and are cited as
+such in the manuscript.
+
+16. **[PEER-REVIEWED]** [publisher-page verified] Saeb, S., Lonini, L.,
+    Jayaraman, A., Mohr, D. C., & Kording, K. P. (2017). The need to
+    approximate the use-case in clinical machine learning. *GigaScience*,
+    6(5), gix019. DOI: 10.1093/gigascience/gix019 — record-wise vs
+    subject-wise cross-validation; identity confounding inflates
+    record-wise estimates. Companion commentary: gix020.
+17. **[PEER-REVIEWED]** [PubMed-verified] Neto, E. C., Pratap, A.,
+    Perumal, T. M., et al. (2019). Detecting the impact of subject
+    characteristics on machine learning-based diagnostic applications.
+    *npj Digital Medicine*, 2, 99. DOI: 10.1038/s41746-019-0178-x —
+    identity confounding under record-wise splitting; motivates
+    group-wise (here, storm-wise) assignment.
+18. **[TEXTBOOK]** Géron, A. (2019). *Hands-On Machine Learning with
+    Scikit-Learn, Keras, and TensorFlow* (2nd ed.), ch. 2. O'Reilly —
+    hash-based deterministic split assignment by identifier
+    (split stable under dataset growth). Related: scikit-learn issue
+    #30992 ("UID-based Stable Train-Test Split"), verified OPEN
+    2026-07-16, cites this textbook as motivation.
+19. **[PEER-REVIEWED proceedings]** [PMLR page verified] Bertinetto, L.,
+    Henriques, J. F., Albanie, S., Paganini, M., & Varol, G. (Eds.)
+    (2021). *NeurIPS 2020 Workshop on Pre-registration in Machine
+    Learning*. PMLR Vol. 148.
+20. **[PEER-REVIEWED proceedings]** [PMLR page verified] Albanie, S.,
+    Henriques, J. F., Bertinetto, L., Hernández-García, A., Doughty, H.,
+    & Varol, G. (Eds.) (2022). *NeurIPS 2021 Workshop on
+    Pre-registration in Machine Learning*. PMLR Vol. 181.
+21. **[PREPRINT]** [arXiv page verified] Hofman, J. M., Chatzimparmpas,
+    A., Sharma, A., Watts, D. J., & Hullman, J. (2023). Pre-registration
+    for predictive modeling. arXiv:2311.18807 — cited as preprint.
+22. **[DATASET record]** [Zenodo record verified] Gardoll, S., & Boucher,
+    O. (2022). ERA5/MERRA-2 TC and background patch dataset with the
+    NXTensor extraction library (HURDAT2 tracks). Zenodo,
+    DOI: 10.5281/zenodo.6881020 — precedent for released ERA5-derived
+    spatial patch products (task: TC-vs-background classification, not RI).
+23. **[PREPRINT]** [arXiv abstract verified] Donno, D., Elia, D.,
+    Accarino, G., De Carlo, M., Scoccimarro, E., & Gualdi, S. (2025).
+    ByteStorm: a multi-step data-driven approach for tropical cyclone
+    detection and tracking. arXiv:2512.07885 — cited as preprint.
+    NOTE: the 40×40-patch detail cited in MANUSCRIPT_V3 §2 is not in the
+    abstract; confirm against the full text before submission.
+
+Within the RI literature proper (entries 1–15), no [PREPRINT]-only or
+[SECONDARY]-only entries remain: the
 one arXiv item (#9) was confirmed as later peer-reviewed. Secondary
 sources (ResearchGate/Wikipedia) were used only to locate primary pages
 during verification and are not cited.
