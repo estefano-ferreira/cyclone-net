@@ -63,7 +63,8 @@ Dataset for Tropical-Cyclone Rapid-Intensification Analysis}
 \noindent CycloneNet is an open-source, configuration-driven pipeline for
 retrospective (hindcast) analysis of tropical-cyclone rapid intensification
 (RI) from ERA5 reanalysis and IBTrACS best tracks, released together with a
-leakage-safe two-basin dataset spanning 1980--2023 (East Pacific and North
+two-basin dataset, leakage-safe with respect to storm-identity
+non-independence, spanning 1980--2023 (East Pacific and North
 Atlantic; 16{,}780 events from 992 storms: 799 RI positives, 15{,}962
 negatives, 19 undefined labels under strict-temporal v2 labeling). The
 dataset employs storm-level hash-deterministic splits and train-only
@@ -75,11 +76,14 @@ reclassified as undefined. The frozen test split (2{,}679 events; 112 RI
 positives, 6 undefined) is distributed and was not used by the
 pre-registered campaign reported below; the retired CNN's historical
 test-set metrics stand as record. A pre-registered campaign found that added
-pressure-level channels contributed no detectable skill (H6: null); the
+pressure-level channels contributed no detectable skill (H6: null); under a
+global-average-pooling readout and intensity-blind input, the
 three-dimensional convolutional architecture produced no performance gain
 over a tabular baseline and is retired (H9: architecture not justified in
-its current form). This version supersedes earlier claims in the Zenodo
-record line, with full corrections documented in Section~\ref{sec:correction}.
+its current form) --- a verdict licensed for that architecture, not for
+whether spatial structure carries RI information. This version supersedes
+earlier claims in the project's public record line, with full corrections
+documented in Section~\ref{sec:correction}.
 Code is released under MIT; dataset under CC~BY~4.0.
 \end{abstract}
 
@@ -162,7 +166,7 @@ audit trails; (2) the reproducible pipeline and code for reconstructing the
 complete dataset from raw ERA5 and IBTrACS sources; (3) results from the
 pre-registered evaluation campaign, including all hypothesis verdicts with
 confidence intervals and scope guards (Section~\ref{sec:campaign}); and (4)
-a complete correction record for the Zenodo record line
+a complete correction record for the project's prior public releases
 (Section~\ref{sec:correction}), documenting label revisions (v1$\to$v2),
 non-reproducible metrics, and claims refuted or retired. Together, these
 constitute the research product: the data, the process, and the accounting
@@ -316,8 +320,8 @@ model-architecture questions.
 
 \subsection{Repository and access}
 
-The dataset is published at the Zenodo dataset record (\slot{dataset concept
-DOI --- minted at Zenodo publication}) under the CC~BY~4.0 license. See
+The dataset is published as an archived dataset record (\slot{dataset concept
+DOI --- minted at publication}) under the CC~BY~4.0 license. See
 \texttt{NOTICE} for mandatory attributions; the analysis pipeline
 (\url{https://github.com/estefano-ferreira/cyclone-net}) is released under
 MIT. The released package contains 46 files totaling 6.03~GiB:
@@ -1293,7 +1297,7 @@ documented in Section~\ref{sec:limitations}.
 \label{sec:correction}
 % =====================================================================
 
-This paper supersedes the entire Zenodo record lineage: v1.0.0
+This paper supersedes the project's prior public releases: v1.0.0
 (10.5281/zenodo.18571958), v1.0.1 (10.5281/zenodo.18577056), and v2.0.0
 (10.5281/zenodo.18751255), which form a single concept line (verified
 2026-07-16: \texttt{/latest} resolution of both v1 records points to v2.0.0).
@@ -1444,7 +1448,7 @@ basins (East Pacific, 8{,}888 points; North Atlantic, 7{,}892 points), of which
 frozen test split of 2{,}679 events (112 RI positives, 6 undefined) was never
 used during development and is distributed for verification; this project made
 one historical read (the retired CNN) and asserts nothing about external use.
-Two Zenodo records --- one for the software, one for the dataset --- accompany
+Two archived records --- one for the software, one for the dataset --- accompany
 this release; their DOIs are minted at publication (see Data and code
 availability).
 
@@ -1468,11 +1472,12 @@ byte-reproducible from raw IBTrACS via the released replication-gate script.
 
 The full pipeline and analysis code are publicly available at
 \url{https://github.com/estefano-ferreira/cyclone-net} (MIT license; see
-\texttt{LICENSE} file). This paper is accompanied by two separate Zenodo
-records: (1) the \textbf{software record v3.0.0} \slot{software record DOI}
+\texttt{LICENSE} file). This paper is accompanied by two separate archived
+records, each with a persistent DOI: (1) the \textbf{software record
+v3.0.0} \slot{software record DOI}
 containing the repository snapshot at tag \texttt{v3.0.0} with the complete
 configuration and pipeline code required for reconstruction; (2) the
-\textbf{dataset concept record} \slot{dataset concept DOI --- minted at Zenodo
+\textbf{dataset concept record} \slot{dataset concept DOI --- minted at
 publication} containing the cubes, sidecars, splits, labels, and metadata,
 distributed under CC~BY~4.0 with mandatory third-party attributions in
 \texttt{NOTICE}.
