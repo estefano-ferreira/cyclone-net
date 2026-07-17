@@ -5,7 +5,7 @@ This module handles downloading the official IBTrACS dataset from NOAA.
 The downloaded file is stored in the raw data directory and remains unmodified.
 
 Author: Estefano Senhor Ferreira
-License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
+License: MIT (see LICENSE at the repository root)
 """
 import logging
 import requests

@@ -4,7 +4,7 @@ Downloads monthly NetCDF files from Copernicus CDS and preserves them untouched.
 No splitting, no renaming, no deletion.
 
 Author: Estefano Senhor Ferreira
-License: CC BY-NC 4.0
+License: MIT (see LICENSE at the repository root)
 """
 
 import logging
