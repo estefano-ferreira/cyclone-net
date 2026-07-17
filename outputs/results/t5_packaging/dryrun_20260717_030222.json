@@ -1,0 +1,51 @@
+{
+  "generated_utc": "2026-07-17T03:02:22.266502+00:00",
+  "mode": "dry-run",
+  "canonical": {
+    "valid_events": 16780,
+    "storms": 992,
+    "ri_positives": 799,
+    "ri_nulls": 19,
+    "ri_negatives": 15962,
+    "event_list_rows": 32989,
+    "label_diff_rows": 32989,
+    "adt_files": 761,
+    "splits": {
+      "train": 11150,
+      "val": 2951,
+      "test": 2679
+    },
+    "provenance_manifests": {
+      "window": 22,
+      "pl_window": 20,
+      "basin_metadata_repair": 2,
+      "dv24_label_correction": 1
+    }
+  },
+  "verified": {
+    "labels": {
+      "pos": 799,
+      "neg": 15962,
+      "null": 19
+    },
+    "splits": {
+      "train": 11150,
+      "val": 2951,
+      "test": 2679
+    },
+    "n_files": 67926,
+    "n_provenance_manifests": 45,
+    "total_bytes": 7775808037,
+    "total_gib": 7.242
+  },
+  "package_layout": {
+    "shards": "cubes/<year>/ -> one zip per year + one metadata zip",
+    "excluded": [
+      "*_fuel_potential.npy (author decision)",
+      "rejected-event cubes",
+      "ERA5 raws",
+      "checkpoints"
+    ],
+    "sidecar_rewrite": "fuel_potential_saved=false in staged copies only"
+  }
+}
