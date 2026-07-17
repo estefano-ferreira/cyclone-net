@@ -2,12 +2,15 @@
 
 <!-- PREPRINT DRAFT (Zenodo v3) — assembled 2026-07-16 from reviewed section drafts.
      Skeleton/spec: docs/manuscript_v3_skeleton.md. DOI slots (marked with brackets) pending Zenodo mint.
-     Supersedes the record line v1.0.0 / v1.0.1 / v2.0.0 (corrections: Section 9). -->
+     Supersedes the record line v1.0.0 / v1.0.1 / v2.0.0 (corrections: Section 9).
+     AUTHORITATIVE SOURCE: docs/cyclonenet_v3_preprint.tex (compiles to the published PDF).
+     This file is a content mirror for review/diffing; prose edits must land in BOTH files.
+     Structural extras (preamble, figure include, reference formatting, \slot macro) live in the .tex only. -->
 
 
 ## Abstract
 
-CycloneNet is an open-source, configuration-driven pipeline for retrospective (hindcast) analysis of tropical-cyclone rapid intensification (RI) from ERA5 reanalysis and IBTrACS best tracks, released together with a leakage-safe two-basin dataset spanning 1980–2023 (East Pacific and North Atlantic; 16,780 events from 992 storms: 799 RI positives, 15,962 negatives, 19 undefined labels under strict-temporal v2 labeling). The dataset employs storm-level hash-deterministic splits and train-only normalization to keep training and held-out sets independent at the storm level. Complete audit trails document byte-reproducibility of the RI labeling chain from raw IBTrACS; v1→v2 correction records show 148 of 32,989 rows misaligned (0.45%), zero valid-set label flips, and 19 events reclassified as undefined. The frozen test split (2,679 events; 112 RI positives, 6 undefined) is distributed and was not used by the pre-registered campaign reported below; the retired CNN's historical test-set metrics stand as record. A pre-registered campaign found that added pressure-level channels contributed no detectable skill (H6: null); the three-dimensional convolutional architecture produced no performance gain over a tabular baseline and is retired (H9: architecture not justified in its current form). This version supersedes earlier claims in the Zenodo record line, with full corrections documented in Section 9. Code is released under MIT; dataset under CC BY 4.0.
+CycloneNet is an open-source, configuration-driven pipeline for retrospective (hindcast) analysis of tropical-cyclone rapid intensification (RI) from ERA5 reanalysis and IBTrACS best tracks, released together with a two-basin dataset, leakage-safe with respect to storm-identity non-independence, spanning 1980–2023 (East Pacific and North Atlantic; 16,780 events from 992 storms: 799 RI positives, 15,962 negatives, 19 undefined labels under strict-temporal v2 labeling). The dataset employs storm-level hash-deterministic splits and train-only normalization to keep training and held-out sets independent at the storm level. Complete audit trails document byte-reproducibility of the RI labeling chain from raw IBTrACS; v1→v2 correction records show 148 of 32,989 rows misaligned (0.45%), zero valid-set label flips, and 19 events reclassified as undefined. The frozen test split (2,679 events; 112 RI positives, 6 undefined) is distributed and was not used by the pre-registered campaign reported below; the retired CNN's historical test-set metrics stand as record. A pre-registered campaign found that added pressure-level channels contributed no detectable skill (H6: null); under a global-average-pooling readout and intensity-blind input, the three-dimensional convolutional architecture produced no performance gain over a tabular baseline and is retired (H9: architecture not justified in its current form) — a verdict licensed for that architecture, not for whether spatial structure carries RI information. This version supersedes earlier claims in the project's public record line, with full corrections documented in Section 9. Code is released under MIT; dataset under CC BY 4.0.
 
 
 ## 1. Introduction
@@ -22,7 +25,7 @@ These design decisions are formally verified in Section 5 (Technical Validation)
 
 CycloneNet's development proceeded through a pre-registered evaluation campaign (registered and executed in July 2026) testing hypotheses about environmental channel utility and model architecture. The campaign yielded null or negative results on all central claims: added pressure-level environmental channels showed no detectable contribution to model performance (hypothesis H6: null result, confidence interval containing zero); the three-dimensional convolutional neural network architecture, when trained on equivalent input information and evaluated by identical protocols, demonstrated no advantage over a gradient-boosted tabular baseline and is retired from the validated pipeline (hypothesis H9: architecture not justified in its current form). Accordingly, this work designates no reference model; the validated contribution resides in the dataset and reproducible pipeline themselves.
 
-This paper delivers four core elements: (1) the dataset—a two-basin RI event catalogue (16,780 events from 992 tropical cyclones spanning 1980–2023) engineered with storm-level leakage control and comprehensive audit trails; (2) the reproducible pipeline and code for reconstructing the complete dataset from raw ERA5 and IBTrACS sources; (3) results from the pre-registered evaluation campaign, including all hypothesis verdicts with confidence intervals and scope guards (Section 6); and (4) a complete correction record for the Zenodo record line (Section 9), documenting label revisions (v1→v2), non-reproducible metrics, and claims refuted or retired. Together, these constitute the research product: the data, the process, and the accounting of what did and did not work.
+This paper delivers four core elements: (1) the dataset—a two-basin RI event catalogue (16,780 events from 992 tropical cyclones spanning 1980–2023) engineered with storm-level leakage control and comprehensive audit trails; (2) the reproducible pipeline and code for reconstructing the complete dataset from raw ERA5 and IBTrACS sources; (3) results from the pre-registered evaluation campaign, including all hypothesis verdicts with confidence intervals and scope guards (Section 6); and (4) a complete correction record for the project's prior public releases (Section 9), documenting label revisions (v1→v2), non-reproducible metrics, and claims refuted or retired. Together, these constitute the research product: the data, the process, and the accounting of what did and did not work.
 
 
 ## 2. Positioning
@@ -59,7 +62,7 @@ The dataset's 0.25° surface-level resolution cannot resolve inner-core structur
 
 ### 3.1 Repository and access
 
-The dataset is published at the Zenodo dataset record (⟦dataset concept DOI — minted at Zenodo publication⟧) under the CC BY 4.0 license. See NOTICE for mandatory attributions; the analysis pipeline (github.com/estefano-ferreira/cyclone-net) is released under MIT. The released package contains 46 files totaling 6.03 GiB:
+The dataset is published as an archived dataset record (⟦dataset concept DOI — minted at publication⟧) under the CC BY 4.0 license. See NOTICE for mandatory attributions; the analysis pipeline (github.com/estefano-ferreira/cyclone-net) is released under MIT. The released package contains 46 files totaling 6.03 GiB:
 - 44 per-year cubic shards (organized in `cubes/` by year subdirectories)
 - 1 metadata archive
 - 1 checksums file
@@ -395,7 +398,9 @@ The dataset itself is the entry point for three practical directions: (1) model 
 
 ## 9. Correction record
 
-This paper supersedes the entire Zenodo record lineage: v1.0.0 (10.5281/zenodo.18571958), v1.0.1 (10.5281/zenodo.18577056), and v2.0.0 (10.5281/zenodo.18751255), which form a single concept line (verified 2026-07-16: `/latest` resolution of both v1 records points to v2.0.0). Version-DOIs preserve the old records as permanent historical documents. This section documents corrections across the entire line.
+This paper supersedes the project's prior public releases: v1.0.0 (10.5281/zenodo.18571958), v1.0.1 (10.5281/zenodo.18577056), and v2.0.0 (10.5281/zenodo.18751255), which form a single concept line (verified 2026-07-16: `/latest` resolution of both v1 records points to v2.0.0). Version-DOIs preserve the old records as permanent historical documents. This section documents corrections across the entire line.
+
+The superseded record line also produced the system this release distributes: the extraction chain, the labeling code, and the pipeline were developed across the v1 and v2 cycles. Earlier releases had confidence intervals spanning chance; the v2-era diagnostic — that the bottleneck was sample size — was confirmed by intervention: the archive was expanded roughly 17-fold (972 → 16,780 valid events), after which both test-set AUC confidence intervals sit entirely above chance (ERRATA item 3 below). The pre-registered campaign that retired the claims below ran on the data those versions constructed.
 
 ### Claims from v1.0.0 and v1.0.1 (February 2026)
 
@@ -419,7 +424,7 @@ The v2.0.0 preprint made five classes of claims now superseded or corrected:
 
 **FuelMap localization (ERRATA item 4).** The paper correctly did not claim externally validated localization. Post-publication validations make the negative result robust from three angles: (i) static TCHP validation (n=226): FuelMap peak beats a random-point null (p=0.0003) but does not locate TCHP better than storm-centre baseline — median 539 km vs. 561 km, closer in 46% of events (p=0.30); (ii) dynamic displacement test against a control; (iii) physics-prior control reproduces the dynamic behavior — arithmetic of the prior, not learned skill. A counterfactual ablation shows the model's RI prediction depends on the identified region, but this is model-internal dependence only, not true energy source. The claim is unsupported, not pending.
 
-**Novelty positioning (ERRATA item 5).** A literature check indicates the components and forensic framing are established, not new. The contribution is engineering and reproducibility (an auditable, configuration-driven, tested pipeline), not scientific discovery or architectural novelty. The title term "Atmospheric Singularity Mapping" overstates scope and is removed from the project's documentation and citation metadata.
+**Novelty positioning (ERRATA item 5).** A literature check indicates the components and forensic framing are established, not new; the title term "Atmospheric Singularity Mapping" overstates scope and is removed from the project's documentation and citation metadata. Section 2 states the positioning this release adopts.
 
 ### Dataset Corrections
 
@@ -429,19 +434,15 @@ The v2.0.0 preprint made five classes of claims now superseded or corrected:
 
 **Defect-0 retraction (ERRATA item 8).** An intermediate diagnosis of "cross-storm label leakage" (assessment reports v1–v4) was refuted by reconstruction from raw IBTrACS — the diagnosis had run on a derived artifact from which the builder had already dropped the partner rows used in label computation. The raw-replication gate is now a permanent project rule: any defect diagnosis on a derived artifact must first replicate the shipped artifact byte-exactly from the raw source. A companion positive result (TECHNICAL_VALIDATION §1): reconstruction of the event list from raw IBTrACS replicates the shipped file byte-for-byte — 32,989/32,989 rows, dv24 and ri_label identical. The labeling pipeline is fully reproducible from the raw source.
 
-### Withdrawn Claims and Retired Components
+### What remains
 
-- **ROC-AUC 0.97, 0.92 recall, "sub-pixel spatial accuracy," "~26 km mean spatial error," and "18 hurricanes (1989–2024)"**: all withdrawn. Do not cite.
-- **FuelMap localization as a validated result**: withdrawn; refuted, not pending.
-- **"Atmospheric Singularity Mapping" and "Target Lock"** (as framing): withdrawn.
-- **The CNN architecture**: retired by pre-registered verdict (Section 6, H9/V2).
-- **The "physics-guided" label**: retired from the project's citable identity.
+The withdrawn claims are not repeated here: each is stated once above, adjacent to its correction.
 
 What remains is the dataset (16,780 events, 992 storms, 799 RI positives / 15,962 negatives / 19 NULL, 1980–2023 coverage), the auditable pipeline, the frozen test metrics of the retired CNN as historical record, and the pre-registered verdicts documenting that this CNN's spatial feature extraction added nothing beyond the tabular baseline at a fixed information diet, and that the physics-loss question was closed as undecidable (H8, cancelled).
 
 ## 10. Conclusion
 
-This work releases a reproducible pipeline and a leakage-safe two-basin RI dataset under open licenses: the code under MIT, the dataset under CC BY 4.0. The dataset contains 16,780 valid events across 1980–2023 and two ocean basins (East Pacific, 8,888 points; North Atlantic, 7,892 points), of which 799 are labeled as RI onsets, 15,962 as non-RI, and 19 as RI-undefined. A frozen test split of 2,679 events (112 RI positives, 6 undefined) was never used during development and is distributed for verification; this project made one historical read (the retired CNN) and asserts nothing about external use. Two Zenodo records — one for the software, one for the dataset — accompany this release; their DOIs are minted at publication (see Data and code availability).
+This work releases a reproducible pipeline and a leakage-safe two-basin RI dataset under open licenses: the code under MIT, the dataset under CC BY 4.0. The dataset contains 16,780 valid events across 1980–2023 and two ocean basins (East Pacific, 8,888 points; North Atlantic, 7,892 points), of which 799 are labeled as RI onsets, 15,962 as non-RI, and 19 as RI-undefined. A frozen test split of 2,679 events (112 RI positives, 6 undefined) was never used during development and is distributed for verification; this project made one historical read (the retired CNN) and asserts nothing about external use. Two archived records — one for the software, one for the dataset — accompany this release; their DOIs are minted at publication (see Data and code availability).
 
 Corrections spanning the record lineage (v1.0.0, v1.0.1, v2.0.0) are documented in Section 9; readers of any prior version should consult it before citing.
 
@@ -450,7 +451,7 @@ What remains registered as open agenda is documented in the hypothesis registry 
 
 ## Data and code availability
 
-The full pipeline and analysis code are publicly available at **https://github.com/estefano-ferreira/cyclone-net** (MIT license; see `LICENSE` file). This paper is accompanied by two separate Zenodo records: (1) the **software record v3.0.0** ⟦software record DOI⟧ containing the repository snapshot at tag `v3.0.0` with the complete configuration and pipeline code required for reconstruction; (2) the **dataset concept record** ⟦dataset concept DOI — minted at Zenodo publication⟧ containing the cubes, sidecars, splits, labels, and metadata, distributed under CC BY 4.0 with mandatory third-party attributions in `NOTICE`.
+The full pipeline and analysis code are publicly available at **https://github.com/estefano-ferreira/cyclone-net** (MIT license; see `LICENSE` file). This paper is accompanied by two separate archived records, each with a persistent DOI: (1) the **software record v3.0.0** ⟦software record DOI⟧ containing the repository snapshot at tag `v3.0.0` with the complete configuration and pipeline code required for reconstruction; (2) the **dataset concept record** ⟦dataset concept DOI — minted at publication⟧ containing the cubes, sidecars, splits, labels, and metadata, distributed under CC BY 4.0 with mandatory third-party attributions in `NOTICE`.
 
 An interactive platform explorer is available at **https://estefano-ferreira.github.io/cyclone-net/**—a static, client-side visualization of the IBTrACS best-track events, observed storm tracks, and intensity curves, with no model predictions. Labeling reproducibility is verified by the replication-gate script at `analysis/dv24_impact_assessment_v5_raw_reference.py`, which enforces abort-on-mismatch and certifies byte-reproducible label generation from raw IBTrACS.
 

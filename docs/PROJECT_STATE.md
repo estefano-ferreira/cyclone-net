@@ -258,6 +258,39 @@ entries). READY FOR ZENODO UPLOAD. (d) Zenodo-files cleanup: supersession-note .
 DELETED (content = paper §9), zenodo_v3_metadata updated to preprint
 reality (paper PDF + snapshot; v2 PDF not re-attached).
 (e) `docs/INDEX.md` = the document map (PROJECT_STATE header links it).
+(f) **PR #17 MERGED by the author (`a935131`) and TAG `v3.0.0` CREATED
+AND PUSHED** (annotated, on the merge commit) — the snapshot for the
+Zenodo software record is
+github.com/estefano-ferreira/cyclone-net/archive/refs/tags/v3.0.0.zip.
+Stale BY-NC headers in two live code files fixed pre-tag (`a58b284`);
+the tagged tree carries no code contradicting MIT.
+
+**17/07 DAYTIME ADDENDUM (pre-upload paper passes, author-directed):**
+(a) **§9 execution-effect pass (`0fbb615`)** — new opening paragraph (the
+superseded line built the released system; 17× expansion 972→16,780 moved
+both AUC CIs above chance; 44/96 dropped per canonical-number rule — no
+artifact found), §9.4 bullets removed as echo (retitled "What remains"),
+item 5 shrunk; the cut "refuted, not pending" bullet was STRONGER than
+canonical ERRATA item 4 ("unsupported") — cut aligns paper to record.
+MANUSCRIPT_V3.md header now declares the .tex AUTHORITATIVE (md = content
+mirror; prose edits land in both). (b) **Abstract + venue-portability pass
+(`89f9584`)** — abstract H9 verdict now carries the ex-ante §6.4
+qualifications (GAP readout, intensity-blind input) + §6.5 boundary;
+"leakage-safe" scoped to storm-identity non-independence (author decision;
+title untouched); Zenodo STRUCTURAL mentions neutralized to "the project's
+prior public releases" / "archived record(s)" everywhere (abstract, §1,
+§3.1, §9, §10, availability; slot texts "minted at publication"); ARTIFACT
+DOI references preserved (3 corrected-line DOIs measured 1× each in §9;
+third-party DOIs; references). Containment re-measured after every pass.
+(c) **fuelmap_validation.md CLOSED (`4a69521`)** — doc updated to the
+n=226 re-run (its cited JSON had been overwritten 12/07; committed version
+already n=226); preliminary n=62 preserved in a dated section (numbers
+exist nowhere else — verified). (d) **OPEN QUESTION for the author (NEW):**
+tag v3.0.0 predates the 17/07 paper passes — the PDF the author will
+compile from current feature/tchp will NOT match the .tex inside the
+tagged snapshot the software record ships. Decide before upload: re-tag
+(v3.0.1 on the post-pass merge) vs upload as-is and note the paper is
+newer than the snapshot. Do not upload without deciding.
 
 Next steps:
 1. **PR #16 MERGED (verified 2026-07-16, `bde2c9f` on origin/main)** —
