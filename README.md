@@ -1,6 +1,6 @@
-# 🌪️ CycloneNet — A Forensic Engineering Framework for Atmospheric Analysis
+# 🌪️ CycloneNet: A Reproducible Pipeline and Leakage-Safe Two-Basin Dataset for Tropical-Cyclone Rapid-Intensification Analysis
 
-**CycloneNet** is an open‑source software framework designed for the **forensic audit of tropical cyclones**. It provides an automated, reproducible pipeline that ingests historical meteorological data (ERA5 reanalysis, IBTrACS) and produces geospatially referenced **hypothesis maps** of thermodynamic conditions associated with rapid intensification (RI) — spatial energy‑source attribution from these maps was tested externally and is **not supported** (see *Spatial validation* below).
+**CycloneNet** is an open‑source, configuration‑driven pipeline for retrospective (hindcast) analysis of tropical‑cyclone rapid intensification (RI), released together with a **leakage‑safe two‑basin dataset** (East Pacific + North Atlantic, 1980–2023: **16,780 valid events / 992 storms / 799 RI positives, 15,962 negatives, 19 undefined** under strict‑temporal tri‑state v2 labels). It ingests ERA5 reanalysis and IBTrACS best tracks and produces auditable per‑event spatio‑temporal cubes with full provenance. The project's original spatial energy‑source attribution hypothesis was tested externally and is **not supported** (see *Spatial validation* below); the validated contribution is the **dataset and the reproducible pipeline**, plus the pre‑registered campaign's documented negative results.
 
 Unlike operational forecasting models, CycloneNet is built as a **high‑recall diagnostic tool** with a strong emphasis on **auditability, transparency, and reproducibility**. It is the result of applying robust software engineering principles to complex geospatial data, creating a verifiable foundation for retrospective storm analysis.
 
@@ -39,8 +39,8 @@ signal does surface data carry, measured cleanly?".
 - **Reproducible Science**  
   The pipeline is entirely configuration‑driven (`config.yaml`). Splits by storm identifier (SID) prevent data leakage, and normalization statistics are computed exclusively on the training set. A complete audit trail (Git commit hash, runtime snapshot) allows exact reconstruction of any experiment.
 
-- **High‑Sensitivity Detection**  
-  The system is tuned to maximise recall (true positive rate) – a deliberate trade‑off to ensure that no potential intensification signature is missed in historical records. This **safety‑first bias** is documented and can be adjusted via the configuration.
+- **High‑Sensitivity Detection (historical operating policy of the retired CNN)**  
+  The retired reference model was tuned to maximise recall (true positive rate) – a deliberate, documented trade‑off. The policy remains configurable for reproduction of the historical benchmark; the project reports no reference model (see *Final Test‑Set Performance*).
 
 - **Geospatial Attribution (hypothesis — validated NEGATIVE)**  
   The model produces continuous coordinates (via soft‑argmax on a learned FuelMap) within a 40×40 grid‑point window (approx. 10°×10°). This “target lock” was tested against audited Tropical Cyclone Heat Potential (TCHP) peaks and a naive storm‑centre baseline: the FuelMap does **not** localize the energy source beyond storm position (n=226, p=0.30 vs the centre baseline). The coordinates are retained for transparency and auditability, not as a validated attribution. See [ERRATA.md](./ERRATA.md) and `docs/fuelmap_validation.md`.
@@ -230,10 +230,12 @@ python run.py preprocess-tchp
 # 6. Compute normalization statistics on the training split (only after preprocessing)
 python run.py normalize
 
-# 7. Train the model (auxiliary FuelMap losses are enabled by default)
+# 7. (Optional) Train the retired reference CNN — reproduction of the
+#    historical benchmark only; the architecture was retired by the
+#    pre-registered H9/V2 verdict and the project reports no reference model
 python run.py train
 
-# 8. Evaluate on the test set (includes spatial error metrics if TCHP metadata is available)
+# 8. (Optional) Evaluate — reproduces the historical test-set record
 python run.py evaluate
 
 # (Optional) Generate full spatial metrics (requires TCHP maps)
@@ -244,15 +246,15 @@ All results (metrics, predictions, logs) will be saved in `outputs/`.
 
 ---
 
-## 🔬 New in This Release: Enhanced Preprocessing & TCHP Validation
+## 🔬 Preprocessing Details & TCHP Validation (negative result)
 
 ### Scientific preprocessing
 
 The preprocessing step (`preprocess_scientific.py`) now:
 
 - Computes **diagnostic channels**: wind speed, vorticity, divergence, MSLP gradient magnitude, and SST anomaly – using finite differences with careful handling of grid spacing.
-- Calculates **heat fluxes** (latent, sensible, total) when `t2m` and `d2m` are available in the ERA5 files. These are stored in the cubes but **not used as model inputs** (they are reserved for future auxiliary losses or validation).
-- Generates a **physical prior map** (fuel potential) – by default the total heat flux (if available) or a heuristic product of SST anomaly, wind speed, and convergence. This map is saved alongside each event (`*_fuel_potential.npy`) and used to supervise the model’s FuelMap via KL divergence during training.
+- Calculates **heat fluxes** (latent, sensible, total) when `t2m` and `d2m` are available in the ERA5 files. These are stored in the cubes but **not used as model inputs** (retained for possible future use; the total‑heat‑flux channel additionally carries an explicit config exclusion tied to the retired auxiliary loss).
+- Generates a **heuristic prior map** (fuel potential) – by default the total heat flux (if available) or a product of SST anomaly, wind speed, and convergence. Saved locally alongside each event (`*_fuel_potential.npy`), it was used to supervise the retired model's auxiliary losses during training; its semantics were refuted (ERRATA item 4 / H1) and the priors are **not distributed** in the released dataset package (divergence recorded in `package_manifest.json`).
 - **Guarantees data integrity**: Each cube is checked for NaNs/Infs; any event containing invalid values is discarded, ensuring the dataset presented to the model is clean.
 
 ### Tropical Cyclone Heat Potential (TCHP) validation
@@ -283,7 +285,7 @@ To **test the hypothesis** that the FuelMap localizes the thermodynamic energy s
 > comparable; see [`BENCHMARK.md`](./BENCHMARK.md) for both, explicitly
 > separated, with the ex‑ante qualifications.
 
-The model was trained and evaluated on the full **1980–2023 two‑basin archive (East Pacific + North Atlantic)**: **16,780 valid events / 802 RI positives / 992 storms** (578 EP / 414 NA by genesis basin — the first point of each storm's IBTrACS record; per‑point, events split 8,888 EP / 7,892 NA, and six storms genuinely cross between the basins — basin is a per‑point IBTrACS attribute. The extraction bounding box cuts the EP basin west of 140°W), with hash‑deterministic storm‑level splits (adding storms never reassigns existing ones). Earlier wording here said "North Atlantic sector" — incorrect (a `basin`‑metadata parsing bug masked the East Pacific majority; see [ERRATA.md](./ERRATA.md) item 7). The two basins have different RI climatologies and basin is not a controlled variable in the current experiments — a declared limitation. The held‑out test split — **2,679 events / 115 RI positives / 153 storms** — was never used during development. The threshold was selected on the validation split via `precision_at_recall` and applied unchanged to the test set. These numbers are reproducible from the public repository and dataset.
+The model was trained and evaluated on the full **1980–2023 two‑basin archive (East Pacific + North Atlantic)**: **16,780 valid events / 992 storms** (578 EP / 414 NA by genesis basin — the first point of each storm's IBTrACS record; per‑point, events split 8,888 EP / 7,892 NA, and six storms genuinely cross between the basins — basin is a per‑point IBTrACS attribute. The extraction bounding box cuts the EP basin west of 140°W), with hash‑deterministic storm‑level splits (adding storms never reassigns existing ones). **Label counts:** under the released **v2 strict‑temporal labels** the dataset carries **799 RI positives / 15,962 negatives / 19 undefined (NULL)**; the historical training and test read below were made under the **v1 labels then in force** (802 positives; the v1→v2 correction produced **zero valid‑set label flips** — the −3 positives are NULL reclassifications, all in the test split; see [ERRATA.md](./ERRATA.md) item 6). Earlier wording here said "North Atlantic sector" — incorrect (a `basin`‑metadata parsing bug masked the East Pacific majority; see [ERRATA.md](./ERRATA.md) item 7). The two basins have different RI climatologies and basin is not a controlled variable in the current experiments — a declared limitation. The held‑out test split — **2,679 events / 153 storms** (115 RI positives under the v1 labels used at the read; **112 positives + 6 NULL under v2**) — was never used during development. The threshold was selected on the validation split via `precision_at_recall` and applied unchanged to the test set. These numbers are reproducible from the public repository and dataset.
 
 | Metric                   | Test Value | Interpretation                                              |
 | ------------------------ | ---------- | ----------------------------------------------------------- |
@@ -294,7 +296,7 @@ The model was trained and evaluated on the full **1980–2023 two‑basin archiv
 | **F1‑score**             | 0.129      | Dominated by the deliberate recall bias.                    |
 | **Brier score**          | 0.0372     | Well calibrated (ECE 0.009), but weak resolution (0.003 vs 0.041 uncertainty) — see calibration report. |
 | **Threshold**            | 0.0097     | Chosen on validation (142 positives) at target recall 0.90 (val recall 0.9014); test recall 0.852. |
-| **Positive samples**     | 115        | RI events in the test set.                                  |
+| **Positive samples**     | 115        | RI events in the test set under the v1 labels at the time of the read (112 under the v2 recount; ERRATA item 6). |
 | **Negative samples**     | 2,564      | Non‑RI events in the test set.                              |
 
 This is the first version of the project with **statistically demonstrable skill**: both AUC confidence intervals sit entirely above chance. Earlier releases (44 and then 96 test‑relevant positives) had CIs spanning chance — the diagnostic verdict "the bottleneck is sample size" was confirmed by intervention (17× data expansion). A per‑sample breakdown with real test‑set examples is in [`BENCHMARK.md`](./BENCHMARK.md); the correction history is in [`ERRATA.md`](./ERRATA.md).

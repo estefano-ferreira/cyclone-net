@@ -1,7 +1,8 @@
 # PROJECT_STATE — state and resume
 
 **READ THIS FILE FIRST when starting a session — it says where we stopped
-and the next step.**
+and the next step.** Lost among documents? The full map with statuses and
+links is **[`docs/INDEX.md`](INDEX.md)**.
 
 Rules for maintaining this file:
 - UPDATE at the end of each session/milestone: move the "next step"
@@ -11,13 +12,16 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-16 ~20:30 (…morning: H6 NULL; H9 V1 NEG / V2 NULL;
-H8 CANCELLED; label RETIRED; freeze LIFTED; basin REPAIRED. Afternoon:
-**dv24/dv12 CORRECTED — DATASET v2 APPLIED**; "Defect 0" RETRACTED;
-raw-replication gate permanent; keep_default_na class CLOSED. Evening:
-**T5 PACKAGE BUILT AND VERIFIED** — 46 files / 6.03 GiB in `dist/`,
-awaiting the author's Zenodo upload; layer-A identity pass done, dual
-license MIT + CC BY 4.0)._
+_Last updated: 2026-07-16 ~22:30 (…morning: campaign closed (H6/H9/H8);
+basin REPAIRED. Afternoon: DATASET v2 APPLIED; "Defect 0" RETRACTED;
+replication gate permanent; keep_default_na class CLOSED. Evening: T5
+PACKAGE BUILT AND VERIFIED (46 files / 6.03 GiB in `dist/`); layer-A done
+(dual license MIT + CC BY 4.0, **merged to main via PR #15**); Zenodo v3
+status document + metadata READY; platform REBUILT serving v2 labels with
+tri-state ri_candidate; **citable title FINALIZED** ("A Reproducible
+Pipeline and Leakage-Safe Two-Basin Dataset…"). PENDING: PR #16 (3
+commits), the author's two Zenodo uploads, GitHub About, credential
+rotation)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
@@ -190,20 +194,93 @@ repair of DERIVED METADATA; the test set remains unread in the sense that
 matters (no model evaluated, no metric computed); same category as the
 basin repair.
 
+**LATE-EVENING ADDENDUM (16/07 ~21-22h):** (a) **PR #15 MERGED by the
+author** — origin/main carries the whole day through `02ad7a8`, including
+MIT. (b) **Zenodo v3 READY**: status document
+(`docs/release/zenodo_v3_supersession_note.tex` — restructured
+status-first: §1 what it is, §2 campaign, §3 correction record with the
+no-softening rule, §4 dry provenance; author added their author block) +
+paste-ready metadata (`zenodo_v3_metadata.md`). (c) **Citable title
+FINALIZED and cascaded** (`1d51154`): "CycloneNet: A Reproducible
+Pipeline and Leakage-Safe Two-Basin Dataset for Tropical-Cyclone
+Rapid-Intensification Analysis" — names the tool, not the process; the
+"Honest Audit" variant retired before public use; CFF/CITATION.md/
+metadata/.tex all match. (d) **Platform REBUILT on v2 labels with
+TRI-STATE `ri_candidate` (true/false/null)** (`4d573ec`): markers
+1,875→1,871, 55 undefined rendered as such (gray triangle + tooltip),
+storm badges 497→496 (`2016270N12223`), TAMMY intact, env panel verified
+unchanged; served build version `0309837+…`. Platform reads labels from
+the event list — no independent label implementation (the served-build
+defect was staleness, not code).
+
+**NIGHT ADDENDUM (16/07, V3 session):** (a) **GENRE DECIDED (author): V3 is
+a PREPRINT for Zenodo, not a Data Descriptor** — the record line (18571958
+v1.0.0 / 18577056 v1.0.1 / 18751255 v2.0.0) is uniformly Preprint+PDF; the
+supersession note's content became §9 of the paper; the v2 PDF is NOT
+re-attached (version-DOI preserves it). The Data Descriptor is a FUTURE
+REDUCED version for journal submission (raw material saved:
+`docs/data_descriptor_draft.md`). (b) **MANUSCRIPT_V3.md ASSEMBLED
+(preprint, 10 sections + availability/ack)** from Haiku section drafts,
+two review rounds each (round-1 fabrications caught and fixed: ±3h
+tolerance, 40-storm override map, PRES_* channel names, "beats baseline on
+training data", "one authorized read" policy — all refuted against repo);
+skeleton = `docs/manuscript_v3_skeleton.md` (canonical table + 8 rules +
+superseded-claim inventory). PENDING AUTHOR REVIEW; nothing committed.
+(c) **ERRATA item 9 WRITTEN**: v1.0.0/v1.0.1 claims (0.97/0.92, sub-pixel,
+~26 km, 18 hurricanes, Target Lock) — lineage verified via /latest
+resolution; 0.97/sub-pixel were v1-era README/BENCHMARK text with no
+metrics artifact ever versioned (removed at `e41c0f5`); 26 km / 18
+hurricanes appear NOWHERE in git history ("origin not determinable" —
+committed wording). (d) **README H1 fixed** to the finalized citable title
+(was the only remaining occurrence of the old "Forensic Engineering
+Framework" title). (e) Incidental: `docs/DATASET.md` still carries stale
+"1989–2024" v1-era ranges — hygiene queue. Uncommitted: PROJECT_STATE,
+skeleton, README, ERRATA, MANUSCRIPT_V3.md, data_descriptor_draft.md.
+
+**17/07 EARLY-MORNING ADDENDUM (V3 finalized):** (a) **MANUSCRIPT_V3
+COMPLETE and FINAL-REVIEWED** — .tex conversion in
+`docs/cyclonenet_v3_preprint.tex` (compile-ready, brace-balanced; author
+compiles the PDF on Overleaf), `docs/pipeline_figure.png` (regenerated
+with tri-state label box after the binary-coercion flag), 23-entry
+reference list (Hersbach merged, alphabetical), md/tex mirrored. **Every
+claim and citation now primary-source-verified** — the last one
+(ByteStorm 40×40) confirmed verbatim in the arXiv full text; 8
+methodology/precedent refs promoted to literature_review (16–23).
+(b) **Raw-ERA5 volume corrected everywhere**: "hundreds of GB" was an
+estimate-in-a-gap; measured from the 42 window manifests = **≈57 GB**
+(≈24 single-level + ≈33 pressure-level) — fixed in the paper,
+TECHNICAL_VALIDATION and the DD draft. (c) **T5 PACKAGE REBUILT AND VERIFIED (17/07
+~03:24 UTC)** — BUILD COMPLETE, 46 files / 6.03 GiB; pre-upload checks
+passed: in-package TECHNICAL_VALIDATION carries the measured ~57 GB (no
+"hundreds"), canonical counts 799/15,962/19 re-verified from the staged
+artifacts, 16,780 sidecars rewritten, ZIP_CHECKSUMS regenerated (45
+entries). READY FOR ZENODO UPLOAD. (d) Zenodo-files cleanup: supersession-note .tex
+DELETED (content = paper §9), zenodo_v3_metadata updated to preprint
+reality (paper PDF + snapshot; v2 PDF not re-attached).
+(e) `docs/INDEX.md` = the document map (PROJECT_STATE header links it).
+
 Next steps:
-1. **DONE 16/07 — dv24 label correction applied (dataset v2).** See block
-   above; nothing pending on labels.
-2. **T5 packaging: BUILT AND VERIFIED 16/07** (block above). Remaining is
-   the author's manual tail: Zenodo upload → DOI → slot fill + software
-   record + About (one public-face change) → PR #15. APC decision still
-   open: Scientific Data GBP 2,190 vs ESSD EUR 1,400 flat (ESSD leaning;
-   both accept Zenodo — verified).
-3. **"physics-guided" relabel: layer-A DONE 16/07** (`f229cc8` — citable
-   title, license fields, facade docstrings, pyproject). Code identifiers
-   (CycloneNetPhysicsGuided, src/physics/, config keys) intentionally
-   KEPT — released checkpoint references them (README legacy note).
-4. V3 skeleton (also unlocks the coauthor-contact gate) — next major
-   work item after the upload.
+1. **PR #16 MERGED (verified 2026-07-16, `bde2c9f` on origin/main)** —
+   the 3 commits (`0309837` Zenodo docs, `4d573ec` platform, `1d51154`
+   title) are on main. Only this state-file commit trails on
+   feature/tchp.
+2. **Zenodo uploads (author, manual):** (a) dataset record — 46 files in
+   `dist/cyclonenet-dataset-v2-zips/`, new concept DOI, CC BY 4.0;
+   (b) software record v3.0.0 — compile the .tex, paste
+   `zenodo_v3_metadata.md` (title final; description's "SUPERSESSION
+   NOTE" wording → "Project Status and Correction Record" pending the
+   author's word), record license CC BY 4.0. Then fill DOI slots
+   (CITATION.cff references, LICENSE-DATA, DATA_DICTIONARY §1) + GitHub
+   About — the single public-face change.
+3. APC/venue decision still open: ESSD EUR 1,400 leaning vs Scientific
+   Data GBP 2,190 (both accept Zenodo — verified).
+4. **Credential rotation STILL PENDING** (CDS key + Copernicus password,
+   leaked in git history; redaction implemented, rotation not done).
+5. **V3 PREPRINT ASSEMBLED (16/07 night addendum)** — `MANUSCRIPT_V3.md`
+   awaits author review; after approval: compile/upload flow replaces the
+   standalone supersession note (§9 carries its content), and the reduced
+   Data Descriptor derives later from `docs/data_descriptor_draft.md`.
+   V3 completion unlocks the coauthor-contact gate.
 
 **H9 executed 15/07** (run `20260715T123221Z`, commits `d6cc930` fix +
 `143756f` results; 3rd dated pre-reg amendment: median imputation for the

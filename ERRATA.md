@@ -272,6 +272,53 @@ reports v1–v4 (kept on disk as the audit trail);
 
 ---
 
+## 9. The v1.0.0/v1.0.1 record claims (Zenodo 18571958, 18577056 — Feb 2026) were never covered by this note (2026-07-16)
+
+**Scope.** This note was written against the v2.0.0 preprint, but the Zenodo
+record line has two earlier versions — v1.0.0 (10.5281/zenodo.18571958) and
+v1.0.1 (10.5281/zenodo.18577056), titled *"CycloneNet: A Deep Learning
+Framework for Atmospheric Singularity Mapping via Spatio-Temporal
+Attention"* — in the **same concept lineage** (verified 2026-07-16: the
+`/latest` resolution of both v1 records points to the v2.0.0 record). Item 3
+covers v2.0.0's ROC-AUC 0.83; nothing covered the v1 claims. This item
+closes that gap.
+
+**What the v1 records claim (verbatim from their descriptions):** ROC-AUC
+0.97 and Recall 0.92; "sub-pixel spatial accuracy" in localizing the
+thermodynamic energy sources; mean spatial error of approximately 26 km
+(v1.0.0); a dataset of 18 hurricanes (1989–2024); "Target Lock" coordinates.
+
+**Repository forensics (2026-07-16):**
+
+- **ROC-AUC 0.97 / Recall 0.92 / "sub-pixel spatial accuracy"** existed as
+  text in the v1-era `README.md` and `BENCHMARK.md` (from the initial
+  release commit `93e2b2f` through `93934d8`) and were removed at the v2
+  rewrite (`e41c0f5`, "chore(v2): v2 start"). **No metrics artifact in any
+  versioned tree ever recorded these values** — at the v1-era tree
+  (`ee3296c`) the repository contains no evaluation output files at all.
+  They are text claims without a supporting released artifact.
+- **"~26 km mean spatial error" and "18 hurricanes (1989–2024)"** appear
+  **nowhere in the git history at any commit** (`git log -S`, all
+  branches). They exist only in the Zenodo record descriptions. **Not
+  reproducible from any released artifact; origin not determinable from
+  the repository or its history.**
+- **"Target Lock"** (as branding) was removed at the v2 rewrite; the
+  lowercase term survives only as a technical descriptor of the
+  `pred_lat`/`pred_lon` columns in the validation documentation.
+
+**Correction.** None of these numbers or claims should be cited, from any
+version of the record line. The reproducible chain that replaces them is
+the one documented in item 3 and the current BENCHMARK: full released
+1980–2023 dataset, deterministic retraining, ROC-AUC 0.796 [0.753–0.837]
+and PR-AUC 0.251 [0.179–0.331] (historical record of a retired
+architecture; see the hypothesis registry for the H9 verdict). Spatial
+localization claims of any precision — sub-pixel, 26 km, or otherwise —
+are withdrawn: the FuelMap localization hypothesis was tested externally
+and is unsupported (item 4). "Atmospheric Singularity Mapping" and "Target
+Lock" are withdrawn as framing (item 5).
+
+---
+
 ## Technical validation note (2026-07-16) — positive result, not an erratum
 
 Reconstruction of the event list from
