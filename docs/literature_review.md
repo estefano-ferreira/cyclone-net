@@ -286,12 +286,13 @@ such in the manuscript.
     NXTensor extraction library (HURDAT2 tracks). Zenodo,
     DOI: 10.5281/zenodo.6881020 — precedent for released ERA5-derived
     spatial patch products (task: TC-vs-background classification, not RI).
-23. **[PREPRINT]** [arXiv abstract verified] Donno, D., Elia, D.,
+23. **[PREPRINT]** [FULL-TEXT verified 2026-07-16] Donno, D., Elia, D.,
     Accarino, G., De Carlo, M., Scoccimarro, E., & Gualdi, S. (2025).
     ByteStorm: a multi-step data-driven approach for tropical cyclone
     detection and tracking. arXiv:2512.07885 — cited as preprint.
-    NOTE: the 40×40-patch detail cited in MANUSCRIPT_V3 §2 is not in the
-    abstract; confirm against the full text before submission.
+    The 40×40-patch detail cited in MANUSCRIPT_V3 §2 is confirmed
+    verbatim in the full text ("non-overlapping patches of size 40×40",
+    labelled "based on the presence of a TC center").
 
 Within the RI literature proper (entries 1–15), no [PREPRINT]-only or
 [SECONDARY]-only entries remain: the
