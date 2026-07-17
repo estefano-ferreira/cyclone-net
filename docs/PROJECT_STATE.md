@@ -336,7 +336,18 @@ claim lived in the RECORD, which was never opened. The §5.8 replication
 gate was violated inside the paper that declares it. Rule extension: the
 gate's "source" is wherever the claim lives — for record claims, the
 record's own files, not the repository; no absence conclusion without
-opening the published record. (c) Derivation script + downloaded v1
+opening the published record. (b2) **QUANTIZATION MEASURED (2026-07-17,
+pending author decision on wording):** all 58 v1 prediction offsets are
+EXACT integer multiples of the 0.25° grid (0 off-grid; patterns: +1 lat ×43,
+−1 lon ×6, exact-zero ×5, diagonal ×4; 12 distinct error values = 0, one
+lat step 27.8, one cos-scaled lon step ~24–26, one diagonal ~37). No error
+strictly between 0 and one grid cell exists. Consequence available to the
+author: "sub-pixel accuracy" is not scope overclaim but a contentless
+metric on this artifact — predictions are grid-snapped, so sub-pixel error
+is unattainable except exactly 0; and 43/58 (74%) share the same +0.25°
+northward offset. Measurement script:
+scratchpad/measure_quantization.py. NOT yet in the paper — §9.1 wording
+change requires the author's call. (c) Derivation script + downloaded v1
 artifacts live in the session scratchpad (derive_v1_metrics.py);
 verification battery: 1 hunk per file, containment intact (guarded
 literals all inside §9, zero outside; "0.97" now matches 2× — the claim
