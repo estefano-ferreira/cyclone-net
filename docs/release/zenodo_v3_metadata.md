@@ -28,8 +28,11 @@ the audit framing lives in the abstract/description, not the title.)
 > record line (v1.0.0, v1.0.1, v2.0.0 — each preserved permanently by its
 > version-DOI). Section 9 of the paper is the correction record for the
 > whole line: the v1 records' headline claims (ROC-AUC 0.97, "sub-pixel
-> spatial accuracy", ~26 km mean spatial error) are not reproducible from
-> any released artifact and are withdrawn; energy-source localization via
+> spatial accuracy", ~26 km mean spatial error) reproduce exactly from the
+> records' own validation artifacts but were measured on a 58-event
+> named-storm benchmark at 44.8% RI prevalence and are withdrawn as scope
+> overclaim — not comparable to full-archive evaluation and not to be
+> cited as measures of model skill; energy-source localization via
 > the learned FuelMap was externally validated against TCHP and does not
 > beat a storm-centre baseline (p = 0.30, n = 226); the v2.0.0 headline
 > metrics (ROC-AUC 0.83) were never reproducible and are replaced by

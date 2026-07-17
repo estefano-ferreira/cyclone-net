@@ -168,7 +168,7 @@ pre-registered evaluation campaign, including all hypothesis verdicts with
 confidence intervals and scope guards (Section~\ref{sec:campaign}); and (4)
 a complete correction record for the project's prior public releases
 (Section~\ref{sec:correction}), documenting label revisions (v1$\to$v2),
-non-reproducible metrics, and claims refuted or retired. Together, these
+superseded metrics, and claims refuted or retired. Together, these
 constitute the research product: the data, the process, and the accounting
 of what did and did not work.
 
@@ -1318,24 +1318,32 @@ versions constructed.
 \subsection{Claims from v1.0.0 and v1.0.1 (February 2026)}
 
 The v1 records, titled \emph{``CycloneNet: A Deep Learning Framework for
-Atmospheric Singularity Mapping via Spatio-Temporal Attention,''} claimed:
+Atmospheric Singularity Mapping via Spatio-Temporal Attention,''} claimed
+\textbf{ROC-AUC 0.97 and Recall 0.92}, \textbf{``sub-pixel spatial
+accuracy,''} \textbf{``$\sim$26~km mean spatial error,''} and \textbf{``18
+hurricanes (1989--2024).''} The records themselves (10.5281/zenodo.18571958,
+10.5281/zenodo.18577056) contain the source of these numbers: a
+\texttt{validation\_report.txt} and a per-event
+\texttt{cyclonenet\_scientific.csv}. Recomputation from the released CSV
+(verified 2026-07-17) reproduces every figure in the report exactly ---
+ROC-AUC 0.9736, recall 0.9231, precision 0.6857, F1 0.7869, accuracy 0.7759,
+Brier 0.1169, mean/median tracking error 25.79/27.80~km --- and identifies
+the benchmark's composition: 58 track points from 19 named Atlantic
+hurricanes spanning 1989--2024, 18 of which exhibit rapid intensification;
+26 RI-positive points against 32 negatives (44.8\% prevalence).
 
-\begin{itemize}
-  \item \textbf{ROC-AUC 0.97 and Recall 0.92} and \textbf{``sub-pixel spatial
-  accuracy''}: text in v1-era README.md and BENCHMARK.md (commit
-  93e2b2f--93934d8), removed at v2 rewrite. No metrics artifact in any
-  versioned tree; at v1-era state (commit ee3296c), the repository contains no
-  evaluation output files. Text claims without supporting artifacts.
-  \item \textbf{``$\sim$26~km mean spatial error'' and ``18 hurricanes
-  (1989--2024)''}: not reproducible from any released artifact; origin not
-  determinable from the repository or its history.
-  \item \textbf{``Target Lock''} (as branding): removed at v2 rewrite; survives
-  only as technical descriptor of \texttt{pred\_lat}/\texttt{pred\_lon} in
-  validation documentation.
-\end{itemize}
+The numbers are withdrawn for scope, not provenance. They were measured on a
+58-event benchmark of selected named storms at 44.8\% RI prevalence, with no
+confidence intervals and no train/test separation declared in the record, and
+were presented as a general characterization of the model. They are not
+comparable to any evaluation on the full archive (16{,}780 events, 4.8\%
+prevalence) and should not be cited as measures of model skill. ``Target
+Lock'' (as branding) was removed at the v2 rewrite; it survives only as
+technical descriptor of \texttt{pred\_lat}/\texttt{pred\_lon} in validation
+documentation.
 
-None of these claims should be cited. The reproducible chain that replaces them
-is documented below (the v2.0.0 claims and ERRATA item 3).
+The evaluation chain that replaces these figures is documented below (the
+v2.0.0 claims and ERRATA item 3).
 
 \subsection{Claims from v2.0.0 (February 2026)}
 

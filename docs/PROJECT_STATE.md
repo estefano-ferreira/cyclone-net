@@ -292,6 +292,68 @@ tagged snapshot the software record ships. Decide before upload: re-tag
 (v3.0.1 on the post-pass merge) vs upload as-is and note the paper is
 newer than the snapshot. Do not upload without deciding.
 
+**17/07 EVENING ADDENDUM — RELEASE RESTRUCTURED TO ONE RECORD (author):**
+(a) **The release is ONE archived Zenodo record** (paper PDF + the 46-file
+data package + code snapshot), not two. Paper §3.1/§10/availability
+rewritten accordingly (`54d84aa`; PR #19 merged by the author, `f3ff40a`).
+The two DOI slots collapsed into one slot text ("record concept DOI —
+minted at publication", ×2 locations). (b) **Tag `v3.0.1` CREATED AND
+PUSHED on the merge `f3ff40a`** — replaces v3.0.0 as the release snapshot
+(closes the tag-divergence question; v3.0.0 stays as history). (c) **DOI
+slots NOT filled**: the reserved `10.5281/zenodo.21413397` is a
+version-DOI and does not resolve pre-publish; id-arithmetic for the
+concept DOI is FORBIDDEN and was concretely refuted (zenodo.21413396
+belongs to an unrelated third-party record). Concept DOI will be read
+from the API after the author publishes, then filled (paper ×2,
+CITATION.cff, LICENSE-DATA, DATA_DICTIONARY §1). (d) Upload is MANUAL by
+the author (explicit instruction): single record, 46 data files +
+compiled PDF + v3.0.1 snapshot zip, dataset licensed CC BY 4.0.
+(e) PENDING REWORK: `docs/release/zenodo_v3_metadata.md` and
+`.claude/RETOMADA_V3_UPLOADS.md` still describe the TWO-record structure.
+(f) Incident logged: a drafting subagent changed the fixed
+`\date{2026-07-16}` without instruction — caught in review, reverted.
+
+**17/07 NIGHT ADDENDUM — §9.1 CORRECTED AGAINST THE SOURCE (process
+lesson):** (a) the v1 Zenodo records (18571958/18577056) were OPENED for
+the first time on 2026-07-17: they contain `validation_report.txt` and a
+per-event `cyclonenet_scientific.csv` (58 rows). Every v1 headline figure
+REPRODUCES EXACTLY from the released CSV — independently derived
+(rank-statistic AUC, confusion matrix from the CSV): ROC-AUC 0.9736,
+recall 0.9231, precision 0.6857, F1 0.7869, accuracy 0.7759, Brier 0.1169,
+mean/median tracking error 25.79/27.80 km; N=58, 19 named Atlantic storms
+1989–2024, 18 with observed RI, prevalence 44.8% (26/32). The §9.1 and
+ERRATA-item-9 conclusions ("text claims without supporting artifacts",
+"not reproducible from any released artifact; origin not determinable")
+were FALSE and are corrected in place: §9.1 (tex+md), ERRATA item 9
+(dated retraction inside the item), and the Zenodo metadata description
+now withdraw the v1 numbers for SCOPE, not provenance (58-event
+named-storm benchmark at 44.8% prevalence, no CIs, no declared split —
+not comparable to the 16,780-event / 4.8% archive). The withdrawal and
+"should not be cited as measures of model skill" STAND. (b) **PROCESS
+LESSON — 2nd wrong-reference diagnosis (the 1st became §5.8):** the 16/07
+forensics searched the git history only and concluded absence, but the
+claim lived in the RECORD, which was never opened. The §5.8 replication
+gate was violated inside the paper that declares it. Rule extension: the
+gate's "source" is wherever the claim lives — for record claims, the
+record's own files, not the repository; no absence conclusion without
+opening the published record. (b2) **QUANTIZATION MEASURED (2026-07-17,
+pending author decision on wording):** all 58 v1 prediction offsets are
+EXACT integer multiples of the 0.25° grid (0 off-grid; patterns: +1 lat ×43,
+−1 lon ×6, exact-zero ×5, diagonal ×4; 12 distinct error values = 0, one
+lat step 27.8, one cos-scaled lon step ~24–26, one diagonal ~37). No error
+strictly between 0 and one grid cell exists. Consequence available to the
+author: "sub-pixel accuracy" is not scope overclaim but a contentless
+metric on this artifact — predictions are grid-snapped, so sub-pixel error
+is unattainable except exactly 0; and 43/58 (74%) share the same +0.25°
+northward offset. Measurement script:
+scratchpad/measure_quantization.py. NOT yet in the paper — §9.1 wording
+change requires the author's call. (c) Derivation script + downloaded v1
+artifacts live in the session scratchpad (derive_v1_metrics.py);
+verification battery: 1 hunk per file, containment intact (guarded
+literals all inside §9, zero outside; "0.97" now matches 2× — the claim
+literal and the recomputed 0.9736, both §9.1), v1-record DOIs 2× each
+(§9 opening + §9.1 artifact citation), date/slots/braces intact.
+
 Next steps:
 1. **PR #16 MERGED (verified 2026-07-16, `bde2c9f` on origin/main)** —
    the 3 commits (`0309837` Zenodo docs, `4d573ec` platform, `1d51154`
