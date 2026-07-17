@@ -237,6 +237,28 @@ Framework" title). (e) Incidental: `docs/DATASET.md` still carries stale
 "1989–2024" v1-era ranges — hygiene queue. Uncommitted: PROJECT_STATE,
 skeleton, README, ERRATA, MANUSCRIPT_V3.md, data_descriptor_draft.md.
 
+**17/07 EARLY-MORNING ADDENDUM (V3 finalized):** (a) **MANUSCRIPT_V3
+COMPLETE and FINAL-REVIEWED** — .tex conversion in
+`docs/cyclonenet_v3_preprint.tex` (compile-ready, brace-balanced; author
+compiles the PDF on Overleaf), `docs/pipeline_figure.png` (regenerated
+with tri-state label box after the binary-coercion flag), 23-entry
+reference list (Hersbach merged, alphabetical), md/tex mirrored. **Every
+claim and citation now primary-source-verified** — the last one
+(ByteStorm 40×40) confirmed verbatim in the arXiv full text; 8
+methodology/precedent refs promoted to literature_review (16–23).
+(b) **Raw-ERA5 volume corrected everywhere**: "hundreds of GB" was an
+estimate-in-a-gap; measured from the 42 window manifests = **≈57 GB**
+(≈24 single-level + ≈33 pressure-level) — fixed in the paper,
+TECHNICAL_VALIDATION and the DD draft. (c) **T5 PACKAGE REBUILD launched
+DETACHED 17/07 ~03:05** (PID 23516, log
+`%USERPROFILE%\cyclone-net-ops\t5_rebuild_20260717.log`) to refresh the
+in-package TECHNICAL_VALIDATION with the measured volume; dry-run passed
+all canonical numbers first; VERIFY the log + new ZIP_CHECKSUMS before
+any Zenodo upload. (d) Zenodo-files cleanup: supersession-note .tex
+DELETED (content = paper §9), zenodo_v3_metadata updated to preprint
+reality (paper PDF + snapshot; v2 PDF not re-attached).
+(e) `docs/INDEX.md` = the document map (PROJECT_STATE header links it).
+
 Next steps:
 1. **PR #16 MERGED (verified 2026-07-16, `bde2c9f` on origin/main)** —
    the 3 commits (`0309837` Zenodo docs, `4d573ec` platform, `1d51154`
