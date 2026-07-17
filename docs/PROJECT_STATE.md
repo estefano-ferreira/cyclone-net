@@ -292,6 +292,27 @@ tagged snapshot the software record ships. Decide before upload: re-tag
 (v3.0.1 on the post-pass merge) vs upload as-is and note the paper is
 newer than the snapshot. Do not upload without deciding.
 
+**17/07 EVENING ADDENDUM — RELEASE RESTRUCTURED TO ONE RECORD (author):**
+(a) **The release is ONE archived Zenodo record** (paper PDF + the 46-file
+data package + code snapshot), not two. Paper §3.1/§10/availability
+rewritten accordingly (`54d84aa`; PR #19 merged by the author, `f3ff40a`).
+The two DOI slots collapsed into one slot text ("record concept DOI —
+minted at publication", ×2 locations). (b) **Tag `v3.0.1` CREATED AND
+PUSHED on the merge `f3ff40a`** — replaces v3.0.0 as the release snapshot
+(closes the tag-divergence question; v3.0.0 stays as history). (c) **DOI
+slots NOT filled**: the reserved `10.5281/zenodo.21413397` is a
+version-DOI and does not resolve pre-publish; id-arithmetic for the
+concept DOI is FORBIDDEN and was concretely refuted (zenodo.21413396
+belongs to an unrelated third-party record). Concept DOI will be read
+from the API after the author publishes, then filled (paper ×2,
+CITATION.cff, LICENSE-DATA, DATA_DICTIONARY §1). (d) Upload is MANUAL by
+the author (explicit instruction): single record, 46 data files +
+compiled PDF + v3.0.1 snapshot zip, dataset licensed CC BY 4.0.
+(e) PENDING REWORK: `docs/release/zenodo_v3_metadata.md` and
+`.claude/RETOMADA_V3_UPLOADS.md` still describe the TWO-record structure.
+(f) Incident logged: a drafting subagent changed the fixed
+`\date{2026-07-16}` without instruction — caught in review, reverted.
+
 Next steps:
 1. **PR #16 MERGED (verified 2026-07-16, `bde2c9f` on origin/main)** —
    the 3 commits (`0309837` Zenodo docs, `4d573ec` platform, `1d51154`
