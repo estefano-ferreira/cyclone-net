@@ -212,11 +212,35 @@ unchanged; served build version `0309837+…`. Platform reads labels from
 the event list — no independent label implementation (the served-build
 defect was staleness, not code).
 
+**NIGHT ADDENDUM (16/07, V3 session):** (a) **GENRE DECIDED (author): V3 is
+a PREPRINT for Zenodo, not a Data Descriptor** — the record line (18571958
+v1.0.0 / 18577056 v1.0.1 / 18751255 v2.0.0) is uniformly Preprint+PDF; the
+supersession note's content became §9 of the paper; the v2 PDF is NOT
+re-attached (version-DOI preserves it). The Data Descriptor is a FUTURE
+REDUCED version for journal submission (raw material saved:
+`docs/data_descriptor_draft.md`). (b) **MANUSCRIPT_V3.md ASSEMBLED
+(preprint, 10 sections + availability/ack)** from Haiku section drafts,
+two review rounds each (round-1 fabrications caught and fixed: ±3h
+tolerance, 40-storm override map, PRES_* channel names, "beats baseline on
+training data", "one authorized read" policy — all refuted against repo);
+skeleton = `docs/manuscript_v3_skeleton.md` (canonical table + 8 rules +
+superseded-claim inventory). PENDING AUTHOR REVIEW; nothing committed.
+(c) **ERRATA item 9 WRITTEN**: v1.0.0/v1.0.1 claims (0.97/0.92, sub-pixel,
+~26 km, 18 hurricanes, Target Lock) — lineage verified via /latest
+resolution; 0.97/sub-pixel were v1-era README/BENCHMARK text with no
+metrics artifact ever versioned (removed at `e41c0f5`); 26 km / 18
+hurricanes appear NOWHERE in git history ("origin not determinable" —
+committed wording). (d) **README H1 fixed** to the finalized citable title
+(was the only remaining occurrence of the old "Forensic Engineering
+Framework" title). (e) Incidental: `docs/DATASET.md` still carries stale
+"1989–2024" v1-era ranges — hygiene queue. Uncommitted: PROJECT_STATE,
+skeleton, README, ERRATA, MANUSCRIPT_V3.md, data_descriptor_draft.md.
+
 Next steps:
-1. **PR #16** (author, one click):
-   github.com/estefano-ferreira/cyclone-net/compare/main...feature/tchp —
-   3 commits (`0309837` Zenodo docs, `4d573ec` platform, `1d51154`
-   title). No `gh` on this machine; PRs are author-side.
+1. **PR #16 MERGED (verified 2026-07-16, `bde2c9f` on origin/main)** —
+   the 3 commits (`0309837` Zenodo docs, `4d573ec` platform, `1d51154`
+   title) are on main. Only this state-file commit trails on
+   feature/tchp.
 2. **Zenodo uploads (author, manual):** (a) dataset record — 46 files in
    `dist/cyclonenet-dataset-v2-zips/`, new concept DOI, CC BY 4.0;
    (b) software record v3.0.0 — compile the .tex, paste
@@ -229,8 +253,11 @@ Next steps:
    Data GBP 2,190 (both accept Zenodo — verified).
 4. **Credential rotation STILL PENDING** (CDS key + Copernicus password,
    leaked in git history; redaction implemented, rotation not done).
-5. V3 skeleton / Data Descriptor rewrite of MANUSCRIPT_honest (unlocks
-   the coauthor-contact gate) — next major work item.
+5. **V3 PREPRINT ASSEMBLED (16/07 night addendum)** — `MANUSCRIPT_V3.md`
+   awaits author review; after approval: compile/upload flow replaces the
+   standalone supersession note (§9 carries its content), and the reduced
+   Data Descriptor derives later from `docs/data_descriptor_draft.md`.
+   V3 completion unlocks the coauthor-contact gate.
 
 **H9 executed 15/07** (run `20260715T123221Z`, commits `d6cc930` fix +
 `143756f` results; 3rd dated pre-reg amendment: median imputation for the
