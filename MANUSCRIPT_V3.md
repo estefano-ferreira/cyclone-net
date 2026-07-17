@@ -18,7 +18,7 @@ A persistent challenge in tropical-cyclone machine-learning studies is leakage b
 
 CycloneNet's development proceeded through a pre-registered evaluation campaign (registered and executed in July 2026) testing hypotheses about environmental channel utility and model architecture. The campaign yielded null or negative results on all central claims: added pressure-level environmental channels showed no detectable contribution to model performance (hypothesis H6: null result, confidence interval containing zero); the three-dimensional convolutional neural network architecture, when trained on equivalent input information and evaluated by identical protocols, demonstrated no advantage over a gradient-boosted tabular baseline and is retired from the validated pipeline (hypothesis H9: architecture not justified in its current form). Accordingly, this work designates no reference model; the validated contribution resides in the dataset and reproducible pipeline themselves.
 
-This paper delivers four core elements: (1) the dataset—a two-basin RI event catalogue (16,780 events from 992 tropical cyclones spanning 1980–2023) engineered with leakage-safety architecture and comprehensive audit trails; (2) the reproducible pipeline and code for reconstructing the complete dataset from raw ERA5 and IBTrACS sources; (3) results from the pre-registered evaluation campaign, including all hypothesis verdicts with confidence intervals and scope guards (Section 6); and (4) a complete correction record for the Zenodo record line (Section 9), documenting label revisions (v1→v2), non-reproducible metrics, and claims refuted or retired. Together, these constitute the research product: the data, the process, and the accounting of what did and did not work.
+This paper delivers four core elements: (1) the dataset—a two-basin RI event catalogue (16,780 events from 992 tropical cyclones spanning 1980–2023) engineered with storm-level leakage control and comprehensive audit trails; (2) the reproducible pipeline and code for reconstructing the complete dataset from raw ERA5 and IBTrACS sources; (3) results from the pre-registered evaluation campaign, including all hypothesis verdicts with confidence intervals and scope guards (Section 6); and (4) a complete correction record for the Zenodo record line (Section 9), documenting label revisions (v1→v2), non-reproducible metrics, and claims refuted or retired. Together, these constitute the research product: the data, the process, and the accounting of what did and did not work.
 
 
 ## 2. Positioning
@@ -205,11 +205,11 @@ Rejected events are catalogued in `rejected_events.csv` with their exclusion rea
 
 ### Normalization
 
-Training-set statistics (channel-wise mean and standard deviation) are computed over the 70% training split **only**, using all spatial and temporal grid points in training events. These statistics are applied to all subsequent splits (validation and test) and distributed in `normalization_stats.json`. Per-channel statistics ensure that each feature is zero-centered and unit-scaled consistently. This train-only normalization prevents the test split statistics from influencing model training—a critical leakage safeguard.
+Training-set statistics (channel-wise mean and standard deviation) are computed over the 70% training split **only**, using all spatial and temporal grid points in training events. These statistics are applied to all subsequent splits (validation and test) and distributed in `normalization_stats.json`. Per-channel statistics ensure that each feature is zero-centered and unit-scaled consistently. This train-only normalization prevents the test split statistics from influencing model training — the held-out-distribution vector described in Section 5.3.
 
 ### Splits: Hash-Deterministic with Frozen Override
 
-Events are partitioned into train (70%), validation (15%), and test (15%) splits at the **storm level** using the SHA256 hash of each storm's identifier (SID). No storm appears in more than one split, preventing event-level leakage. The hash-deterministic scheme ensures that adding new storms to the dataset never reassigns existing storms to different splits.
+Events are partitioned into train (70%), validation (15%), and test (15%) splits at the **storm level** using the SHA256 hash of each storm's identifier (SID). No storm appears in more than one split, preventing train/test non-independence through storm identity. The hash-deterministic scheme ensures that adding new storms to the dataset never reassigns existing storms to different splits.
 
 A **frozen override map** (`frozen_splits.json`) is consulted first during split assignment, preserving historical benchmark assignments. The SHA256 hash rule assigns any storm not in the frozen map, ensuring deterministic composition invariance as new storms are added. Split composition: **train** 11,150 events; **validation** 2,951 events; **test** 2,679 events, comprising 112 RI-positive and 6 NULL labels. No label stratification is applied. The test split is frozen (never read during this project's model development); once published, external researchers may read it, but this project does not assert external benchmark-replicability (see Section 3.8).
 
@@ -296,7 +296,7 @@ The ladder shows a consistent ranking: when the tabular model accesses both stat
 
 ### 6.3 The four verdicts
 
-Each verdict is stated exactly as registered. The two co-primary H9 verdicts shared a single resampling procedure (10,000 bootstrap resamples); their confidence intervals were read together on 2026-07-16 and are not subject to re-interpretation.
+The three hypotheses produced four verdicts: H6, the two co-primary H9 verdicts (V1 and V2), and H8's cancellation. Each is stated exactly as registered. The two co-primary H9 verdicts shared a single resampling procedure (10,000 bootstrap resamples); their confidence intervals were read together on 2026-07-16 and are not subject to re-interpretation.
 
 #### H6: Shear and mid-level RH feature addition
 
