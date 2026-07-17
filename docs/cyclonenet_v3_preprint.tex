@@ -619,7 +619,7 @@ the event list and the strict-temporal v2 RI labels from raw IBTrACS
 (Section~4.4); stages 2--3 acquire ERA5 and the optional ocean layer; stage~4
 extracts the $40\times40\times5\times14$ cubes; stage~5 computes
 normalization statistics on the training split only. The \textbf{retired
-architecture} (stages 6--8, right, in grey) is shown for historical
+architecture} (stages 6--8, right, highlighted in red) is shown for historical
 completeness: the CNN, its outputs and the FuelMap spatial validation were
 superseded by the pre-registered verdicts of Section~\ref{sec:campaign}
 (H9/V2) and by the refuted localization hypothesis (ERRATA item~4). They are
@@ -1506,11 +1506,6 @@ as the guide for commercial use. NOAA/NCEI provide the data without warranty
 Copernicus Marine Service products (subset of events, 2020--2023). Generated
 using E.U. Copernicus Marine Service information.
 
-\subsection*{Author contributions}
-
-\slot{author block --- as in Zenodo v3 .tex}
-
-\slot{coauthor slot --- pending contact}
 
 \subsection*{Competing interests}
 
@@ -1518,23 +1513,6 @@ No competing interests are declared. This work was conducted without external
 funding; computational resources were provided by the author's personal
 infrastructure.
 
-% =====================================================================
-% REFERENCES — CycloneNet v3 preprint
-%
-% Estilo: autor-ano com recuo pendente (hanging indent), que casa com as
-% citações em texto corrido já usadas no manuscrito ("(Kaplan & DeMaria
-% 2003)"). Não usa BibTeX — é autocontido e compila direto no Overleaf.
-%
-% ESCOPO: só entram obras CITADAS no texto. O literature_review lista mais
-% duas revisões (Chen et al. 2020; Wang et al. 2022) que o manuscrito não
-% cita — ficam fora de propósito: lista de referências não é bibliografia.
-%
-% PROCEDÊNCIA: todas verificadas contra a página do editor em
-% docs/literature_review.md. Hersbach e Knapp são FONTES DE DADOS (cadeia de
-% proveniência própria no NOTICE), não literatura — entram aqui porque o §4
-% as cita nominalmente. Gardoll & Boucher, Donno et al. e o DOI do Saeb
-% foram verificados nas páginas primárias em 2026-07-16.
-% =====================================================================
 
 \newenvironment{references}
   {\section*{References}%

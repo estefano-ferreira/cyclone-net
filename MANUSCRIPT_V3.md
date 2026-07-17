@@ -188,7 +188,7 @@ The dataset contains **16,780 valid events** from **992 tropical cyclones** (578
 
 ![Figure 1: end-to-end execution pipeline](docs/pipeline_figure.png)
 
-*Figure 1: End-to-end execution pipeline. The **active pipeline** (stages 1–5, left) terminates at the normalized dataset: it is a retrospective (hindcast) data-construction chain, not a forecasting system. Stage 1 builds the event list and the strict-temporal v2 RI labels from raw IBTrACS (Section 4.4); stages 2–3 acquire ERA5 and the optional ocean layer; stage 4 extracts the 40×40×5×14 cubes; stage 5 computes normalization statistics on the training split only. The **retired architecture** (stages 6–8, right, in grey) is shown for historical completeness: the CNN, its outputs and the FuelMap spatial validation were superseded by the pre-registered verdicts of Section 6 (H9/V2) and by the refuted localization hypothesis (ERRATA item 4). They are not part of the active pipeline and are not used in the released dataset or in any analysis reported here.*
+*Figure 1: End-to-end execution pipeline. The **active pipeline** (stages 1–5, left) terminates at the normalized dataset: it is a retrospective (hindcast) data-construction chain, not a forecasting system. Stage 1 builds the event list and the strict-temporal v2 RI labels from raw IBTrACS (Section 4.4); stages 2–3 acquire ERA5 and the optional ocean layer; stage 4 extracts the 40×40×5×14 cubes; stage 5 computes normalization statistics on the training split only. The **retired architecture** (stages 6–8, right, highlighted in red) is shown for historical completeness: the CNN, its outputs and the FuelMap spatial validation were superseded by the pre-registered verdicts of Section 6 (H9/V2) and by the refuted localization hypothesis (ERRATA item 4). They are not part of the active pipeline and are not used in the released dataset or in any analysis reported here.*
 
 ### Cube Channels (C = 14)
 
@@ -467,12 +467,6 @@ This dataset and pipeline incorporate data and services from the Copernicus Prog
 **IBTrACS (Storm Tracks and Intensities):** International Best Track Archive for Climate Stewardship (IBTrACS), Project Version v04r00, NOAA National Centers for Environmental Information (Knapp et al., 2010, Bull. Amer. Meteor. Soc., 91, 363–376). Dataset DOI 10.25921/82ty-9e16. IBTrACS follows the World Data Center for Meteorology policy, providing full and open access to the data; WMO Resolution 40 is used as the guide for commercial use. NOAA/NCEI provide the data without warranty (NCEI ISO metadata gov.noaa.ncdc:C01552).
 
 **ADT (Absolute Dynamic Topography Validation Auxiliary):** Derived from Copernicus Marine Service products (subset of events, 2020–2023). Generated using E.U. Copernicus Marine Service information.
-
-### Author Contributions
-
-⟦author block — as in Zenodo v3 .tex⟧
-
-⟦coauthor slot — pending contact⟧
 
 ### Competing Interests
 
