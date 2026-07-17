@@ -62,7 +62,7 @@ The dataset's 0.25° surface-level resolution cannot resolve inner-core structur
 
 ### 3.1 Repository and access
 
-The dataset is published as an archived dataset record (⟦dataset concept DOI — minted at publication⟧) under the CC BY 4.0 license. See NOTICE for mandatory attributions; the analysis pipeline (github.com/estefano-ferreira/cyclone-net) is released under MIT. The released package contains 46 files totaling 6.03 GiB:
+The dataset is distributed in a single archived record (⟦record concept DOI — minted at publication⟧), together with this paper and the repository code snapshot; the dataset itself is licensed CC BY 4.0. See NOTICE for mandatory attributions; the analysis pipeline (github.com/estefano-ferreira/cyclone-net) is released under MIT. The released data package contains 46 files totaling 6.03 GiB:
 - 44 per-year cubic shards (organized in `cubes/` by year subdirectories)
 - 1 metadata archive
 - 1 checksums file
@@ -442,7 +442,7 @@ What remains is the dataset (16,780 events, 992 storms, 799 RI positives / 15,96
 
 ## 10. Conclusion
 
-This work releases a reproducible pipeline and a leakage-safe two-basin RI dataset under open licenses: the code under MIT, the dataset under CC BY 4.0. The dataset contains 16,780 valid events across 1980–2023 and two ocean basins (East Pacific, 8,888 points; North Atlantic, 7,892 points), of which 799 are labeled as RI onsets, 15,962 as non-RI, and 19 as RI-undefined. A frozen test split of 2,679 events (112 RI positives, 6 undefined) was never used during development and is distributed for verification; this project made one historical read (the retired CNN) and asserts nothing about external use. Two archived records — one for the software, one for the dataset — accompany this release; their DOIs are minted at publication (see Data and code availability).
+This work releases a reproducible pipeline and a leakage-safe two-basin RI dataset under open licenses: the code under MIT, the dataset under CC BY 4.0. The dataset contains 16,780 valid events across 1980–2023 and two ocean basins (East Pacific, 8,888 points; North Atlantic, 7,892 points), of which 799 are labeled as RI onsets, 15,962 as non-RI, and 19 as RI-undefined. A frozen test split of 2,679 events (112 RI positives, 6 undefined) was never used during development and is distributed for verification; this project made one historical read (the retired CNN) and asserts nothing about external use. A single archived record — containing this paper, the dataset package, and the repository code snapshot — accompanies this release; its DOI is minted at publication (see Data and code availability).
 
 Corrections spanning the record lineage (v1.0.0, v1.0.1, v2.0.0) are documented in Section 9; readers of any prior version should consult it before citing.
 
@@ -451,7 +451,7 @@ What remains registered as open agenda is documented in the hypothesis registry 
 
 ## Data and code availability
 
-The full pipeline and analysis code are publicly available at **https://github.com/estefano-ferreira/cyclone-net** (MIT license; see `LICENSE` file). This paper is accompanied by two separate archived records, each with a persistent DOI: (1) the **software record v3.0.0** ⟦software record DOI⟧ containing the repository snapshot at tag `v3.0.0` with the complete configuration and pipeline code required for reconstruction; (2) the **dataset concept record** ⟦dataset concept DOI — minted at publication⟧ containing the cubes, sidecars, splits, labels, and metadata, distributed under CC BY 4.0 with mandatory third-party attributions in `NOTICE`.
+The full pipeline and analysis code are publicly available at **https://github.com/estefano-ferreira/cyclone-net** (MIT license; see `LICENSE` file). This paper is accompanied by a single archived record with a persistent DOI ⟦record concept DOI — minted at publication⟧ containing: (1) this paper; (2) the dataset package — the cubes, sidecars, splits, labels, and metadata, distributed under CC BY 4.0 with mandatory third-party attributions in `NOTICE`; and (3) the repository snapshot at tag `v3.0.1` with the complete configuration and pipeline code required for reconstruction.
 
 An interactive platform explorer is available at **https://estefano-ferreira.github.io/cyclone-net/**—a static, client-side visualization of the IBTrACS best-track events, observed storm tracks, and intensity curves, with no model predictions. Labeling reproducibility is verified by the replication-gate script at `analysis/dv24_impact_assessment_v5_raw_reference.py`, which enforces abort-on-mismatch and certifies byte-reproducible label generation from raw IBTrACS.
 

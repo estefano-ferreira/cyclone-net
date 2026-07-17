@@ -320,11 +320,12 @@ model-architecture questions.
 
 \subsection{Repository and access}
 
-The dataset is published as an archived dataset record (\slot{dataset concept
-DOI --- minted at publication}) under the CC~BY~4.0 license. See
+The dataset is distributed in a single archived record (\slot{record concept
+DOI --- minted at publication}), together with this paper and the repository
+code snapshot; the dataset itself is licensed CC~BY~4.0. See
 \texttt{NOTICE} for mandatory attributions; the analysis pipeline
 (\url{https://github.com/estefano-ferreira/cyclone-net}) is released under
-MIT. The released package contains 46 files totaling 6.03~GiB:
+MIT. The released data package contains 46 files totaling 6.03~GiB:
 \begin{itemize}
   \item 44 per-year cubic shards (organized in \texttt{cubes/} by year
   subdirectories)
@@ -1448,9 +1449,9 @@ basins (East Pacific, 8{,}888 points; North Atlantic, 7{,}892 points), of which
 frozen test split of 2{,}679 events (112 RI positives, 6 undefined) was never
 used during development and is distributed for verification; this project made
 one historical read (the retired CNN) and asserts nothing about external use.
-Two archived records --- one for the software, one for the dataset --- accompany
-this release; their DOIs are minted at publication (see Data and code
-availability).
+A single archived record --- containing this paper, the dataset package, and
+the repository code snapshot --- accompanies this release; its DOI is minted
+at publication (see Data and code availability).
 
 Corrections spanning the record lineage (v1.0.0, v1.0.1, v2.0.0) are documented
 in Section~\ref{sec:correction}; readers of any prior version should consult it
@@ -1472,15 +1473,13 @@ byte-reproducible from raw IBTrACS via the released replication-gate script.
 
 The full pipeline and analysis code are publicly available at
 \url{https://github.com/estefano-ferreira/cyclone-net} (MIT license; see
-\texttt{LICENSE} file). This paper is accompanied by two separate archived
-records, each with a persistent DOI: (1) the \textbf{software record
-v3.0.0} \slot{software record DOI}
-containing the repository snapshot at tag \texttt{v3.0.0} with the complete
-configuration and pipeline code required for reconstruction; (2) the
-\textbf{dataset concept record} \slot{dataset concept DOI --- minted at
-publication} containing the cubes, sidecars, splits, labels, and metadata,
-distributed under CC~BY~4.0 with mandatory third-party attributions in
-\texttt{NOTICE}.
+\texttt{LICENSE} file). This paper is accompanied by a single archived record
+with a persistent DOI \slot{record concept DOI --- minted at publication}
+containing: (1) this paper; (2) the dataset package --- the cubes, sidecars,
+splits, labels, and metadata, distributed under CC~BY~4.0 with mandatory
+third-party attributions in \texttt{NOTICE}; and (3) the repository snapshot
+at tag \texttt{v3.0.1} with the complete configuration and pipeline code
+required for reconstruction.
 
 An interactive platform explorer is available at
 \url{https://estefano-ferreira.github.io/cyclone-net/} --- a static,
