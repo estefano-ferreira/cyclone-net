@@ -170,6 +170,7 @@ of what did and did not work.
 
 % =====================================================================
 \section{Positioning}
+\label{sec:positioning}
 % =====================================================================
 
 \subsection{Established field: RI prediction and environmental controls}
@@ -1299,6 +1300,16 @@ This paper supersedes the entire Zenodo record lineage: v1.0.0
 Version-DOIs preserve the old records as permanent historical documents. This
 section documents corrections across the entire line.
 
+The superseded record line also produced the system this release distributes:
+the extraction chain, the labeling code, and the pipeline were developed
+across the v1 and v2 cycles. Earlier releases had confidence intervals
+spanning chance; the v2-era diagnostic --- that the bottleneck was sample
+size --- was confirmed by intervention: the archive was expanded roughly
+17-fold (972 $\to$ 16{,}780 valid events), after which both test-set AUC
+confidence intervals sit entirely above chance (ERRATA item 3 below). The
+pre-registered campaign that retired the claims below ran on the data those
+versions constructed.
+
 \subsection{Claims from v1.0.0 and v1.0.1 (February 2026)}
 
 The v1 records, titled \emph{``CycloneNet: A Deep Learning Framework for
@@ -1365,11 +1376,10 @@ prediction depends on the identified region, but this is model-internal
 dependence only, not true energy source. The claim is unsupported, not pending.
 
 \textbf{Novelty positioning (ERRATA item 5).} A literature check indicates the
-components and forensic framing are established, not new. The contribution is
-engineering and reproducibility (an auditable, configuration-driven, tested
-pipeline), not scientific discovery or architectural novelty. The title term
+components and forensic framing are established, not new; the title term
 ``Atmospheric Singularity Mapping'' overstates scope and is removed from the
 project's documentation and citation metadata.
+Section~\ref{sec:positioning} states the positioning this release adopts.
 
 \subsection{Dataset corrections}
 
@@ -1410,21 +1420,10 @@ replicates the shipped file byte-for-byte --- 32{,}989/32{,}989 rows, dv24 and
 ri\_label identical. The labeling pipeline is fully reproducible from the raw
 source.
 
-\subsection{Withdrawn claims and retired components}
+\subsection{What remains}
 
-\begin{itemize}
-  \item \textbf{ROC-AUC 0.97, 0.92 recall, ``sub-pixel spatial accuracy,''
-  ``$\sim$26~km mean spatial error,'' and ``18 hurricanes (1989--2024)''}: all
-  withdrawn. Do not cite.
-  \item \textbf{FuelMap localization as a validated result}: withdrawn;
-  refuted, not pending.
-  \item \textbf{``Atmospheric Singularity Mapping'' and ``Target Lock''} (as
-  framing): withdrawn.
-  \item \textbf{The CNN architecture}: retired by pre-registered verdict
-  (Section~\ref{sec:campaign}, H9/V2).
-  \item \textbf{The ``physics-guided'' label}: retired from the project's
-  citable identity.
-\end{itemize}
+The withdrawn claims are not repeated here: each is stated once above,
+adjacent to its correction.
 
 What remains is the dataset (16{,}780 events, 992 storms, 799 RI positives /
 15{,}962 negatives / 19 NULL, 1980--2023 coverage), the auditable pipeline, the

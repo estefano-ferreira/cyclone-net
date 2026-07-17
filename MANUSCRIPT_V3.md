@@ -2,7 +2,10 @@
 
 <!-- PREPRINT DRAFT (Zenodo v3) — assembled 2026-07-16 from reviewed section drafts.
      Skeleton/spec: docs/manuscript_v3_skeleton.md. DOI slots (marked with brackets) pending Zenodo mint.
-     Supersedes the record line v1.0.0 / v1.0.1 / v2.0.0 (corrections: Section 9). -->
+     Supersedes the record line v1.0.0 / v1.0.1 / v2.0.0 (corrections: Section 9).
+     AUTHORITATIVE SOURCE: docs/cyclonenet_v3_preprint.tex (compiles to the published PDF).
+     This file is a content mirror for review/diffing; prose edits must land in BOTH files.
+     Structural extras (preamble, figure include, reference formatting, \slot macro) live in the .tex only. -->
 
 
 ## Abstract
@@ -397,6 +400,8 @@ The dataset itself is the entry point for three practical directions: (1) model 
 
 This paper supersedes the entire Zenodo record lineage: v1.0.0 (10.5281/zenodo.18571958), v1.0.1 (10.5281/zenodo.18577056), and v2.0.0 (10.5281/zenodo.18751255), which form a single concept line (verified 2026-07-16: `/latest` resolution of both v1 records points to v2.0.0). Version-DOIs preserve the old records as permanent historical documents. This section documents corrections across the entire line.
 
+The superseded record line also produced the system this release distributes: the extraction chain, the labeling code, and the pipeline were developed across the v1 and v2 cycles. Earlier releases had confidence intervals spanning chance; the v2-era diagnostic — that the bottleneck was sample size — was confirmed by intervention: the archive was expanded roughly 17-fold (972 → 16,780 valid events), after which both test-set AUC confidence intervals sit entirely above chance (ERRATA item 3 below). The pre-registered campaign that retired the claims below ran on the data those versions constructed.
+
 ### Claims from v1.0.0 and v1.0.1 (February 2026)
 
 The v1 records, titled *"CycloneNet: A Deep Learning Framework for Atmospheric Singularity Mapping via Spatio-Temporal Attention,"* claimed:
@@ -419,7 +424,7 @@ The v2.0.0 preprint made five classes of claims now superseded or corrected:
 
 **FuelMap localization (ERRATA item 4).** The paper correctly did not claim externally validated localization. Post-publication validations make the negative result robust from three angles: (i) static TCHP validation (n=226): FuelMap peak beats a random-point null (p=0.0003) but does not locate TCHP better than storm-centre baseline — median 539 km vs. 561 km, closer in 46% of events (p=0.30); (ii) dynamic displacement test against a control; (iii) physics-prior control reproduces the dynamic behavior — arithmetic of the prior, not learned skill. A counterfactual ablation shows the model's RI prediction depends on the identified region, but this is model-internal dependence only, not true energy source. The claim is unsupported, not pending.
 
-**Novelty positioning (ERRATA item 5).** A literature check indicates the components and forensic framing are established, not new. The contribution is engineering and reproducibility (an auditable, configuration-driven, tested pipeline), not scientific discovery or architectural novelty. The title term "Atmospheric Singularity Mapping" overstates scope and is removed from the project's documentation and citation metadata.
+**Novelty positioning (ERRATA item 5).** A literature check indicates the components and forensic framing are established, not new; the title term "Atmospheric Singularity Mapping" overstates scope and is removed from the project's documentation and citation metadata. Section 2 states the positioning this release adopts.
 
 ### Dataset Corrections
 
@@ -429,13 +434,9 @@ The v2.0.0 preprint made five classes of claims now superseded or corrected:
 
 **Defect-0 retraction (ERRATA item 8).** An intermediate diagnosis of "cross-storm label leakage" (assessment reports v1–v4) was refuted by reconstruction from raw IBTrACS — the diagnosis had run on a derived artifact from which the builder had already dropped the partner rows used in label computation. The raw-replication gate is now a permanent project rule: any defect diagnosis on a derived artifact must first replicate the shipped artifact byte-exactly from the raw source. A companion positive result (TECHNICAL_VALIDATION §1): reconstruction of the event list from raw IBTrACS replicates the shipped file byte-for-byte — 32,989/32,989 rows, dv24 and ri_label identical. The labeling pipeline is fully reproducible from the raw source.
 
-### Withdrawn Claims and Retired Components
+### What remains
 
-- **ROC-AUC 0.97, 0.92 recall, "sub-pixel spatial accuracy," "~26 km mean spatial error," and "18 hurricanes (1989–2024)"**: all withdrawn. Do not cite.
-- **FuelMap localization as a validated result**: withdrawn; refuted, not pending.
-- **"Atmospheric Singularity Mapping" and "Target Lock"** (as framing): withdrawn.
-- **The CNN architecture**: retired by pre-registered verdict (Section 6, H9/V2).
-- **The "physics-guided" label**: retired from the project's citable identity.
+The withdrawn claims are not repeated here: each is stated once above, adjacent to its correction.
 
 What remains is the dataset (16,780 events, 992 storms, 799 RI positives / 15,962 negatives / 19 NULL, 1980–2023 coverage), the auditable pipeline, the frozen test metrics of the retired CNN as historical record, and the pre-registered verdicts documenting that this CNN's spatial feature extraction added nothing beyond the tabular baseline at a fixed information diet, and that the physics-loss question was closed as undecidable (H8, cancelled).
 
