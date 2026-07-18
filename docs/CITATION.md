@@ -24,8 +24,10 @@ Ferreira, E. S. (2026). CycloneNet: A Reproducible Pipeline and Leakage-Safe Two
 
 The dataset (v2 labels, CC BY 4.0) is distributed in the project's single
 archived Zenodo record together with the paper: concept DOI
-https://doi.org/10.5281/zenodo.18571957 (resolves to the latest version);
-this release: https://doi.org/10.5281/zenodo.21413397 (v3.0.1).
+https://doi.org/10.5281/zenodo.18571957 (resolves to the latest version;
+cite this one). The data files were first published in version
+https://doi.org/10.5281/zenodo.21413397 (v3.0.1) and are unchanged in
+subsequent file versions.
 
 > **Note:** the earlier titles "CycloneNet V2: A Forensic Physics-Guided Deep
 > Learning Framework for Atmospheric Singularity Mapping" and the interim

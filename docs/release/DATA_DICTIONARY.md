@@ -1,8 +1,11 @@
 # CycloneNet Dataset v2 — Data Dictionary
 
-DRAFT FOR AUTHOR REVIEW (T5 phase 2, 2026-07-16). Slots marked `⟦…⟧` are
-unresolved and must be filled before packaging; everything else is verified
-against the artifacts or the pipeline code.
+All slots resolved (last two filled 2026-07-18, verified against
+`rejected_events.csv` and `preprocess_scientific.py`); everything is verified
+against the artifacts or the pipeline code. The copy inside the published
+`cyclonenet-dataset-v2-metadata.zip` is the v3.0.1 snapshot; this repo file
+(also shipped in the code snapshot from v3.0.2 on) is the authoritative,
+updatable version.
 
 ## 1. Identity
 
@@ -10,7 +13,7 @@ against the artifacts or the pipeline code.
 |---|---|
 | Name | CycloneNet two-basin tropical-cyclone RI dataset |
 | Version | v2 (strict-temporal labels; see §6 and ERRATA items 6/8) |
-| DOI | 10.5281/zenodo.18571957 (concept, resolves to latest; this release: 10.5281/zenodo.21413397, v3.0.1 — single archived record, paper + data package) |
+| DOI | 10.5281/zenodo.18571957 (concept, resolves to latest — single archived record, paper + data package; data files first published in 10.5281/zenodo.21413397, v3.0.1, unchanged in later file versions) |
 | License | **CC BY 4.0** (see `NOTICE` for mandatory attributions) |
 | Code | pipeline at github.com/estefano-ferreira/cyclone-net (MIT) |
 
@@ -29,7 +32,12 @@ Atlantic.
 - **RI labels: 799 positive / 15,962 negative / 19 NULL** (v2 semantics, §6).
 - `rejected_events.csv` lists events excluded by quality control
   (composition transparency; their cubes are not distributed).
-  Rejection-reason counts: ⟦from normalization_report.json at packaging⟧.
+  Rejection-reason counts (from `rejected_events.csv`, 10,174 events; an
+  event may carry several reasons): all 10,174 failed the finite-core-input
+  requirement on `sst_K`/`sst_anom_K` (NaNs in the storm-core window —
+  land-contaminated/coastal windows); 5,216 of them also exceeded the 5%
+  per-channel NaN cap and 3,586 the 2% total NaN cap. No other rejection
+  class occurred. No NaN imputation was applied anywhere.
 
 ## 3. Files
 
@@ -51,7 +59,9 @@ Atlantic.
 `event_id` format: `era5_YYYY_MM_DD_HHMM_<SID>` (UTC).
 
 Time axis T: index 0 = t0 (event time), then −6 h, −12 h, −18 h, −24 h
-⟦confirm index order against preprocess code before packaging⟧.
+(confirmed against `src/processors/preprocess_scientific.py`:
+`data.offsets_hours = [0, −6, −12, −18, −24]`, frames stacked in iteration
+order).
 
 ## 4. Cube channels (C = 14, in this order)
 

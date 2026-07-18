@@ -47,11 +47,11 @@ the public repo.
 
 | File | Status | What it is |
 |---|---|---|
-| [`docs/release/DATA_DICTIONARY.md`](release/DATA_DICTIONARY.md) | [CURRENT] | The dataset's dictionary (v2 labels). DOI slot pending. |
+| [`docs/release/DATA_DICTIONARY.md`](release/DATA_DICTIONARY.md) | [CURRENT] | The dataset's dictionary (v2 labels). DOI resolved (concept 10.5281/zenodo.18571957). |
 | [`docs/release/TECHNICAL_VALIDATION.md`](release/TECHNICAL_VALIDATION.md) | [CURRENT] | The 7 data-only validations (byte-reproducibility leads). |
 | [`docs/release/NOTICE`](release/NOTICE) | [CURRENT] | Verbatim, primary-source-verified attributions (ERA5/Hersbach, IBTrACS/Knapp, Copernicus Marine). Data-source citations live HERE, not in the literature review — by design. |
-| [`docs/release/zenodo_v3_metadata.md`](release/zenodo_v3_metadata.md) | [CURRENT] | Paste-ready Zenodo v3 record metadata (preprint reality: paper PDF + snapshot; v2 PDF not re-attached). |
-| `dist/cyclonenet-dataset-v2-zips/` | [PENDING] | The built package: 46 files / 6.03 GiB, verified. Waiting for the author's Zenodo upload (gitignored). |
+| [`docs/release/zenodo_v3_metadata.md`](release/zenodo_v3_metadata.md) | [CURRENT] | Paste-ready v3.0.2 metadata for the single record (corrected description, version notes, file list; reworked 2026-07-18). |
+| `dist/cyclonenet-dataset-v2-zips/` | [PUBLISHED] | The built package: 46 files / 6.03 GiB, uploaded in v3.0.1 (10.5281/zenodo.21413397). Local copy kept for corrections (gitignored). |
 | [`LICENSE`](../LICENSE) / [`LICENSE-DATA`](../LICENSE-DATA) | [CURRENT] | Code MIT / dataset CC BY 4.0. Both already on `main` (PR #15). |
 | [`docs/dataset_release_plan.md`](dataset_release_plan.md) | [RECORD] | T5 planning document. |
 | [`docs/data_dictionary_v2_skeleton.md`](data_dictionary_v2_skeleton.md) | [SUPERSEDED] | Working skeleton of the dictionary; the release version above replaced it. |
@@ -85,9 +85,8 @@ the public repo.
 | https://estefano-ferreira.github.io/cyclone-net/ | [CURRENT] | Platform explorer (observed data only, tri-state RI markers). |
 | https://zenodo.org/records/18571958 | [RECORD, superseded] | v1.0.0 preprint (claims corrected by ERRATA item 9 / paper §9). |
 | https://zenodo.org/records/18577056 | [RECORD, superseded] | v1.0.1 preprint (same). |
-| https://zenodo.org/records/18751255 | [RECORD, superseded] | v2.0.0 preprint — current `/latest` of the line until v3 goes up. |
-| Zenodo v3 software record | [PENDING] | Author upload: compiled paper PDF + repo snapshot tag `v3.0.0`. DOI slot in the paper. |
-| Zenodo dataset record | [PENDING] | Author upload: the 46 files in `dist/`; mints the dataset concept DOI. |
+| https://zenodo.org/records/18751255 | [RECORD, superseded] | v2.0.0 preprint. |
+| https://zenodo.org/records/21413397 | [RECORD, current] | v3.0.1 — the single archived record (paper + 46-file dataset package), published 2026-07-18; `/latest` of concept 10.5281/zenodo.18571957. v3.0.2 file version pending (corrected PDF + code snapshot; see zenodo_v3_metadata.md). |
 
 ## Local-only (gitignored — never commit)
 

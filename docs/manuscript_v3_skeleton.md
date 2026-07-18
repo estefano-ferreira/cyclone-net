@@ -57,7 +57,7 @@ Any number in V3 must match this table; drafting agents must not recompute.
 | **H9 V2 verdict (NULL)** | Δ₂(CNN−GBM_F) = +0.0005, CI [−0.0285, +0.0316] ∋ 0 | idem |
 | Base rate | 4.8% (valid set) | DATA_DICTIONARY §9 |
 | Licenses | code MIT, dataset CC BY 4.0; v1/v2 records CC BY-NC 4.0 (historical) | LICENSE / LICENSE-DATA / Zenodo records |
-| DOI slots | dataset concept DOI + software record v3.0.0 — ⟦pending Zenodo mint⟧ | zenodo_v3_metadata.md |
+| DOI in the paper | concept DOI 10.5281/zenodo.18571957 ONLY (resolves to latest; single archived record — version DOIs live in the updatable repo docs, never in the paper) | zenodo_v3_metadata.md |
 
 **Superseded-claim inventory (quoted ONLY inside §9, as claims under
 correction — git forensics 2026-07-16; CORRECTED 2026-07-17 after the v1
@@ -202,9 +202,10 @@ New, short. What is released, under what licenses, what was corrected,
 what is registered as open agenda. Tone rule 8 applies doubly here.
 
 ### Data/Code availability + Acknowledgements
-Reuse current §6 + §7 (two Zenodo records with DOI slots, platform URL,
-replication-gate script, verbatim NOTICE attributions, author block slot,
-coauthor slot, no competing interests).
+Reuse current §6 + §7 (ONE archived Zenodo record under the concept DOI
+10.5281/zenodo.18571957 — paper + dataset package + code snapshot at the
+release tag; platform URL, replication-gate script, verbatim NOTICE
+attributions, author block slot, coauthor slot, no competing interests).
 
 ---
 

@@ -1,11 +1,12 @@
 # CycloneNet: A Reproducible Pipeline and Leakage-Safe Two-Basin Dataset for Tropical-Cyclone Rapid-Intensification Analysis
 
 <!-- PREPRINT DRAFT (Zenodo v3) — assembled 2026-07-16 from reviewed section drafts.
-     Skeleton/spec: docs/manuscript_v3_skeleton.md. DOI slots (marked with brackets) pending Zenodo mint.
+     Skeleton/spec: docs/manuscript_v3_skeleton.md. DOI slots resolved to the concept DOI
+     10.5281/zenodo.18571957 (conceptdoi read from the Zenodo API for record 21413397, 2026-07-18).
      Supersedes the record line v1.0.0 / v1.0.1 / v2.0.0 (corrections: Section 9).
      AUTHORITATIVE SOURCE: docs/cyclonenet_v3_preprint.tex (compiles to the published PDF).
      This file is a content mirror for review/diffing; prose edits must land in BOTH files.
-     Structural extras (preamble, figure include, reference formatting, \slot macro) live in the .tex only. -->
+     Structural extras (preamble, figure include, reference formatting) live in the .tex only. -->
 
 
 ## Abstract
@@ -261,7 +262,7 @@ The title's "Leakage-Safe" claim refers to the storm-identity vector and is supp
 
 ### 5.4 Pressure-level completeness census
 
-Following the 1980–2019 pressure-level backfill campaign (21,662 events processed through 20 windowed extraction stages, zero failures, with per-window provenance manifests), an independent census confirmed **100% coverage of the development set: 14,101/14,101 events** carry both pressure-level channels (`shear_850_200_mps` and `rh_mid`, DATA_DICTIONARY §4). The result (`outputs/results/pl_gate_census.json`) gates every downstream experiment.
+Following the 1980–2019 pressure-level backfill campaign (21,662 events processed through 20 windowed extraction stages, zero failures, with per-window provenance manifests), an independent census confirmed **100% coverage of the development set: 14,101/14,101 events** carry both pressure-level channels (`shear_850_200_mps` and `rh_mid`, DATA_DICTIONARY §4). The 2020–2023 events carry the same channels from the original extraction runs — the initial dataset's 2020–2023 range predates the backfill — so the census verifies the union of both extraction passes. The result (`outputs/results/pl_gate_census.json`) gates every downstream experiment.
 
 ### 5.5 Processing provenance and basin metadata repair
 
@@ -296,7 +297,7 @@ All experiments were conducted on development folds only (PL-gated development s
 
 ### 6.2 The ladder
 
-Development-fold out-of-fold PR-AUC was measured for four modeling approaches on the standard information diet and training protocol (15-epoch budget, identical fold splits, 3 seeds). Table 1 reports the pooled mean across seeds.
+Development-fold out-of-fold PR-AUC was measured for four modeling approaches, plus a logistic-regression linear reference, on the standard information diet and training protocol (15-epoch budget, identical fold splits, 3 seeds). Table 1 reports the pooled mean across seeds.
 
 | Model | Information diet | Pooled OOF PR-AUC (mean of seeds 42, 123, 456) |
 |---|---|---|
@@ -304,6 +305,7 @@ Development-fold out-of-fold PR-AUC was measured for four modeling approaches on
 | GBM F | Field aggregates only (mean/std/min/max of 11 cube channels) | **0.170** |
 | CNN | Full-resolution spatial fields (intensity-blind, global average pooling) | **0.171** |
 | GBM SF | State + field aggregates (complete tabular baseline) | **0.249** |
+| Logistic regression | State + field aggregates (linear reference on the strongest tabular diet) | **0.203** |
 
 The ladder shows a consistent ranking: when the tabular model accesses both state and field information (SF), it reaches 0.249. The CNN, despite receiving full spatial resolution, achieves 0.171 — statistically indistinguishable from the F-only aggregate baseline (the H9/V2 comparison below). The S-only state model achieves 0.202, establishing the information value of persistent variables alone.
 
@@ -313,7 +315,7 @@ The three hypotheses produced four verdicts: H6, the two co-primary H9 verdicts 
 
 #### H6: Shear and mid-level RH feature addition
 
-**Verdict: NULL.** Cross-seed mean ΔPR-AUC (addition of shear_850_200_mps and rh_mid to the 9-channel baseline) = +0.0185, 95% CI [−0.0070, +0.0431] includes zero. Per the pre-registered reading: the added channels deliver no detectable skill at this resolution and regime for this architecture. This is not reinterpreted as a weak positive; the registration forbids that reframing. The candidate mechanisms (deep-layer wind shear disruption of the warm core; mid-level dry air suppression of convection) are established in the literature and were confirmed in the matched-pairs precursor analysis (H4/H5 positive verdicts), but their inclusion in the input set yields no measurable gain when fed to this estimator.
+**Verdict: NULL.** Cross-seed mean ΔPR-AUC (addition of shear_850_200_mps and rh_mid to the 9-channel baseline) = +0.0185, 95% CI [−0.0070, +0.0431] includes zero. Per the pre-registered reading: the added channels deliver no detectable skill at this resolution and regime for this architecture. This is not reinterpreted as a weak positive; the registration forbids that reframing. The candidate mechanisms (deep-layer wind shear disruption of the warm core; mid-level dry air suppression of convection) are established in the literature and were confirmed in the matched-pairs precursor analysis (hypotheses H4/H5 of the registry, `docs/hypothesis_registry.md`; positive verdicts), but their inclusion in the input set yields no measurable gain when fed to this estimator.
 
 #### H9/V1: CNN validity versus tabular baseline
 
@@ -358,9 +360,9 @@ The pre-registered campaign measured whether spatial fields add RI prediction sk
 
 **H9/V1 (validity) was NEGATIVE:** the 3D-CNN (full-resolution spatial fields, globally average-pooled before classification) scored 0.171 OOF PR-AUC against the tabular baseline's 0.249, yielding Δ₁ = −0.0781 [95% CI −0.1162, −0.0422]. The classical baseline outperformed the spatial model. This verdict has fixed consequences: the CNN is not justified over a SHIPS-like tabular baseline on this data.
 
-**H9/V2 (architecture justification) was NULL:** at identical information diet — 44 aggregated scalars (field statistics) fed to both CNN and tabular models — the CNN and GBM_F scored 0.171 and 0.170 respectively, yielding Δ₂ = +0.0005 [95% CI −0.0285, +0.0316]. Full 0.25° spatial grids conferred no detectable advantage to this architecture over simple field statistics. This verdict has fixed consequences: the architecture was retired; any redesign is a new pre-registered test.
+**H9/V2 (architecture justification) was NULL:** on the same underlying fields — consumed by the CNN as full spatial grids and by the tabular model as 44 aggregated scalars (mean/std/min/max of the 11 cube channels) — the CNN and GBM_F scored 0.171 and 0.170 respectively, yielding Δ₂ = +0.0005 [95% CI −0.0285, +0.0316]. Full 0.25° spatial grids conferred no detectable advantage to this architecture over simple field statistics. This verdict has fixed consequences: the architecture was retired; any redesign is a new pre-registered test.
 
-**H8 (physics-loss ablation) was CANCELLED:** the test sought to measure whether four physics-penalty terms improved the CNN's classification objective independent of the spatial attribution claim (which H1 had refuted). However, H9/V2's verdict retired the architecture carrying those losses. Ablating a component of a retired model decides nothing. The pre-registration and harness remain in the repository as record; the test is not to be executed.
+**H8 (physics-loss ablation) was CANCELLED:** the test sought to measure whether four physics-penalty terms improved the CNN's classification objective independent of the spatial attribution claim (which hypothesis H1 — the pre-registered spatial-localization test, ERRATA item 4 — had refuted). However, H9/V2's verdict retired the architecture carrying those losses. Ablating a component of a retired model decides nothing. The pre-registration and harness remain in the repository as record; the test is not to be executed.
 
 These verdicts close the architecture question **for this configuration**: a 3D-CNN with global average pooling, 9 or 11 input channels, and no intensity inputs, evaluated on 0.25° ERA5 surface reanalysis over two ocean basins with different RI climatologies. The question is not closed for alternative CNN designs — a deeper spatial reader, a state-CNN fusion branch, or a multi-basin decomposition could extract what this model cannot. Each such redesign requires a new pre-registration, not an amendment to this one.
 
@@ -440,7 +442,7 @@ What remains is the dataset (16,780 events, 992 storms, 799 RI positives / 15,96
 
 ## 10. Conclusion
 
-This work releases a reproducible pipeline and a leakage-safe two-basin RI dataset under open licenses: the code under MIT, the dataset under CC BY 4.0. The dataset contains 16,780 valid events across 1980–2023 and two ocean basins (East Pacific, 8,888 points; North Atlantic, 7,892 points), of which 799 are labeled as RI onsets, 15,962 as non-RI, and 19 as RI-undefined. A frozen test split of 2,679 events (112 RI positives, 6 undefined) was never used during development and is distributed for verification; this project made one historical read (the retired CNN) and asserts nothing about external use. A single archived record — containing this paper, the dataset package, and the repository code snapshot — accompanies this release; its DOI is minted at publication (see Data and code availability).
+This work releases a reproducible pipeline and a leakage-safe two-basin RI dataset under open licenses: the code under MIT, the dataset under CC BY 4.0. The dataset contains 16,780 valid events across 1980–2023 and two ocean basins (East Pacific, 8,888 points; North Atlantic, 7,892 points), of which 799 are labeled as RI onsets, 15,962 as non-RI, and 19 as RI-undefined. A frozen test split of 2,679 events (112 RI positives, 6 undefined) was never used during development and is distributed for verification; this project made one historical read (the retired CNN) and asserts nothing about external use. A single archived record — containing this paper, the dataset package, and the repository code snapshot — accompanies this release under the concept DOI 10.5281/zenodo.18571957 (see Data and code availability).
 
 Corrections spanning the record lineage (v1.0.0, v1.0.1, v2.0.0) are documented in Section 9; readers of any prior version should consult it before citing.
 
@@ -449,7 +451,7 @@ What remains registered as open agenda is documented in the hypothesis registry 
 
 ## Data and code availability
 
-The full pipeline and analysis code are publicly available at **https://github.com/estefano-ferreira/cyclone-net** (MIT license; see `LICENSE` file). This paper is accompanied by a single archived record with a persistent DOI (10.5281/zenodo.18571957, resolving to the latest version) containing: (1) this paper; (2) the dataset package — the cubes, sidecars, splits, labels, and metadata, distributed under CC BY 4.0 with mandatory third-party attributions in `NOTICE`; and (3) the repository snapshot at tag `v3.0.1` with the complete configuration and pipeline code required for reconstruction.
+The full pipeline and analysis code are publicly available at **https://github.com/estefano-ferreira/cyclone-net** (MIT license; see `LICENSE` file). This paper is accompanied by a single archived record with a persistent DOI (10.5281/zenodo.18571957, resolving to the latest version) containing: (1) this paper; (2) the dataset package — the cubes, sidecars, splits, labels, and metadata, distributed under CC BY 4.0 with mandatory third-party attributions in `NOTICE`; and (3) the repository snapshot at tag `v3.0.2` with the complete configuration and pipeline code required for reconstruction.
 
 An interactive platform explorer is available at **https://estefano-ferreira.github.io/cyclone-net/**—a static, client-side visualization of the IBTrACS best-track events, observed storm tracks, and intensity curves, with no model predictions. Labeling reproducibility is verified by the replication-gate script at `analysis/dv24_impact_assessment_v5_raw_reference.py`, which enforces abort-on-mismatch and certifies byte-reproducible label generation from raw IBTrACS.
 
