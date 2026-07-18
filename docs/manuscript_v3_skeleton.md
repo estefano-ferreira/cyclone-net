@@ -60,14 +60,17 @@ Any number in V3 must match this table; drafting agents must not recompute.
 | DOI slots | dataset concept DOI + software record v3.0.0 — ⟦pending Zenodo mint⟧ | zenodo_v3_metadata.md |
 
 **Superseded-claim inventory (quoted ONLY inside §9, as claims under
-correction — verified against Zenodo + git history 2026-07-16):**
+correction — git forensics 2026-07-16; CORRECTED 2026-07-17 after the v1
+records were opened for the first time: their `validation_report.txt` and
+per-event `cyclonenet_scientific.csv` (58 rows) reproduce every v1 figure
+exactly; see ERRATA item 9):**
 
-| Claim (verbatim era) | Where it lived | Repo forensics |
+| Claim (verbatim era) | Where it lived | Forensics (git 16/07; records 17/07) |
 |---|---|---|
-| ROC-AUC 0.97, Recall 0.92 | v1.0.0/v1.0.1 descriptions + v1-era README.md/BENCHMARK.md | text claim only; NO metrics artifact in any versioned tree ever recorded it; removed from repo at "v2 start" (`e41c0f5`) |
-| "sub-pixel spatial accuracy" | idem | idem |
-| mean spatial error "~26 km" | v1.0.0 description | NEVER in git history at any commit; origin not determinable from the repository |
-| "18 hurricanes (1989–2024)" | v1.0.0/v1.0.1 descriptions | NEVER in git history; origin not determinable from the repository |
+| ROC-AUC 0.97, Recall 0.92 | v1.0.0/v1.0.1 descriptions + the records' `validation_report.txt` | reproduces exactly from the released CSV (0.9736 / 0.9231); withdrawn for SCOPE (58 events, 19 named Atlantic storms, 44.8% prevalence, no CIs, no declared split), not provenance |
+| "sub-pixel spatial accuracy" | idem | withdrawn for scope; grid-quantization measurement done 17/07 (58/58 offsets exact 0.25° multiples — paper wording pending author decision, PROJECT_STATE) |
+| mean spatial error "~26 km" | the records' `validation_report.txt` (mean 25.79 km over the 58 events) | reproduces exactly from the CSV; origin identified; withdrawn for scope |
+| "18 hurricanes (1989–2024)" | the records' storm table (19 storms, 18 with observed RI, HUGO 1989 – MILTON 2024) | origin identified; withdrawn for scope |
 | "Target Lock" (branding) | v1-era README/BENCHMARK | removed at v2 start; survives lowercase as technical descriptor of `pred_lat/pred_lon` in validation docs |
 | "Atmospheric Singularity Mapping" | v1 titles + v2.0.0 title | removed from repo identity (ERRATA item 5) |
 | ROC-AUC 0.83 (2,193 test samples) | v2.0.0 | already covered by ERRATA item 3 (RESOLVED: superseded by 0.796/0.251) |
@@ -178,11 +181,13 @@ EXTEND to the whole record line per the superseded-claim inventory above:
   Singularity Mapping removed. (ERRATA items 1–5.)
 - v1.0.0/v1.0.1 claims (NEW coverage): ROC-AUC 0.97 / Recall 0.92,
   "sub-pixel spatial accuracy", "~26 km mean spatial error",
-  "18 hurricanes (1989–2024)", "Target Lock". For 0.97/0.92/sub-pixel:
-  text claims in v1-era README/BENCHMARK, no supporting artifact ever
-  versioned. For 26 km / 18 hurricanes: **"not reproducible from any
-  released artifact; origin not determinable from the repository or its
-  history"** — exact wording, no invented explanation.
+  "18 hurricanes (1989–2024)", "Target Lock". CORRECTED 2026-07-17: the
+  records' own artifacts (`validation_report.txt` + per-event
+  `cyclonenet_scientific.csv`, 58 rows) reproduce every figure exactly;
+  the claims are **withdrawn for scope, not provenance** (58-event
+  named-storm benchmark at 44.8% RI prevalence, no CIs, no declared
+  split). The earlier "not reproducible / origin not determinable"
+  wording was retracted (ERRATA item 9, dated in-item retraction).
 - dv24 v1→v2 label correction + basin relabel + Defect-0 retraction
   (ERRATA items 6–8).
 Acceptance test (author, verbatim): a reader who cited ANY previous
