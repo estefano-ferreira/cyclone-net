@@ -1,8 +1,9 @@
 % =====================================================================
-% CycloneNet — Preprint (Zenodo v3.0.0)
+% CycloneNet — Preprint (Zenodo record line v3; this compile: v3.0.2)
 % Converted from MANUSCRIPT_V3.md (2026-07-16).
 % Supersedes the record line v1.0.0 / v1.0.1 / v2.0.0 (corrections: Sec. 9).
-% DOI slots are marked [[...]] and must be filled at Zenodo mint.
+% DOI slots resolved to the concept DOI 10.5281/zenodo.18571957
+% (conceptdoi read from the Zenodo API for record 21413397, 2026-07-18).
 % Compiles with pdflatex. Requires pipeline_figure.png next to this file.
 % =====================================================================
 \documentclass[11pt]{article}
@@ -32,7 +33,6 @@
 \emergencystretch=3em
 \sloppy
 
-\newcommand{\slot}[1]{\textlangle\textlangle #1\textrangle\textrangle}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 
 \lstset{
@@ -320,8 +320,8 @@ model-architecture questions.
 
 \subsection{Repository and access}
 
-The dataset is distributed in a single archived record (\slot{record concept
-DOI --- minted at publication}), together with this paper and the repository
+The dataset is distributed in a single archived record
+(10.5281/zenodo.18571957), together with this paper and the repository
 code snapshot; the dataset itself is licensed CC~BY~4.0. See
 \texttt{NOTICE} for mandatory attributions; the analysis pipeline
 (\url{https://github.com/estefano-ferreira/cyclone-net}) is released under
@@ -840,7 +840,10 @@ processed through 20 windowed extraction stages, zero failures, with
 per-window provenance manifests), an independent census confirmed \textbf{100\%
 coverage of the development set: 14{,}101/14{,}101 events} carry both
 pressure-level channels (\texttt{shear\_850\_200\_mps} and \texttt{rh\_mid},
-DATA\_DICTIONARY \S4). The result
+DATA\_DICTIONARY \S4). The 2020--2023 events carry the same channels from the
+original extraction runs --- the initial dataset's 2020--2023 range predates
+the backfill --- so the census verifies the union of both extraction passes.
+The result
 (\texttt{outputs/results/pl\_gate\_census.json}) gates every downstream
 experiment.
 
@@ -969,10 +972,10 @@ of that retired model.
 
 \subsection{The ladder}
 
-Development-fold out-of-fold PR-AUC was measured for four modeling approaches
-on the standard information diet and training protocol (15-epoch budget,
-identical fold splits, 3 seeds). Table~\ref{tab:ladder} reports the pooled mean
-across seeds.
+Development-fold out-of-fold PR-AUC was measured for four modeling approaches,
+plus a logistic-regression linear reference, on the standard information diet
+and training protocol (15-epoch budget, identical fold splits, 3 seeds).
+Table~\ref{tab:ladder} reports the pooled mean across seeds.
 
 \begin{table}[h]
 \centering
@@ -990,6 +993,8 @@ GBM F & Field aggregates only (mean/std/min/max of 11 cube channels) & \textbf{0
 CNN & Full-resolution spatial fields (intensity-blind, global average pooling) & \textbf{0.171} \\
 \addlinespace
 GBM SF & State + field aggregates (complete tabular baseline) & \textbf{0.249} \\
+\addlinespace
+Logistic regression & State + field aggregates (linear reference on the strongest tabular diet) & \textbf{0.203} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1019,8 +1024,9 @@ regime for this architecture. This is not reinterpreted as a weak positive; the
 registration forbids that reframing. The candidate mechanisms (deep-layer wind
 shear disruption of the warm core; mid-level dry air suppression of convection)
 are established in the literature and were confirmed in the matched-pairs
-precursor analysis (H4/H5 positive verdicts), but their inclusion in the input
-set yields no measurable gain when fed to this estimator.
+precursor analysis (hypotheses H4/H5 of the registry,
+\texttt{docs/hypothesis\_registry.md}; positive verdicts), but their inclusion
+in the input set yields no measurable gain when fed to this estimator.
 
 \subsubsection*{H9/V1: CNN validity versus tabular baseline}
 
@@ -1137,9 +1143,10 @@ $-0.1162$, $-0.0422$]. The classical baseline outperformed the spatial model.
 This verdict has fixed consequences: the CNN is not justified over a SHIPS-like
 tabular baseline on this data.
 
-\textbf{H9/V2 (architecture justification) was NULL:} at identical information
-diet --- 44 aggregated scalars (field statistics) fed to both CNN and tabular
-models --- the CNN and GBM$_F$ scored 0.171 and 0.170 respectively, yielding
+\textbf{H9/V2 (architecture justification) was NULL:} on the same underlying
+fields --- consumed by the CNN as full spatial grids and by the tabular model
+as 44 aggregated scalars (mean/std/min/max of the 11 cube channels) --- the
+CNN and GBM$_F$ scored 0.171 and 0.170 respectively, yielding
 $\Delta_2 = +0.0005$ [95\% CI $-0.0285$, $+0.0316$]. Full 0.25\textdegree{}
 spatial grids conferred no detectable advantage to this architecture over
 simple field statistics. This verdict has fixed consequences: the architecture
@@ -1147,7 +1154,8 @@ was retired; any redesign is a new pre-registered test.
 
 \textbf{H8 (physics-loss ablation) was CANCELLED:} the test sought to measure
 whether four physics-penalty terms improved the CNN's classification objective
-independent of the spatial attribution claim (which H1 had refuted). However,
+independent of the spatial attribution claim (which hypothesis H1 --- the
+pre-registered spatial-localization test, ERRATA item~4 --- had refuted). However,
 H9/V2's verdict retired the architecture carrying those losses. Ablating a
 component of a retired model decides nothing. The pre-registration and harness
 remain in the repository as record; the test is not to be executed.
@@ -1458,8 +1466,8 @@ frozen test split of 2{,}679 events (112 RI positives, 6 undefined) was never
 used during development and is distributed for verification; this project made
 one historical read (the retired CNN) and asserts nothing about external use.
 A single archived record --- containing this paper, the dataset package, and
-the repository code snapshot --- accompanies this release; its DOI is minted
-at publication (see Data and code availability).
+the repository code snapshot --- accompanies this release under the concept
+DOI 10.5281/zenodo.18571957 (see Data and code availability).
 
 Corrections spanning the record lineage (v1.0.0, v1.0.1, v2.0.0) are documented
 in Section~\ref{sec:correction}; readers of any prior version should consult it
@@ -1482,11 +1490,11 @@ byte-reproducible from raw IBTrACS via the released replication-gate script.
 The full pipeline and analysis code are publicly available at
 \url{https://github.com/estefano-ferreira/cyclone-net} (MIT license; see
 \texttt{LICENSE} file). This paper is accompanied by a single archived record
-with a persistent DOI \slot{record concept DOI --- minted at publication}
-containing: (1) this paper; (2) the dataset package --- the cubes, sidecars,
+with a persistent DOI (10.5281/zenodo.18571957, resolving to the latest
+version) containing: (1) this paper; (2) the dataset package --- the cubes, sidecars,
 splits, labels, and metadata, distributed under CC~BY~4.0 with mandatory
 third-party attributions in \texttt{NOTICE}; and (3) the repository snapshot
-at tag \texttt{v3.0.1} with the complete configuration and pipeline code
+at tag \texttt{v3.0.2} with the complete configuration and pipeline code
 required for reconstruction.
 
 An interactive platform explorer is available at

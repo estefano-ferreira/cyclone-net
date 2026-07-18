@@ -12,18 +12,42 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-16 ~22:30 (…morning: campaign closed (H6/H9/H8);
-basin REPAIRED. Afternoon: DATASET v2 APPLIED; "Defect 0" RETRACTED;
-replication gate permanent; keep_default_na class CLOSED. Evening: T5
-PACKAGE BUILT AND VERIFIED (46 files / 6.03 GiB in `dist/`); layer-A done
-(dual license MIT + CC BY 4.0, **merged to main via PR #15**); Zenodo v3
-status document + metadata READY; platform REBUILT serving v2 labels with
-tri-state ri_candidate; **citable title FINALIZED** ("A Reproducible
-Pipeline and Leakage-Safe Two-Basin Dataset…"). PENDING: PR #16 (3
-commits), the author's two Zenodo uploads, GitHub About, credential
-rotation)._
+_Last updated: 2026-07-18 (v3.0.1 = 10.5281/zenodo.21413397 PUBLISHED on
+the existing concept line 10.5281/zenodo.18571957; disk cleanup executed;
+v3.0.2 file-version pass PREPARED — see the 18/07 session record in
+Section 1)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
+
+**SESSION 2026-07-18 (evening) — v3.0.2 preparation. Next steps, in order:**
+1. Author reviews the working-tree diff (paper consistency fixes ×6 in
+   tex+md; docs sweep: zenodo_v3_metadata REWORKED for the single-record
+   v3.0.2, CFF→3.0.2, LICENSE-DATA/CITATION.md/DATA_DICTIONARY DOI lines
+   made stable-across-file-versions, INDEX statuses, skeleton DOI rule,
+   data_descriptor slots resolved) → ONE commit.
+2. Tag `v3.0.2` on that commit; regenerate
+   `dist/cyclonenet-code-v3.0.2.zip` from the TAG (the existing zip was
+   cut from 19ba6fb and is STALE) and verify no local-only files inside.
+3. Overleaf: recompile the .tex; check the PDF has no ⟦⟧ and carries
+   18571957 ×2.
+4. Zenodo "New version" on 21413397: replace PDF, add code zip, keep the
+   46 dataset files, version 3.0.2, paste description from
+   `docs/release/zenodo_v3_metadata.md` (fixes the published description's
+   pre-correction wording). Publish; then record the new version DOI in
+   CFF/LICENSE-DATA/CITATION.md/DATA_DICTIONARY.
+5. Still open: credential rotation (CDS + Copernicus); GitHub About;
+   DATA_DICTIONARY packaging slots (lines ~32/54); decision on the
+   2020–2023 `data/raw` PL files (no discard manifests — remove only via
+   `process-window`); CRLF in the published checksum files (documented in
+   zenodo_v3_metadata.md, deferred).
+
+**Also this session:** disk cleanup executed per the classified inventory
+(staging `dist/cyclonenet-dataset-v2` deleted after 45/45 zip-checksum
+gate, pycache, empty dirs; 7.39 GB reclaimed; evidence and zips intact).
+A third id-arithmetic false alarm ("18571957 must be wrong, it is below
+v1's 18571958") was REFUTED against the Zenodo API: 18571957 IS the
+conceptdoi (concept recid = first recid − 1 by construction) and resolves
+to /latest. The paper's DOI is correct; do not "fix" it.
 
 **H6 IS CLOSED — verdict NULL (read once 16/07):** mean cross-seed
 ΔPR-AUC +0.0185, 95% CI **[−0.0070, +0.0431] includes zero**; per-seed
@@ -36,8 +60,11 @@ Registry entry updated (H6 TESTED/NULL).
 **H9 IS ALSO CLOSED (read once 16/07, order corrected by the author:
 --compare-cnn BEFORE H8, because V2 gates H8):**
 - **V1 NEGATIVE:** Δ₁(CNN−GBM_SF) = −0.0781, CI [−0.1162, −0.0422] < 0 —
-  the tabular baseline beats the CNN; **GBM_SF is now the project's
-  reference model** (pre-registered consequence).
+  the tabular baseline beats the CNN. (Correction 18/07, aligned with the
+  published paper: GBM_SF is the empirical reference on dev folds only; it
+  was never read on the frozen test set and the project designates NO
+  reference model — the earlier "project's reference model" phrasing here
+  overstated the pre-registered consequence.)
 - **V2 NULL:** Δ₂(CNN−GBM_F) = +0.0005, CI [−0.0285, +0.0316] ∈ 0 —
   **architecture NOT justified in its current form**; CNN = documented
   negative; redesign only as NEW pre-registration.
@@ -579,9 +606,12 @@ Rules for ANY process > ~15 min (training, backfill, download):
 
 ## 7. KEY REFERENCE NUMBERS
 
-- Production model: PR-AUC 0.251 [CI 0.179–0.331], ROC-AUC 0.796.
-- Dataset: 1980–2023, 16,780 events, 802 RI positives (dev PL-gated:
-  14,101 events / 687 positives / 839 storms).
+- Retired CNN, historical test-set read: PR-AUC 0.251 [CI 0.179–0.331],
+  ROC-AUC 0.796. No reference model designated.
+- Dataset: 1980–2023, 16,780 events, 799 RI positives / 15,962 negatives /
+  19 NULL (recounted 18/07 from `valid_events.csv`; the earlier "802" was
+  the pre-dv24-recount figure) (dev PL-gated: 14,101 events / 687
+  positives / 839 storms).
 - Training cost on this machine (CPU): ~110 min/cell (15 epochs) →
   ~11 h per ablation seed (6 cells).
 - Seed 42 (intermediate): pooled OOF A=0.162 / B=0.195 (PR-AUC);

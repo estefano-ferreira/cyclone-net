@@ -1,7 +1,8 @@
 # CycloneNet: A Reproducible Pipeline and Leakage-Safe Two-Basin Dataset for Tropical-Cyclone Rapid-Intensification Analysis
 
 <!-- DRAFT (V3 Data Descriptor) — assembled 2026-07-16 from reviewed section drafts.
-     Skeleton/spec: docs/manuscript_v3_skeleton.md. DOI slots (marked with brackets) pending Zenodo mint.
+     Skeleton/spec: docs/manuscript_v3_skeleton.md. DOI slots resolved 2026-07-18 to the
+     concept DOI 10.5281/zenodo.18571957 (single archived record since v3.0.1).
      Format: Scientific Data Data Descriptor (strict); venue decision open. -->
 
 
@@ -83,7 +84,7 @@ The v2 dataset is a leakage-safe, auditable compilation of 16,780 events from 99
 
 ### 3.1 Repository and access
 
-The dataset is published at the Zenodo dataset record (⟦dataset concept DOI — minted at Zenodo publication⟧) under the CC BY 4.0 license. See NOTICE for mandatory attributions; the analysis pipeline (github.com/estefano-ferreira/cyclone-net) is released under MIT. The released package contains 46 files totaling 6.03 GiB:
+The dataset is published in the project's single archived Zenodo record (concept DOI 10.5281/zenodo.18571957, resolves to the latest version) under the CC BY 4.0 license. See NOTICE for mandatory attributions; the analysis pipeline (github.com/estefano-ferreira/cyclone-net) is released under MIT. The released package contains 46 files totaling 6.03 GiB:
 - 44 per-year cubic shards (organized in `cubes/` by year subdirectories)
 - 1 metadata archive
 - 1 checksums file
@@ -255,7 +256,7 @@ No credentials are stored in the repository; the CDS API key lives in `~/.cdsapi
 
 ## 6. Code Availability
 
-The full pipeline and analysis code are publicly available at **https://github.com/estefano-ferreira/cyclone-net** (MIT license; see `LICENSE` file). This data descriptor is accompanied by two separate Zenodo records: (1) the **software record v3.0.0** ⟦software record DOI⟧ containing the repository snapshot at tag `v3.0.0` with the complete configuration and pipeline code required for reconstruction; (2) the **dataset concept record** ⟦dataset concept DOI — minted at Zenodo publication⟧ containing the cubes, sidecars, splits, labels, and metadata, distributed under CC BY 4.0 with mandatory third-party attributions in `NOTICE`.
+The full pipeline and analysis code are publicly available at **https://github.com/estefano-ferreira/cyclone-net** (MIT license; see `LICENSE` file). This data descriptor is accompanied by a single archived Zenodo record (concept DOI 10.5281/zenodo.18571957, resolves to the latest version) containing the repository snapshot at the release tag with the complete configuration and pipeline code required for reconstruction, together with the cubes, sidecars, splits, labels, and metadata, distributed under CC BY 4.0 with mandatory third-party attributions in `NOTICE`. (The two-separate-records plan was retired 2026-07-17; single-record model since v3.0.1.)
 
 An interactive platform explorer is available at **https://estefano-ferreira.github.io/cyclone-net/**—a static, client-side visualization of the IBTrACS best-track events, observed storm tracks, and intensity curves, with no model predictions. Labeling reproducibility is verified by the replication-gate script at `analysis/dv24_impact_assessment_v5_raw_reference.py`, which enforces abort-on-mismatch and certifies byte-reproducible label generation from raw IBTrACS.
 

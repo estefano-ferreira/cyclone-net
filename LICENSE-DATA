@@ -2,9 +2,11 @@ CycloneNet Dataset — License
 
 This file records the licensing terms for the CycloneNet dataset
 (per-event ERA5-derived cubes, metadata sidecars, event lists, labels,
-splits, and accompanying documentation). The dataset release is in
-preparation; these terms take effect with its publication (the dataset
-record and DOI will be referenced here and in CITATION.cff when minted).
+splits, and accompanying documentation). The dataset is published in the
+project's single archived Zenodo record: concept DOI
+10.5281/zenodo.18571957 (resolves to the latest version). The data files
+were first published in version 10.5281/zenodo.21413397 (v3.0.1,
+2026-07-18) and are unchanged in subsequent file versions.
 
 License: Creative Commons Attribution 4.0 International (CC BY 4.0).
 
