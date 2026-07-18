@@ -8,13 +8,14 @@ authors:
   - family-names: Senhor Ferreira
     given-names: Estefano
     email: estefano.senhor@gmail.com
-doi: 10.5281/zenodo.18751255
+doi: 10.5281/zenodo.18571957
 repository-code: "https://github.com/estefano-ferreira/cyclone-net"
 license: MIT
-# Dataset DOI (separate Zenodo concept DOI, CC BY 4.0): to be added as a
-# `references:` entry when minted at the dataset release — do not invent.
-version: "3.0.0"
-date-released: "2026-07-12"
+# Single archived record (paper + dataset package) on one concept line; the
+# concept DOI above resolves to the latest version. This release's version
+# DOI: 10.5281/zenodo.21413397. Dataset licensed CC BY 4.0 (LICENSE-DATA).
+version: "3.0.1"
+date-released: "2026-07-18"
 abstract: >-
   Open-source, configuration-driven pipeline for forensic (hindcast)
   analysis of tropical-cyclone rapid intensification (RI) from ERA5

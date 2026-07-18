@@ -4,7 +4,7 @@ If you use CycloneNet in your research, please cite the following:
 
 ## Software Release
 
-Ferreira, E. S. (2026). CycloneNet: A Reproducible Pipeline and Leakage-Safe Two-Basin Dataset for Tropical-Cyclone Rapid-Intensification Analysis. GitHub. https://github.com/estefano-ferreira/cyclone-net
+Ferreira, E. S. (2026). CycloneNet: A Reproducible Pipeline and Leakage-Safe Two-Basin Dataset for Tropical-Cyclone Rapid-Intensification Analysis. GitHub. https://github.com/estefano-ferreira/cyclone-net — archived at Zenodo, https://doi.org/10.5281/zenodo.18571957
 
 ## BibTeX
 
@@ -15,14 +15,17 @@ Ferreira, E. S. (2026). CycloneNet: A Reproducible Pipeline and Leakage-Safe Two
   year = {2026},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/estefano-ferreira/cyclone-net}}
+  howpublished = {\url{https://github.com/estefano-ferreira/cyclone-net}},
+  doi = {10.5281/zenodo.18571957}
 }
 ```
 
 ## Dataset
 
-The dataset (v2 labels, CC BY 4.0) will carry its own Zenodo concept DOI —
-citation entry to be added here when minted at the dataset release.
+The dataset (v2 labels, CC BY 4.0) is distributed in the project's single
+archived Zenodo record together with the paper: concept DOI
+https://doi.org/10.5281/zenodo.18571957 (resolves to the latest version);
+this release: https://doi.org/10.5281/zenodo.21413397 (v3.0.1).
 
 > **Note:** the earlier titles "CycloneNet V2: A Forensic Physics-Guided Deep
 > Learning Framework for Atmospheric Singularity Mapping" and the interim

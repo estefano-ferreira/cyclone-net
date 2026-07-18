@@ -10,9 +10,9 @@ against the artifacts or the pipeline code.
 |---|---|
 | Name | CycloneNet two-basin tropical-cyclone RI dataset |
 | Version | v2 (strict-temporal labels; see §6 and ERRATA items 6/8) |
-| DOI | ⟦minted at Zenodo publication; separate dataset concept-DOI⟧ |
+| DOI | 10.5281/zenodo.18571957 (concept, resolves to latest; this release: 10.5281/zenodo.21413397, v3.0.1 — single archived record, paper + data package) |
 | License | **CC BY 4.0** (see `NOTICE` for mandatory attributions) |
-| Code | pipeline at github.com/estefano-ferreira/cyclone-net (MIT ⟦after layer-A pass⟧) |
+| Code | pipeline at github.com/estefano-ferreira/cyclone-net (MIT) |
 
 **Temporal coverage: 1980–2023, hurricane season (June–November) ONLY.**
 The year range does not imply continuous coverage — off-season tropical
