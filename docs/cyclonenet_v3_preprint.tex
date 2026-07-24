@@ -1059,6 +1059,24 @@ about that component's utility. Per the pre-registration, the harness
 (\texttt{analysis/fuelmap\_ablation\_cnn.py}) and its documentation remain in
 the repository as historical record and are not to be executed.
 
+\subsection{Minimum detectable effect of the null verdicts}
+\label{subsec:mde}
+
+A null interval says nothing about the world unless the smallest effect the
+design could have resolved is stated. The minimum detectable effect (MDE) of
+each pre-registered delta was therefore computed retrospectively (2026-07-24)
+from the standard deviation of its 10{,}000-replicate SID-cluster bootstrap
+distribution, with the published intervals reproduced exactly (tolerance
+$10^{-12}$) as a fidelity gate (two-sided $\alpha = 0.05$, power $0.80$;
+MDE $= 2.80 \times \mathrm{SE}$). H6: MDE $= 0.036$ PR-AUC; H9/V1: $0.053$;
+H9/V2: $0.043$. The observed H6 ($+0.0185$) and V2 ($+0.0005$) effects lie
+below their MDEs: those nulls are consistent both with no effect and with a
+real effect smaller than this design can resolve. The V1 effect ($-0.0781$)
+exceeds its MDE; that verdict was adequately powered. No verdict changes; each
+null now carries its scope. Registrations from 2026-07-24 onward declare the
+MDE before running (registry rule; report under
+\texttt{outputs/results/power\_analysis/}).
+
 \subsection{Ex-ante qualifications}
 
 The following constraints on the verdicts were registered before reading any
@@ -1269,7 +1287,8 @@ documented in Section~\ref{sec:limitations}.
   been performed; such comparison is necessary before any operational skill
   claim. SHIPS-RII is fitted separately per basin, and direct inter-model
   comparison with a two-basin model requires basin-stratified evaluation to be
-  meaningful.
+  meaningful. The minimum detectable effects that bound the campaign's null
+  verdicts are stated in Section~\ref{subsec:mde}.
 
   \item \textbf{Two-basin heterogeneity.} East Pacific and North Atlantic
   exhibit distinct RI climatologies, seasonal patterns, wind-shear regimes, and

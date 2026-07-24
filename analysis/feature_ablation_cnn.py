@@ -444,7 +444,7 @@ def run_execute(cfg: Dict[str, Any], config_path: Path, events_df: pd.DataFrame,
 # ---------------------------------------------------------------------------
 
 def aggregate_across_seeds(oof_csvs: Sequence[Path], n_boot: int = 10_000,
-                           boot_seed: int = 42, ci: float = 0.95) -> Dict[str, Any]:
+                           boot_seed: int = 42, ci: float = 0.95, return_draws: bool = False) -> Dict[str, Any]:
     """Pre-registered final metric over phased per-seed runs.
 
     Point estimate: mean over seeds of (PR-AUC_B - PR-AUC_A), each computed
@@ -509,6 +509,8 @@ def aggregate_across_seeds(oof_csvs: Sequence[Path], n_boot: int = 10_000,
         "delta_pr_auc_ci_low": float(np.quantile(arr, alpha)) if arr.size else None,
         "delta_pr_auc_ci_high": float(np.quantile(arr, 1.0 - alpha)) if arr.size else None,
     }
+    if return_draws:
+        result["bootstrap_draws"] = draws
     lo, hi = result["delta_pr_auc_ci_low"], result["delta_pr_auc_ci_high"]
     if lo is None:
         result["verdict"] = "INCONCLUSIVE: insufficient valid bootstrap draws to compute a CI."

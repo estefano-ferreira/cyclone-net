@@ -1,0 +1,105 @@
+{
+  "note": "Estimator-precision characterization only. No verdict is re-read, re-interpreted, or revised. H6 NULL, H9/V1 NEGATIVE, H9/V2 NULL all stand.",
+  "method": "retrospective_mde_from_published_bootstrap_draws",
+  "run_id": "20260724T213423Z",
+  "generated_at": "2026-07-24T21:34:23.981824+00:00",
+  "boot_seed": 42,
+  "n_boot": 10000,
+  "is_smoke_run": false,
+  "fidelity_gate_pass": true,
+  "sanity_check_all_in_range": true,
+  "input_paths": {
+    "cnn_aggregate_json": "outputs/results/feature_ablation_cnn/aggregate_20260716T120517Z.json",
+    "tabular_compare_json": "outputs/results/tabular_baseline/compare_20260716T121803Z.json",
+    "cnn_oof_csvs": [
+      "outputs/results/feature_ablation_cnn/20260713T232126Z/seed42/oof_predictions.csv",
+      "outputs/results/feature_ablation_cnn/20260714T223910Z/seed123/oof_predictions.csv",
+      "outputs/results/feature_ablation_cnn/20260715T223350Z/seed456/oof_predictions.csv"
+    ],
+    "tabular_oof_csvs": [
+      "outputs/results/tabular_baseline/20260715T123221Z/seed42/oof_predictions.csv",
+      "outputs/results/tabular_baseline/20260715T123221Z/seed123/oof_predictions.csv",
+      "outputs/results/tabular_baseline/20260715T123221Z/seed456/oof_predictions.csv"
+    ]
+  },
+  "z_constants": {
+    "z975": 1.959963984540054,
+    "z80": 0.8416212335729143,
+    "z90": 1.2815515655446004
+  },
+  "deltas": {
+    "H6": {
+      "name": "Feature Ablation (CNN B vs A)",
+      "replicate_se": 0.012692482095376179,
+      "mde_power80": 0.035559070219569416,
+      "mde_power90": 0.04114287808133294,
+      "observed_delta": 0.018461717556810076,
+      "observed_below_mde_80": true,
+      "published_ci": [
+        -0.0069736304262440554,
+        0.04308976470011222
+      ],
+      "reproduced_ci": [
+        -0.0069736304262440554,
+        0.04308976470011222
+      ],
+      "n_boot_used": 10000,
+      "n_boot_skipped": 0,
+      "fidelity_exact": true
+    },
+    "H9_V1": {
+      "name": "CNN vs GBM(state_plus_fields)",
+      "replicate_se": 0.01877680927440992,
+      "mde_power80": 0.052604831306513326,
+      "mde_power90": 0.060865319243973516,
+      "observed_delta": -0.0780709877568301,
+      "observed_below_mde_80": false,
+      "published_ci": [
+        -0.11615134723790102,
+        -0.04215735593135465
+      ],
+      "reproduced_ci": [
+        -0.11615134723790102,
+        -0.04215735593135465
+      ],
+      "n_boot_used": 10000,
+      "n_boot_skipped": 0,
+      "fidelity_exact": true
+    },
+    "H9_V2": {
+      "name": "CNN vs GBM(fields_only)",
+      "replicate_se": 0.015202904380444643,
+      "mde_power80": 0.042592232184638604,
+      "mde_power90": 0.049280450955661415,
+      "observed_delta": 0.0004878720248186752,
+      "observed_below_mde_80": true,
+      "published_ci": [
+        -0.0284693918979432,
+        0.03161723232023105
+      ],
+      "reproduced_ci": [
+        -0.0284693918979432,
+        0.03161723232023105
+      ],
+      "n_boot_used": 10000,
+      "n_boot_skipped": 0,
+      "fidelity_exact": true
+    },
+    "basin_ablation_design_proxy": {
+      "name": "Tabular S vs SF (proxy for planned basin ablation)",
+      "replicate_se": 0.017192021012382774,
+      "mde_power80": 0.04816491193777913,
+      "mde_power90": 0.05572820344902089,
+      "observed_delta": null,
+      "observed_below_mde_80": null,
+      "published_ci": null,
+      "reproduced_ci": [
+        -0.08304348659192021,
+        -0.01626337616174726
+      ],
+      "n_boot_used": 10000,
+      "n_boot_skipped": 0,
+      "fidelity_exact": null
+    }
+  }
+}

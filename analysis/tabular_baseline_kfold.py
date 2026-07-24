@@ -96,9 +96,11 @@ FIELD_STATS = ("mean", "std", "min", "max")
 FEATURE_SET_NAMES = ("state_only", "fields_only", "state_plus_fields")
 
 
-def resolve_feature_sets(features_df: pd.DataFrame) -> Dict[str, List[str]]:
+def resolve_feature_sets(features_df: pd.DataFrame, drop_basin: bool = False) -> Dict[str, List[str]]:
     """Split feature columns into the factorial S / F / SF sets by prefix."""
     all_cols = [c for c in features_df.columns if c not in ("event_id", "sid", "ri_label")]
+    if drop_basin:
+        all_cols = [c for c in all_cols if not c.startswith("basin_")]
     field_cols = [c for c in all_cols if c.startswith("cube_")]
     state_cols = [c for c in all_cols if not c.startswith("cube_")]
     if not field_cols or not state_cols:
@@ -439,7 +441,7 @@ def run_execute(cfg: Dict[str, Any], events_df: pd.DataFrame, features_df: pd.Da
                    .loc[events_df["event_id"]]
                    .reset_index())
 
-    feature_sets = resolve_feature_sets(features_df)
+    feature_sets = resolve_feature_sets(features_df, drop_basin=args.drop_basin)
     X_by_set = {name: features_df[cols].to_numpy(dtype=np.float64)
                 for name, cols in feature_sets.items()}
     y_indexed = events_df["ri_label"].to_numpy(dtype=int)
@@ -537,6 +539,7 @@ def run_execute(cfg: Dict[str, Any], events_df: pd.DataFrame, features_df: pd.Da
         "feature_sets": {name: cols for name, cols in feature_sets.items()},
         "folds": args.folds,
         "seeds": args.seeds,
+        "drop_basin": bool(args.drop_basin),
         "n_boot": args.n_boot,
         "models": ["HistGradientBoostingClassifier (per feature set)",
                    "LogisticRegression (state_plus_fields only)"],
@@ -545,6 +548,40 @@ def run_execute(cfg: Dict[str, Any], events_df: pd.DataFrame, features_df: pd.Da
     }
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     return summary
+
+
+def paired_cross_seed_bootstrap(frames: List[Dict[str, Any]], unique_groups: np.ndarray,
+                                group_to_idx: Dict[str, np.ndarray], y_ref: np.ndarray,
+                                n_boot: int, boot_seed: int) -> Dict[str, Any]:
+    """Paired cluster bootstrap over shared SID resampling across seeds.
+
+    Used to compute CI of cross-seed-mean deltas (CNN vs tabular arms) with proper
+    within-storm correlation and cross-seed pairing preservation.
+
+    Returns dict with keys 'draws' (V1: CNN - GBM_SF), 'draws_v2' (V2: CNN - GBM_F),
+    and 'n_skipped' (draws dropped due to single class in resampled y).
+    """
+    have_f = all(f["prob_f"] is not None for f in frames)
+
+    rng = np.random.default_rng(boot_seed)
+    draws = []          # V1: CNN - GBM_SF
+    draws_v2 = []       # V2: CNN - GBM_F (co-primary; same shared resampling)
+    n_skipped = 0
+    for _ in range(n_boot):
+        sampled = rng.choice(unique_groups, size=len(unique_groups), replace=True)
+        idx = np.concatenate([group_to_idx[g] for g in sampled])
+        yb = y_ref[idx]
+        if len(np.unique(yb)) < 2:
+            n_skipped += 1
+            continue
+        cnn_prs = [average_precision_score(yb, f["prob_cnn"][idx]) for f in frames]
+        sf_prs = [average_precision_score(yb, f["prob_gbm"][idx]) for f in frames]
+        draws.append(float(np.mean([c - s for c, s in zip(cnn_prs, sf_prs)])))
+        if have_f:
+            f_prs = [average_precision_score(yb, f["prob_f"][idx]) for f in frames]
+            draws_v2.append(float(np.mean([c - fp for c, fp in zip(cnn_prs, f_prs)])))
+
+    return {"draws": draws, "draws_v2": draws_v2, "n_skipped": n_skipped}
 
 
 def compare_cnn(cnn_run_dirs: Sequence[Path], tabular_run_dir: Path,
@@ -670,25 +707,12 @@ def compare_cnn(cnn_run_dirs: Sequence[Path], tabular_run_dir: Path,
     unique_groups = np.unique(sid_ref)
     group_to_idx = {g: np.where(sid_ref == g)[0] for g in unique_groups}
 
+    boot_result = paired_cross_seed_bootstrap(frames, unique_groups, group_to_idx, y_ref,
+                                               n_boot=args.n_boot, boot_seed=args.bootstrap_seed)
+    draws = boot_result["draws"]
+    draws_v2 = boot_result["draws_v2"]
+    n_skipped = boot_result["n_skipped"]
     have_f = all(f["prob_f"] is not None for f in frames)
-
-    rng = np.random.default_rng(args.bootstrap_seed)
-    draws = []          # V1: CNN - GBM_SF
-    draws_v2 = []       # V2: CNN - GBM_F (co-primary; same shared resampling)
-    n_skipped = 0
-    for _ in range(args.n_boot):
-        sampled = rng.choice(unique_groups, size=len(unique_groups), replace=True)
-        idx = np.concatenate([group_to_idx[g] for g in sampled])
-        yb = y_ref[idx]
-        if len(np.unique(yb)) < 2:
-            n_skipped += 1
-            continue
-        cnn_prs = [average_precision_score(yb, f["prob_cnn"][idx]) for f in frames]
-        sf_prs = [average_precision_score(yb, f["prob_gbm"][idx]) for f in frames]
-        draws.append(float(np.mean([c - s for c, s in zip(cnn_prs, sf_prs)])))
-        if have_f:
-            f_prs = [average_precision_score(yb, f["prob_f"][idx]) for f in frames]
-            draws_v2.append(float(np.mean([c - fp for c, fp in zip(cnn_prs, f_prs)])))
 
     alpha = 0.025  # 95% CI
     arr = np.asarray(draws, dtype=np.float64)
@@ -816,6 +840,8 @@ def main() -> None:
                         help="Path to a tabular run directory (for --compare-cnn mode).")
     parser.add_argument("--allow-partial", action="store_true", default=False,
                         help="Allow comparison with fewer than 3 seeds (prints INTERMEDIATE, no verdict).")
+    parser.add_argument("--drop-basin", action="store_true", default=False,
+                        help="Remove basin_* columns from the feature table (pre-registered H10 ablation arm). Default False: published behaviour unchanged.")
     args = parser.parse_args()
     args.seeds = [int(s.strip()) for s in str(args.seeds).split(",") if s.strip()]
 

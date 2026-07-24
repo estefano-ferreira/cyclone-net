@@ -14,6 +14,15 @@ not — lives here, in the spirit of pre-registration.
 - Date everything. Version in git (every change is a traceable commit).
 - A hypothesis without clear physical motivation: record that absence — it
   is a fragility signal.
+- **Declare the minimum detectable effect (MDE) BEFORE running (required
+  for registrations from 2026-07-24 onward):** next to the metric, state
+  the SE source (bootstrap replicate SD of the planned statistic, or a
+  pre-specified conservative proxy from existing artifacts when the
+  statistic needs the run itself) and the MDE at 80% and 90% power
+  (two-sided α=0.05: MDE = (z₁₋α/₂ + z₁₋β)·SE). A null verdict without a
+  pre-declared MDE has no scope — "no effect" and "not enough power" are
+  indistinguishable. Retrospective MDEs for the pre-rule verdicts
+  (H6, H9/V1, H9/V2) live in `outputs/results/power_analysis/`.
 
 **Convention (instrument integrity):**
 - **Tested:** the real test date.
@@ -327,6 +336,35 @@ the mapping to this registry is given in the notes of H4/H5 below.
   not justified: the released contribution is the dataset, not a model.
   Both are reported with their protocols explicitly separated. The CNN's
   test-set metrics stand as historical record of a retired architecture."
+
+---
+
+### H10: The basin one-hot contributes measurably to the state-only rung
+- **Registered:** 2026-07-24 | **Tested:** not yet (registration precedes
+  any result; first registration under the MDE rule above)
+- **Question:** how much of the `GBM_S` ladder rung (pooled OOF PR-AUC
+  0.202, "storm state only") is attributable to the basin one-hot columns
+  (`basin_EP`/`basin_`, the mislabeled pair that carries the true
+  two-basin partition at 99.9% — ERRATA item 7, H9 collateral finding)?
+- **Physical motivation:** basin membership is a genuine RI predictor —
+  EP and NA have distinct RI climatologies, and SHIPS-RII is fitted
+  separately per basin. A non-zero contribution is plausible and is not a
+  defect; the purpose is to quantify a disclosed confound, not to
+  exonerate it.
+- **Test design:** paired delta PR-AUC(S with basin) − PR-AUC(S without
+  basin); with-basin arm = published OOF of run `20260715T123221Z`
+  (no retraining); without-basin arm = identical harness with
+  `--drop-basin` (default off; published run unchanged); same dev set
+  (14,101/687/839), folds, seeds (42/123/456), model, 10,000-replicate
+  shared-resampling SID-cluster bootstrap, `boot_seed=42`. Full document:
+  `docs/basin_ablation_preregistration.md` (metric, MDE, fixed decision
+  branches, read-once discipline).
+- **MDE (declared before running):** 0.048 PR-AUC @ 80% power
+  (conservative proxy: replicate SD 0.0172 of the published S−SF paired
+  delta under the identical bootstrap; see the pre-registration for the
+  derivation).
+- **Status:** REGISTERED — awaiting execution.
+- **Verdict:** —
 
 ---
 

@@ -329,7 +329,11 @@ The three hypotheses produced four verdicts: H6, the two co-primary H9 verdicts 
 
 **Verdict: CANCELLED.** The pre-registered H8 question (whether four loss-term components shaped toward a heuristic prior improve classification) became undecidable once H9/V2 retired the architecture those terms were designed to regularize. Ablating a component of a retired model decides nothing about that component's utility. Per the pre-registration, the harness (`analysis/fuelmap_ablation_cnn.py`) and its documentation remain in the repository as historical record and are not to be executed.
 
-### 6.4 Ex-ante qualifications
+### 6.4 Minimum detectable effect of the null verdicts
+
+A null interval says nothing about the world unless the smallest effect the design could have resolved is stated. The minimum detectable effect (MDE) of each pre-registered delta was therefore computed retrospectively (2026-07-24) from the standard deviation of its 10,000-replicate SID-cluster bootstrap distribution, with the published intervals reproduced exactly (tolerance 10⁻¹²) as a fidelity gate (two-sided α = 0.05, power 0.80; MDE = 2.80 × SE). H6: MDE = 0.036 PR-AUC; H9/V1: 0.053; H9/V2: 0.043. The observed H6 (+0.0185) and V2 (+0.0005) effects lie below their MDEs: those nulls are consistent both with no effect and with a real effect smaller than this design can resolve. The V1 effect (−0.0781) exceeds its MDE; that verdict was adequately powered. No verdict changes; each null now carries its scope. Registrations from 2026-07-24 onward declare the MDE before running (registry rule; report under `outputs/results/power_analysis/`).
+
+### 6.5 Ex-ante qualifications
 
 The following constraints on the verdicts were registered before reading any result. None were invented after:
 
@@ -341,7 +345,7 @@ The following constraints on the verdicts were registered before reading any res
 
 4. **15-epoch training budget.** Identical across all arms and all CNN cells in the k-fold experiment, fixed in the pre-registration to avoid adaptive hyperparameter tuning.
 
-### 6.5 Scope guard
+### 6.6 Scope guard
 
 Verbatim from the pre-registration registry:
 
@@ -390,7 +394,7 @@ The dataset itself is the entry point for three practical directions: (1) model 
 
 6. **Spatial resolution.** ERA5 at 0.25° resolution cannot resolve inner-core structure; the dataset's channels derive from bulk reanalysis fields, limiting spatial attribution fidelity at the storm scale.
 
-7. **RI-classification skill, honestly framed.** The baseline gradient-boosted tabular model, evaluated on development folds (14,101 events, 687 positives, pooled out-of-fold), achieves PR-AUC ≈0.25 against the valid set's base rate of 4.8% (approximately 5× chance), providing usability evidence that the dataset's labels support supervised learning. This lower bound does not imply a performance ceiling; lower bounds are not ceilings. The dataset's skill should not be extrapolated beyond this development evidence without independent test-set replication. No comparison against operational baselines (e.g., SHIPS Rapid Intensification Index) has been performed; such comparison is necessary before any operational skill claim. SHIPS-RII is fitted separately per basin, and direct inter-model comparison with a two-basin model requires basin-stratified evaluation to be meaningful.
+7. **RI-classification skill, honestly framed.** The baseline gradient-boosted tabular model, evaluated on development folds (14,101 events, 687 positives, pooled out-of-fold), achieves PR-AUC ≈0.25 against the valid set's base rate of 4.8% (approximately 5× chance), providing usability evidence that the dataset's labels support supervised learning. This lower bound does not imply a performance ceiling; lower bounds are not ceilings. The dataset's skill should not be extrapolated beyond this development evidence without independent test-set replication. No comparison against operational baselines (e.g., SHIPS Rapid Intensification Index) has been performed; such comparison is necessary before any operational skill claim. SHIPS-RII is fitted separately per basin, and direct inter-model comparison with a two-basin model requires basin-stratified evaluation to be meaningful. The minimum detectable effects that bound the campaign's null verdicts are stated in §6.4.
 
 8. **Two-basin heterogeneity.** East Pacific and North Atlantic exhibit distinct RI climatologies, seasonal patterns, wind-shear regimes, and intensity distributions. This heterogeneity is not controlled (basin is not used as a covariate in the pipeline) and is not balanced across splits; users performing inter-basin comparisons should account for basin nesting explicitly.
 
