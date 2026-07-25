@@ -13,7 +13,8 @@ repository-code: "https://github.com/estefano-ferreira/cyclone-net"
 license: MIT
 # Single archived record (paper + dataset package) on one concept line; the
 # concept DOI above resolves to the latest version. Version DOIs: v3.0.1 =
-# 10.5281/zenodo.21413397; v3.0.2 minted at publish (record it here after).
+# 10.5281/zenodo.21413397; v3.0.2 = 10.5281/zenodo.21433809 (2026-07-18,
+# read from the API 2026-07-25).
 # Dataset licensed CC BY 4.0 (LICENSE-DATA).
 version: "3.0.2"
 date-released: "2026-07-18"

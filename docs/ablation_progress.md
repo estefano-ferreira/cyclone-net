@@ -39,10 +39,10 @@ Intermediate record for seed 42 (NO verdict): pooled-OOF ΔPR-AUC
    - An automated task already exists: **`CycloneNet-Ablation-Night2-Seed123`**
      (Task Scheduler, fires 14/07 at 19:30 IF the machine is on and
      logged in; missed trigger does NOT re-fire). Launcher with pre-checks:
-     `C:\Users\Estéfano\cyclone-net-ops\ablation_night2_seed123.ps1` —
+     `%USERPROFILE%\cyclone-net-ops\ablation_night2_seed123.ps1` —
      aborts if seed 42 is incomplete or if training is active (so it is
      safe to coexist with manual firing). Logs in
-     `C:\Users\Estéfano\cyclone-net-ops\`.
+     `%USERPROFILE%\cyclone-net-ops\`.
 2. **Seed 456** (night 3): same command with `--seeds 456`, same method.
 3. At the end of each seed: commit `oof_predictions.csv` + `summary.json`
    from the run dir (checkpoints .pt are gitignored).

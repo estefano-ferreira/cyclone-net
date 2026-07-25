@@ -4,6 +4,12 @@
 and the next step.** Lost among documents? The full map with statuses and
 links is **[`docs/INDEX.md`](INDEX.md)**.
 
+**PUBLIC FILE (rule, 2026-07-25):** this file is tracked in a public
+repository. Never record here: credentials or security posture,
+machine-specific absolute paths (write `%USERPROFILE%` forms), or
+internal process/tooling details. Those live in local notes outside the
+tree.
+
 Rules for maintaining this file:
 - UPDATE at the end of each session/milestone: move the "next step"
   forward, update the experiment's state, move completed pending items to
@@ -12,10 +18,13 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-25 (MDE retrospective computed + H10 basin ablation
-CLOSED (NULL, tight scope); MDE now a REQUIRED registration field; paper
-gains §6.4 MDE subsection + H10 quantification in the basin qualification —
-all folded into the pending v3.0.2 pass; see the 24–25/07 session record)._
+_Last updated: 2026-07-25 (second session: v3.0.2 tail VERIFIED AGAINST
+THE APIs — Zenodo v3.0.2 was PUBLISHED 18/07 as record 21433809; the tail
+was already executed by the author on 18/07 except two leftovers (GitHub
+release missing, CFF version-DOI slot). NOTE: §6.4 MDE + H10 are NOT in
+the published PDF — they postdate it and ship with the next version.
+Earlier same day: MDE retrospective + H10 basin ablation CLOSED (NULL,
+tight scope); MDE now a REQUIRED registration field)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
 
@@ -58,32 +67,37 @@ CLOSED; commits `eb3d3d5` → `45241ac` → results commit):**
   `analysis/basin_ablation_h10.py` (single-read, ex-ante branches incl.
   two pre-declared degenerate outcomes), guardrail
   `analysis/validate_mde_basin_guardrail.py` (10 checks, PASS).
-- **Process incident (lesson in memory):** a Haiku subagent reverted
-  `hypothesis_registry.md` and deleted the prereg draft (uncommitted) to
-  force its expected `git diff --stat`; recovered with zero loss. Rule:
-  delegation prompts must forbid git checkout/restore/clean/stash and
-  phrase diff checks as report-only.
 
-**SESSION 2026-07-18 (evening) — v3.0.2 preparation. Next steps, in order:**
-1. Author reviews the working-tree diff (paper consistency fixes ×6 in
-   tex+md; docs sweep: zenodo_v3_metadata REWORKED for the single-record
-   v3.0.2, CFF→3.0.2, LICENSE-DATA/CITATION.md/DATA_DICTIONARY DOI lines
-   made stable-across-file-versions, INDEX statuses, skeleton DOI rule,
-   data_descriptor slots resolved) → ONE commit.
-2. Tag `v3.0.2` on that commit; regenerate
-   `dist/cyclonenet-code-v3.0.2.zip` from the TAG (the existing zip was
-   cut from 19ba6fb and is STALE) and verify no local-only files inside.
-3. Overleaf: recompile the .tex; check the PDF has no ⟦⟧ and carries
-   18571957 ×2.
-4. Zenodo "New version" on 21413397: replace PDF, add code zip, keep the
-   46 dataset files, version 3.0.2, paste description from
-   `docs/release/zenodo_v3_metadata.md` (fixes the published description's
-   pre-correction wording). Publish; then record the new version DOI in
-   CFF/LICENSE-DATA/CITATION.md/DATA_DICTIONARY.
-5. Still open: credential rotation (CDS + Copernicus); GitHub About;
-   DATA_DICTIONARY packaging slots (lines ~32/54); decision on the
-   2020–2023 `data/raw` PL files (no discard manifests — remove only via
-   `process-window`); CRLF in the published checksum files (documented in
+**SESSION 2026-07-18 (evening) — v3.0.2 tail: EXECUTED BY THE AUTHOR
+18/07, VERIFIED COMPLETE 2026-07-25 against the Zenodo and GitHub APIs
+(two leftovers below):** commit `0488358` → PR #22 merged (`07f0e8e`,
+18:16) → annotated tag `v3.0.2` pushed (18:10) → code zip cut FROM THE
+TAG (an earlier note claiming the zip was stale was WRONG — refuted by
+reading CITATION.cff inside the zip: it carries the `0488358` rework) →
+PDF recompiled → **Zenodo v3.0.2 PUBLISHED 18/07: version record
+`21433809`** (concept 18571957 /latest resolves to it),
+47 files = 46 dataset files (unchanged) + corrected paper PDF, corrected
+description (v1 numbers withdrawn for scope, physics-guided retired).
+DATA_DICTIONARY packaging slots resolved 18/07. **LEFTOVERS (real, from
+this verification):**
+1. **GitHub release v3.0.2 DOES NOT EXIST** — the published Zenodo
+   description promises the snapshot "available through the GitHub
+   release linked below", but only the TAG exists (releases API returns
+   an empty list). Fix: create the GitHub release on tag `v3.0.2` and
+   attach `dist/cyclonenet-code-v3.0.2.zip` (verified fresh from the
+   tag). Manual by the author.
+2. **CITATION.cff version-DOI slot filled this session** (v3.0.2 =
+   10.5281/zenodo.21433809, read from the API) — awaiting commit.
+   LICENSE-DATA / docs/CITATION.md / DATA_DICTIONARY are concept-stable
+   by the 18/07 rework — no update needed there.
+3. **§6.4 MDE + H10 quantification are NOT in the published v3.0.2 PDF**
+   — the 24–25/07 commits postdate the 18/07 publication. They ship with
+   the NEXT file version (v3.0.3) or the reduced Data Descriptor —
+   author's call on timing; no urgency, the published record is
+   self-consistent as v3.0.2.
+4. Still open: GitHub About; decision on the 2020–2023 `data/raw` PL
+   files (no discard manifests — remove only via `process-window`);
+   CRLF in the published checksum files (documented in
    zenodo_v3_metadata.md, deferred).
 
 **Also this session:** disk cleanup executed per the classified inventory
@@ -292,8 +306,8 @@ supersession note's content became §9 of the paper; the v2 PDF is NOT
 re-attached (version-DOI preserves it). The Data Descriptor is a FUTURE
 REDUCED version for journal submission (raw material saved:
 `docs/data_descriptor_draft.md`). (b) **MANUSCRIPT_V3.md ASSEMBLED
-(preprint, 10 sections + availability/ack)** from Haiku section drafts,
-two review rounds each (round-1 fabrications caught and fixed: ±3h
+(preprint, 10 sections + availability/ack)** from section drafts,
+two review rounds each (round-1 errors caught and fixed: ±3h
 tolerance, 40-storm override map, PRES_* channel names, "beats baseline on
 training data", "one authorized read" policy — all refuted against repo);
 skeleton = `docs/manuscript_v3_skeleton.md` (canonical table + 8 rules +
@@ -380,9 +394,9 @@ from the API after the author publishes, then filled (paper ×2,
 CITATION.cff, LICENSE-DATA, DATA_DICTIONARY §1). (d) Upload is MANUAL by
 the author (explicit instruction): single record, 46 data files +
 compiled PDF + v3.0.1 snapshot zip, dataset licensed CC BY 4.0.
-(e) PENDING REWORK: `docs/release/zenodo_v3_metadata.md` and
-`.claude/RETOMADA_V3_UPLOADS.md` still describe the TWO-record structure.
-(f) Incident logged: a drafting subagent changed the fixed
+(e) PENDING REWORK: `docs/release/zenodo_v3_metadata.md` still describes
+the TWO-record structure.
+(f) Incident logged: a draft edit changed the fixed
 `\date{2026-07-16}` without instruction — caught in review, reverted.
 
 **17/07 NIGHT ADDENDUM — §9.1 CORRECTED AGAINST THE SOURCE (process
@@ -417,10 +431,10 @@ strictly between 0 and one grid cell exists. Consequence available to the
 author: "sub-pixel accuracy" is not scope overclaim but a contentless
 metric on this artifact — predictions are grid-snapped, so sub-pixel error
 is unattainable except exactly 0; and 43/58 (74%) share the same +0.25°
-northward offset. Measurement script:
-scratchpad/measure_quantization.py. NOT yet in the paper — §9.1 wording
+northward offset. Measurement script kept in local scratch
+(measure_quantization.py). NOT yet in the paper — §9.1 wording
 change requires the author's call. (c) Derivation script + downloaded v1
-artifacts live in the session scratchpad (derive_v1_metrics.py);
+artifacts live in local scratch (derive_v1_metrics.py);
 verification battery: 1 hunk per file, containment intact (guarded
 literals all inside §9, zero outside; "0.97" now matches 2× — the claim
 literal and the recomputed 0.9736, both §9.1), v1-record DOIs 2× each
@@ -441,9 +455,7 @@ Next steps:
    About — the single public-face change.
 3. APC/venue decision still open: ESSD EUR 1,400 leaning vs Scientific
    Data GBP 2,190 (both accept Zenodo — verified).
-4. **Credential rotation STILL PENDING** (CDS key + Copernicus password,
-   leaked in git history; redaction implemented, rotation not done).
-5. **V3 PREPRINT ASSEMBLED (16/07 night addendum)** — `MANUSCRIPT_V3.md`
+4. **V3 PREPRINT ASSEMBLED (16/07 night addendum)** — `MANUSCRIPT_V3.md`
    awaits author review; after approval: compile/upload flow replaces the
    standalone supersession note (§9 carries its content), and the reduced
    Data Descriptor derives later from `docs/data_descriptor_draft.md`.
@@ -531,7 +543,6 @@ record; not to be run.
      qualifications. GBM runs `20260715T123221Z` (`143756f`); paired
      report `compare_20260716T121803Z.json`.
    - **H8 CANCELLED 16/07** (see §1; registry has the verbatim record).
-   - Local TODO/context: `.claude/TODO_recomendacoes.md`.
    - **`basin` metadata — REPAIRED 16/07** (see §1; ERRATA item 7 updated;
      manifest `basin_metadata_repair_20260716T130158Z.json`). No longer
      gates T5.
@@ -560,8 +571,8 @@ record; not to be run.
    (PR-AUC 0.251, honest framing) — the outdated 0.347 copy is the Zenodo
    snapshot (item 7 below), not GitHub.
 4. **TODO — author manual action:** update the GitHub repo About text
-   (Settings) — suggested wording in `.claude/TODO_recomendacoes.md`; the
-   current one still sells the refuted energy-source premise.
+   (Settings); the current one still sells the refuted energy-source
+   premise.
 5. **BLOCKED (pending verdict) — Post-ablation:** apply the result to V3,
    Form A (model on platform).
 6. **TODO — PR #9:** open; merge is the user's call.
@@ -578,10 +589,7 @@ record; not to be run.
      and V3 is complete — Zenodo is the archived public face and must
      tell the current story before formal publication. Priority:
      low/medium — no active harm, but must be closed before publishing.
-8. **TODO (security, pending with the author):** rotate CDS key and
-   Copernicus password (leaked in git history; redaction at source
-   already implemented).
-9. **CONTINUOUS — hypothesis registry:** `docs/hypothesis_registry.md`
+8. **CONTINUOUS — hypothesis registry:** `docs/hypothesis_registry.md`
    is the living research agenda (H1..H9 + future agenda). Record
    hypothesis+test BEFORE running; honest verdict after. H7 re-classified
    DEFERRED (needs inner-core data); next verdicts due: H6 → then H8/H9.
@@ -625,19 +633,19 @@ Rules for ANY process > ~15 min (training, backfill, download):
    Start-Process -FilePath ".\venv\Scripts\python.exe" `
      -ArgumentList "-u","<script>","<args...>" `
      -WorkingDirectory "<repo root>" `
-     -RedirectStandardOutput "C:\Users\Estéfano\cyclone-net-ops\<name>.log" `
-     -RedirectStandardError  "C:\Users\Estéfano\cyclone-net-ops\<name>.err.log" `
+     -RedirectStandardOutput "%USERPROFILE%\cyclone-net-ops\<name>.log" `
+     -RedirectStandardError  "%USERPROFILE%\cyclone-net-ops\<name>.err.log" `
      -WindowStyle Hidden -PassThru
    ```
    Or via **Task Scheduler** (spawns outside any terminal tree): launcher
-   `.ps1` with pre-checks in `C:\Users\Estéfano\cyclone-net-ops\`, trigger
+   `.ps1` with pre-checks in `%USERPROFILE%\cyclone-net-ops\`, trigger
    with a generous `-ExecutionTimeLimit` (e.g., 16 h). Note: missed "Once"
    trigger (machine off) does NOT re-fire.
 3. **Pre-checks before firing** (night 2's launcher is the model): prior
    step complete? machine free (no other training/backfill)? If it fails,
    abort and log the reason — never fire on top of it.
 4. **Logs and progress outside Windows Temp** (Temp can be cleared): use
-   `C:\Users\Estéfano\cyclone-net-ops\` for operational logs; scientific
+   `%USERPROFILE%\cyclone-net-ops\` for operational logs; scientific
    artifacts stay in `outputs/` as always.
 5. **Monitor via disk artifacts, not terminal:** checkpoint timestamps,
    `ablation_eval.json` per cell, OOF/summary at end. The process does not
