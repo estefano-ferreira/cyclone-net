@@ -340,8 +340,8 @@ the mapping to this registry is given in the notes of H4/H5 below.
 ---
 
 ### H10: The basin one-hot contributes measurably to the state-only rung
-- **Registered:** 2026-07-24 | **Tested:** not yet (registration precedes
-  any result; first registration under the MDE rule above)
+- **Registered:** 2026-07-24 | **Tested:** 2026-07-25 (first test executed
+  under the MDE rule above; interval read once)
 - **Question:** how much of the `GBM_S` ladder rung (pooled OOF PR-AUC
   0.202, "storm state only") is attributable to the basin one-hot columns
   (`basin_EP`/`basin_`, the mislabeled pair that carries the true
@@ -371,8 +371,21 @@ the mapping to this registry is given in the notes of H4/H5 below.
   ONLY in the basin columns; the read harness had aborted at the
   alignment assert before computing any delta or CI. Full text in the
   pre-registration document.
-- **Status:** REGISTERED — awaiting execution.
-- **Verdict:** —
+- **Status:** TESTED
+- **Verdict:** **NULL (with tight scope)** — Δ_basin = PR-AUC(S with basin)
+  − PR-AUC(S without basin) = +0.0049, 95% CI **[−0.0017, +0.0119]
+  contains zero** (10,000/10,000 valid replicates, shared resampling,
+  `boot_seed=42`; per-seed +0.0021/+0.0082/+0.0045; branch
+  `ci_contains_0`). The proxy assumption HELD: realized replicate SE
+  0.0034 ≪ declared proxy 0.0172, so the realized MDE@80 is **0.010** —
+  the design resolved effects five times smaller than the declared 0.048,
+  and still detected nothing. The basin one-hot's contribution to the S
+  rung is bounded above by ~0.012 PR-AUC at 95%. Pre-registered
+  consequence applied: the ladder's S rung stands as published; the paper
+  states the quantification in the ex-ante qualification on the basin
+  one-hot. Not degenerate: arm predictions differ in every seed. Result:
+  `outputs/results/basin_ablation/20260725T040357Z/h10_result.json`;
+  arms `20260725T035134Z` (with) / `20260725T033419Z` (without).
 
 ---
 

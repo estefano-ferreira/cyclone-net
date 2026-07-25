@@ -1104,7 +1104,14 @@ result. None were invented after:
   mislabeled columns carried the true two-basin partition (99.9\%
   correspondence at the event level), and the GBM effectively used basin
   membership as a predictor. The CNN receives no basin input. This asymmetry is
-  a component of the V1 gap independent of spatial-field information.
+  a component of the V1 gap independent of spatial-field information. The
+  magnitude was subsequently quantified by a pre-registered ablation (H10,
+  registered 2026-07-24, executed 2026-07-25): removing the basin columns from
+  the state-only arm under the otherwise identical pipeline changes pooled OOF
+  PR-AUC by $+0.0049$, 95\% CI $[-0.0017, +0.0119]$ (10{,}000-replicate
+  shared-resampling SID-cluster bootstrap; realized MDE at power 0.80 $=
+  0.010$). The contribution is not detectable and is bounded above by
+  ${\sim}0.012$ PR-AUC at 95\%; the ladder's S rung stands as published.
 
   \item \textbf{15-epoch training budget.} Identical across all arms and all
   CNN cells in the k-fold experiment, fixed in the pre-registration to avoid

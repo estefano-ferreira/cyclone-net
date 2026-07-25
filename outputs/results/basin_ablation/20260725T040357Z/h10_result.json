@@ -1,0 +1,35 @@
+{
+  "hypothesis": "H10",
+  "preregistration": "docs/basin_ablation_preregistration.md",
+  "read_once": "This file is the single authorized read of the H10 interval (read-once rule). No re-runs, no re-thresholding.",
+  "amendment": "Amendment 1 (2026-07-25): both arms are current-pipeline runs.",
+  "generated_at": "2026-07-25T04:03:57.215727+00:00",
+  "with_basin_run": "outputs/results/tabular_baseline/20260725T035134Z",
+  "without_basin_run": "outputs/results/tabular_baseline/20260725T033419Z",
+  "n_boot_requested": 10000,
+  "n_boot_used": 10000,
+  "n_boot_skipped": 0,
+  "boot_seed": 42,
+  "per_seed_delta_pr_auc": [
+    0.0021363392059580155,
+    0.008163066282925041,
+    0.004497027312005464
+  ],
+  "delta_pr_auc_point": 0.00493214426696284,
+  "delta_pr_auc_ci_low": -0.0016987353602511321,
+  "delta_pr_auc_ci_high": 0.011868842366646083,
+  "predictions_identical_by_seed": {
+    "42": false,
+    "123": false,
+    "456": false
+  },
+  "declared_proxy_se": 0.017192021012382774,
+  "declared_design_mde80": 0.04816491193777913,
+  "realized_se": 0.0034498074366408637,
+  "realized_mde80": 0.009664929519829234,
+  "realized_mde90": 0.01118260445066904,
+  "proxy_assumption_failed": false,
+  "near_degenerate_distribution": false,
+  "branch": "ci_contains_0",
+  "verdict": "Basin contribution NOT detectable at this design's resolution (delta +0.0049, CI [-0.0017, 0.0119] contains 0; MDE@80 0.0482). The S rung stands as published, with the MDE stating the scope of this null."
+}

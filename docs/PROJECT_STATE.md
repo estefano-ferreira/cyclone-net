@@ -12,12 +12,57 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-18 (v3.0.1 = 10.5281/zenodo.21413397 PUBLISHED on
-the existing concept line 10.5281/zenodo.18571957; disk cleanup executed;
-v3.0.2 file-version pass PREPARED — see the 18/07 session record in
-Section 1)._
+_Last updated: 2026-07-25 (MDE retrospective computed + H10 basin ablation
+CLOSED (NULL, tight scope); MDE now a REQUIRED registration field; paper
+gains §6.4 MDE subsection + H10 quantification in the basin qualification —
+all folded into the pending v3.0.2 pass; see the 24–25/07 session record)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
+
+**SESSION 2026-07-24/25 — power analysis (MDE) + H10 basin ablation (both
+CLOSED; commits `eb3d3d5` → `45241ac` → results commit):**
+- **MDE retrospective (Task A):** `analysis/power_analysis_mde.py`
+  reproduced the published H6/H9 bootstraps EXACTLY (CIs + points, tol
+  1e-12, boot_seed 42, 10k replicates — fidelity gate, PASS) and derived
+  SE from replicate SD. **MDE@80: H6 0.036 / H9V1 0.053 / H9V2 0.043
+  PR-AUC.** H6 (+0.0185) and V2 (+0.0005) observed effects are BELOW
+  their MDE → those nulls now carry declared scope (consistent with no
+  effect AND with real effects smaller than the design resolves); V1
+  (−0.0781) exceeds its MDE (adequately powered). NO verdict re-read.
+  Report: `outputs/results/power_analysis/20260724T213423Z/`.
+- **Registry rule (durable fix):** MDE (SE source + 80/90% power) is now
+  a REQUIRED field of every registration from 2026-07-24 onward.
+- **Paper (folded into v3.0.2):** new §6.4 "Minimum detectable effect of
+  the null verdicts" (author placement: after the verdicts, NOT among the
+  ex-ante quals — MDE is retrospective; ex-ante → 6.5, scope guard → 6.6;
+  tex is all-\ref, renumber-safe; Limitations item 7 cross-references it).
+  H10 quantification added to the basin ex-ante qualification.
+- **H10 (basin ablation) CLOSED — NULL with tight scope (read once
+  2026-07-25):** Δ_basin = +0.0049, 95% CI [−0.0017, +0.0119] ∋ 0;
+  realized MDE@80 0.010 (proxy 0.048 held: realized SE 0.0034 ≪ 0.0172);
+  basin contribution to the S rung bounded above by ~0.012 at 95%; ladder
+  S rung stands as published. Result:
+  `outputs/results/basin_ablation/20260725T040357Z/h10_result.json`.
+  **AMENDMENT 1 (pre-result, `45241ac`):** the published 14,101-event dev
+  set is NOT reproducible post-v2 (13 dev events are v2 NULLs, verified
+  against `label_diff_v1_v2.csv`) — both arms became current-pipeline
+  runs (`20260725T035134Z` with / `20260725T033419Z` without basin),
+  differing ONLY in the basin columns; the read harness had aborted at
+  the alignment assert before any paired statistic existed.
+- **Pre-registration timestamp chain (verified):** registration commit
+  `eb3d3d5` 2026-07-24T19:07:07-03:00 → without-basin run 03:34Z →
+  abort (no statistic) → amendment `45241ac` 2026-07-25T00:48:42-03:00 →
+  with-basin run 03:51Z → single read 04:03Z.
+- **New harnesses:** `--drop-basin` flag (default False; tests prove the
+  default reproduces the published feature_sets exactly),
+  `analysis/basin_ablation_h10.py` (single-read, ex-ante branches incl.
+  two pre-declared degenerate outcomes), guardrail
+  `analysis/validate_mde_basin_guardrail.py` (10 checks, PASS).
+- **Process incident (lesson in memory):** a Haiku subagent reverted
+  `hypothesis_registry.md` and deleted the prereg draft (uncommitted) to
+  force its expected `git diff --stat`; recovered with zero loss. Rule:
+  delegation prompts must forbid git checkout/restore/clean/stash and
+  phrase diff checks as report-only.
 
 **SESSION 2026-07-18 (evening) — v3.0.2 preparation. Next steps, in order:**
 1. Author reviews the working-tree diff (paper consistency fixes ×6 in

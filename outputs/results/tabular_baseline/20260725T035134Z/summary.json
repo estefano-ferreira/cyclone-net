@@ -1,0 +1,294 @@
+{
+  "run_id": "20260725T035134Z",
+  "generated_at": "2026-07-25T03:58:59.704584+00:00",
+  "config_path": "config.yaml",
+  "n_events": 14088,
+  "n_positives": 687,
+  "n_storms": 839,
+  "feature_sets": {
+    "state_only": [
+      "wind_kt",
+      "pressure_mb",
+      "center_lat",
+      "abs_lat",
+      "basin_EP",
+      "basin_NA",
+      "doy_sin",
+      "doy_cos",
+      "dv_past_12h",
+      "dv_past_12h_missing",
+      "dv_past_24h",
+      "dv_past_24h_missing"
+    ],
+    "fields_only": [
+      "cube_mean_sst_K",
+      "cube_std_sst_K",
+      "cube_min_sst_K",
+      "cube_max_sst_K",
+      "cube_sst_K_missing",
+      "cube_mean_mslp_Pa",
+      "cube_std_mslp_Pa",
+      "cube_min_mslp_Pa",
+      "cube_max_mslp_Pa",
+      "cube_mslp_Pa_missing",
+      "cube_mean_u10_mps",
+      "cube_std_u10_mps",
+      "cube_min_u10_mps",
+      "cube_max_u10_mps",
+      "cube_u10_mps_missing",
+      "cube_mean_v10_mps",
+      "cube_std_v10_mps",
+      "cube_min_v10_mps",
+      "cube_max_v10_mps",
+      "cube_v10_mps_missing",
+      "cube_mean_wind_mps",
+      "cube_std_wind_mps",
+      "cube_min_wind_mps",
+      "cube_max_wind_mps",
+      "cube_wind_mps_missing",
+      "cube_mean_vort_1ps",
+      "cube_std_vort_1ps",
+      "cube_min_vort_1ps",
+      "cube_max_vort_1ps",
+      "cube_vort_1ps_missing",
+      "cube_mean_div_1ps",
+      "cube_std_div_1ps",
+      "cube_min_div_1ps",
+      "cube_max_div_1ps",
+      "cube_div_1ps_missing",
+      "cube_mean_grad_mslp_Pa_per_m",
+      "cube_std_grad_mslp_Pa_per_m",
+      "cube_min_grad_mslp_Pa_per_m",
+      "cube_max_grad_mslp_Pa_per_m",
+      "cube_grad_mslp_Pa_per_m_missing",
+      "cube_mean_sst_anom_K",
+      "cube_std_sst_anom_K",
+      "cube_min_sst_anom_K",
+      "cube_max_sst_anom_K",
+      "cube_sst_anom_K_missing",
+      "cube_mean_shear_850_200_mps",
+      "cube_std_shear_850_200_mps",
+      "cube_min_shear_850_200_mps",
+      "cube_max_shear_850_200_mps",
+      "cube_shear_850_200_mps_missing",
+      "cube_mean_rh_mid",
+      "cube_std_rh_mid",
+      "cube_min_rh_mid",
+      "cube_max_rh_mid",
+      "cube_rh_mid_missing"
+    ],
+    "state_plus_fields": [
+      "wind_kt",
+      "pressure_mb",
+      "center_lat",
+      "abs_lat",
+      "basin_EP",
+      "basin_NA",
+      "doy_sin",
+      "doy_cos",
+      "dv_past_12h",
+      "dv_past_12h_missing",
+      "dv_past_24h",
+      "dv_past_24h_missing",
+      "cube_mean_sst_K",
+      "cube_std_sst_K",
+      "cube_min_sst_K",
+      "cube_max_sst_K",
+      "cube_sst_K_missing",
+      "cube_mean_mslp_Pa",
+      "cube_std_mslp_Pa",
+      "cube_min_mslp_Pa",
+      "cube_max_mslp_Pa",
+      "cube_mslp_Pa_missing",
+      "cube_mean_u10_mps",
+      "cube_std_u10_mps",
+      "cube_min_u10_mps",
+      "cube_max_u10_mps",
+      "cube_u10_mps_missing",
+      "cube_mean_v10_mps",
+      "cube_std_v10_mps",
+      "cube_min_v10_mps",
+      "cube_max_v10_mps",
+      "cube_v10_mps_missing",
+      "cube_mean_wind_mps",
+      "cube_std_wind_mps",
+      "cube_min_wind_mps",
+      "cube_max_wind_mps",
+      "cube_wind_mps_missing",
+      "cube_mean_vort_1ps",
+      "cube_std_vort_1ps",
+      "cube_min_vort_1ps",
+      "cube_max_vort_1ps",
+      "cube_vort_1ps_missing",
+      "cube_mean_div_1ps",
+      "cube_std_div_1ps",
+      "cube_min_div_1ps",
+      "cube_max_div_1ps",
+      "cube_div_1ps_missing",
+      "cube_mean_grad_mslp_Pa_per_m",
+      "cube_std_grad_mslp_Pa_per_m",
+      "cube_min_grad_mslp_Pa_per_m",
+      "cube_max_grad_mslp_Pa_per_m",
+      "cube_grad_mslp_Pa_per_m_missing",
+      "cube_mean_sst_anom_K",
+      "cube_std_sst_anom_K",
+      "cube_min_sst_anom_K",
+      "cube_max_sst_anom_K",
+      "cube_sst_anom_K_missing",
+      "cube_mean_shear_850_200_mps",
+      "cube_std_shear_850_200_mps",
+      "cube_min_shear_850_200_mps",
+      "cube_max_shear_850_200_mps",
+      "cube_shear_850_200_mps_missing",
+      "cube_mean_rh_mid",
+      "cube_std_rh_mid",
+      "cube_min_rh_mid",
+      "cube_max_rh_mid",
+      "cube_rh_mid_missing"
+    ]
+  },
+  "folds": 3,
+  "seeds": [
+    42,
+    123,
+    456
+  ],
+  "drop_basin": false,
+  "n_boot": 10000,
+  "models": [
+    "HistGradientBoostingClassifier (per feature set)",
+    "LogisticRegression (state_plus_fields only)"
+  ],
+  "per_seed": {
+    "42": {
+      "n_pooled_events": 14088,
+      "arms": {
+        "gbm_state_only": {
+          "n_features": 12,
+          "pr_auc": 0.17943352126502077,
+          "roc_auc": 0.8265504529577895,
+          "pr_auc_cluster_ci": {
+            "pr_auc_ci_low": 0.14747644335336701,
+            "pr_auc_ci_high": 0.21971839018815334,
+            "n_boot_used": 10000,
+            "n_boot_skipped_single_class": 0
+          }
+        },
+        "gbm_fields_only": {
+          "n_features": 55,
+          "pr_auc": 0.1682410885525725,
+          "roc_auc": 0.7986580549128023,
+          "pr_auc_cluster_ci": {
+            "pr_auc_ci_low": 0.1372260174728681,
+            "pr_auc_ci_high": 0.20604016914600673,
+            "n_boot_used": 10000,
+            "n_boot_skipped_single_class": 0
+          }
+        },
+        "gbm_state_plus_fields": {
+          "n_features": 67,
+          "pr_auc": 0.2508435986317796,
+          "roc_auc": 0.8460802692710043,
+          "pr_auc_cluster_ci": {
+            "pr_auc_ci_low": 0.20441290543896531,
+            "pr_auc_ci_high": 0.3033377488298802,
+            "n_boot_used": 10000,
+            "n_boot_skipped_single_class": 0
+          }
+        },
+        "logit_state_plus_fields": {
+          "pr_auc": 0.20005836253327144,
+          "roc_auc": 0.8448374499415466
+        }
+      },
+      "oof_predictions_csv": "outputs/results/tabular_baseline/20260725T035134Z/seed42/oof_predictions.csv"
+    },
+    "123": {
+      "n_pooled_events": 14088,
+      "arms": {
+        "gbm_state_only": {
+          "n_features": 12,
+          "pr_auc": 0.2106146475633277,
+          "roc_auc": 0.839333776281876,
+          "pr_auc_cluster_ci": {
+            "pr_auc_ci_low": 0.1729077246319301,
+            "pr_auc_ci_high": 0.25739110529418685,
+            "n_boot_used": 10000,
+            "n_boot_skipped_single_class": 0
+          }
+        },
+        "gbm_fields_only": {
+          "n_features": 55,
+          "pr_auc": 0.15885321084063414,
+          "roc_auc": 0.785299430716624,
+          "pr_auc_cluster_ci": {
+            "pr_auc_ci_low": 0.12736024872395632,
+            "pr_auc_ci_high": 0.1984860813853915,
+            "n_boot_used": 10000,
+            "n_boot_skipped_single_class": 0
+          }
+        },
+        "gbm_state_plus_fields": {
+          "n_features": 67,
+          "pr_auc": 0.23725240730311797,
+          "roc_auc": 0.8450033112521639,
+          "pr_auc_cluster_ci": {
+            "pr_auc_ci_low": 0.19481303067732159,
+            "pr_auc_ci_high": 0.28599206889235573,
+            "n_boot_used": 10000,
+            "n_boot_skipped_single_class": 0
+          }
+        },
+        "logit_state_plus_fields": {
+          "pr_auc": 0.2003128436868923,
+          "roc_auc": 0.8424364255334309
+        }
+      },
+      "oof_predictions_csv": "outputs/results/tabular_baseline/20260725T035134Z/seed123/oof_predictions.csv"
+    },
+    "456": {
+      "n_pooled_events": 14088,
+      "arms": {
+        "gbm_state_only": {
+          "n_features": 12,
+          "pr_auc": 0.19162446122181512,
+          "roc_auc": 0.8278969491837658,
+          "pr_auc_cluster_ci": {
+            "pr_auc_ci_low": 0.1574849072649171,
+            "pr_auc_ci_high": 0.23169044516747284,
+            "n_boot_used": 10000,
+            "n_boot_skipped_single_class": 0
+          }
+        },
+        "gbm_fields_only": {
+          "n_features": 55,
+          "pr_auc": 0.16996390637936193,
+          "roc_auc": 0.804676420006893,
+          "pr_auc_cluster_ci": {
+            "pr_auc_ci_low": 0.1393899862308049,
+            "pr_auc_ci_high": 0.20798295784780516,
+            "n_boot_used": 10000,
+            "n_boot_skipped_single_class": 0
+          }
+        },
+        "gbm_state_plus_fields": {
+          "n_features": 67,
+          "pr_auc": 0.26334330322570754,
+          "roc_auc": 0.8607512289975536,
+          "pr_auc_cluster_ci": {
+            "pr_auc_ci_low": 0.21541479266871894,
+            "pr_auc_ci_high": 0.31930865375726875,
+            "n_boot_used": 10000,
+            "n_boot_skipped_single_class": 0
+          }
+        },
+        "logit_state_plus_fields": {
+          "pr_auc": 0.19043490175808742,
+          "roc_auc": 0.838368750208413
+        }
+      },
+      "oof_predictions_csv": "outputs/results/tabular_baseline/20260725T035134Z/seed456/oof_predictions.csv"
+    }
+  },
+  "run_dir": "outputs/results/tabular_baseline/20260725T035134Z"
+}
