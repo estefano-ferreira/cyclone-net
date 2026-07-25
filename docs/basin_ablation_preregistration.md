@@ -23,6 +23,32 @@ fitted separately per basin), so a non-zero contribution is physically
 plausible and would not be a defect. Either outcome is publishable; both
 numbers go in the paper.
 
+> **AMENDMENT 1 (2026-07-25, BEFORE any paired statistic existed):** the
+> original design reused the published S-arm OOF (run `20260715T123221Z`,
+> 14,101 dev events) as the with-basin arm. That run predates the
+> 2026-07-16 v2 label correction; the corrected pipeline EXCLUDES the 13
+> dev events whose v2 label is NULL (`null_no_partner`; 11 train + 2 val
+> of the 19 valid→NULL events), so the current dev set is 14,088 events /
+> 687 positives / 839 storms and the published dev set is no longer
+> reproducible — restoring it would resurrect the corrected NULL-handling
+> bug. Pairing published-vs-new on the 14,088-event intersection would
+> confound the basin intervention with a 13-event training-set difference,
+> defeating the design's "only the basin columns change" requirement.
+> The with-basin arm is therefore ALSO a new run of the identical harness
+> (no `--drop-basin`, current pipeline, v2 labels), and the paired delta
+> compares the two new runs on the identical 14,088-event dev set with
+> identical folds. The published OOF stays untouched as historical record;
+> the ladder's published S rung (0.202 on 14,101/v1) is reported as such.
+> Timeline evidence that no result was read before this amendment: the
+> read harness (`analysis/basin_ablation_h10.py`) ABORTED at the
+> event-alignment assertion (14,101 vs 14,088) before computing any delta
+> or interval; the without-basin run's `summary.json` carries per-arm
+> absolute PR-AUCs written by the training harness (as any run does), but
+> the pre-registered paired statistic and its CI have never been computed.
+> The declared proxy MDE (0.048, from the published S−SF replicate SD)
+> stands as the design MDE; the realized MDE supersedes it per the
+> degenerate-outcomes section if the proxy assumption fails.
+
 ## Hypothesis (H10 in `hypothesis_registry.md`)
 
 How much of the `GBM_S` rung's pooled OOF PR-AUC (0.202) is attributable

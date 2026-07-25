@@ -363,6 +363,14 @@ the mapping to this registry is given in the notes of H4/H5 below.
   (conservative proxy: replicate SD 0.0172 of the published S−SF paired
   delta under the identical bootstrap; see the pre-registration for the
   derivation).
+- **Amendment 1 (2026-07-25, before any paired statistic existed):** the
+  published with-basin OOF (14,101 dev events, v1 labels) is no longer
+  reproducible — the v2 correction excludes 13 NULL-label dev events
+  (current dev: 14,088/687/839). Both arms are now new runs of the
+  identical current harness (with vs without `--drop-basin`), differing
+  ONLY in the basin columns; the read harness had aborted at the
+  alignment assert before computing any delta or CI. Full text in the
+  pre-registration document.
 - **Status:** REGISTERED — awaiting execution.
 - **Verdict:** —
 

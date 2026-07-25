@@ -7,9 +7,9 @@ Computes the pre-registered paired delta
 
     delta_basin = PR-AUC(S with basin) - PR-AUC(S without basin)
 
-where the with-basin arm is the PUBLISHED state_only OOF of run
-20260715T123221Z (no retraining) and the without-basin arm is a new run of
-the identical harness with --drop-basin. Applies the pre-registered decision
+where (per Amendment 1, 2026-07-25) BOTH arms are runs of the identical
+current harness on the identical v2 dev set: the with-basin arm without
+--drop-basin, the without-basin arm with it. Applies the pre-registered decision
 branches, including the two pre-declared degenerate outcomes (point-mass
 distribution; proxy failure). The interval is read exactly once, by this
 script, after all 3 seeds exist. No other verdict is touched.
@@ -36,7 +36,6 @@ from analysis.tabular_baseline_kfold import paired_cross_seed_bootstrap  # noqa:
 from src.utils.paths import rel_to_root  # noqa: E402
 
 SEEDS = (42, 123, 456)
-PUBLISHED_RUN = "outputs/results/tabular_baseline/20260715T123221Z"
 DEFAULT_MDE_REPORT = "outputs/results/power_analysis/20260724T213423Z/mde_report.json"
 Z975 = 1.959963984540054
 Z80 = 0.8416212335729143
@@ -54,6 +53,8 @@ def read_oof(path: Path) -> pd.DataFrame:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--with-basin-run", required=True, metavar="PATH",
+                        help="Run dir of the default (basin kept) execution — Amendment 1 arm.")
     parser.add_argument("--without-basin-run", required=True, metavar="PATH",
                         help="Run dir of the --drop-basin execution (the new arm).")
     parser.add_argument("--mde-report", default=DEFAULT_MDE_REPORT, metavar="PATH",
@@ -66,26 +67,49 @@ def main() -> None:
     proxy_se = float(mde_report["deltas"]["basin_ablation_design_proxy"]["replicate_se"])
     declared_mde80 = (Z975 + Z80) * proxy_se
 
+    with_run = Path(args.with_basin_run)
+    if not with_run.is_absolute():
+        with_run = PROJECT_ROOT / with_run
     without_run = Path(args.without_basin_run)
     if not without_run.is_absolute():
         without_run = PROJECT_ROOT / without_run
 
-    # Guard: the new arm must actually be a --drop-basin run.
+    # Guards: each arm must be what it claims (Amendment 1 symmetry).
+    with_summary = json.loads((with_run / "summary.json").read_text(encoding="utf-8"))
     without_summary = json.loads((without_run / "summary.json").read_text(encoding="utf-8"))
     if without_summary.get("drop_basin") is not True:
-        print("ABORT: the provided run does not declare drop_basin=true in summary.json.")
+        print("ABORT: the without-basin run does not declare drop_basin=true in summary.json.")
+        sys.exit(1)
+    if with_summary.get("drop_basin") is not False:
+        print("ABORT: the with-basin run does not declare drop_basin=false in summary.json.")
         sys.exit(1)
     for set_name, cols in without_summary["feature_sets"].items():
         leaked = [c for c in cols if c.startswith("basin_")]
         if leaked:
             print(f"ABORT: basin columns present in the without-basin arm ({set_name}): {leaked}")
             sys.exit(1)
+    with_basin_cols = [c for c in with_summary["feature_sets"]["state_only"]
+                       if c.startswith("basin_")]
+    if not with_basin_cols:
+        print("ABORT: the with-basin arm carries no basin_* columns in state_only.")
+        sys.exit(1)
+    if with_summary["n_events"] != without_summary["n_events"]:
+        print(f"ABORT: dev-set size differs between arms "
+              f"({with_summary['n_events']} vs {without_summary['n_events']}).")
+        sys.exit(1)
+    # The only intended feature difference between arms is the basin columns.
+    for set_name in with_summary["feature_sets"]:
+        with_cols = [c for c in with_summary["feature_sets"][set_name]
+                     if not c.startswith("basin_")]
+        if with_cols != without_summary["feature_sets"][set_name]:
+            print(f"ABORT: arms differ beyond basin columns in {set_name}.")
+            sys.exit(1)
 
     frames: List[Dict[str, Any]] = []
     identical_by_seed: Dict[str, bool] = {}
     per_seed_delta: List[float] = []
     for seed in SEEDS:
-        with_df = read_oof(PROJECT_ROOT / PUBLISHED_RUN / f"seed{seed}" / "oof_predictions.csv")
+        with_df = read_oof(with_run / f"seed{seed}" / "oof_predictions.csv")
         wo_df = read_oof(without_run / f"seed{seed}" / "oof_predictions.csv")
 
         if not (with_df["event_id"].to_numpy() == wo_df["event_id"].to_numpy()).all():
@@ -160,8 +184,9 @@ def main() -> None:
         "preregistration": "docs/basin_ablation_preregistration.md",
         "read_once": ("This file is the single authorized read of the H10 interval "
                       "(read-once rule). No re-runs, no re-thresholding."),
+        "amendment": "Amendment 1 (2026-07-25): both arms are current-pipeline runs.",
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "with_basin_run": PUBLISHED_RUN,
+        "with_basin_run": rel_to_root(with_run),
         "without_basin_run": rel_to_root(without_run),
         "n_boot_requested": args.n_boot,
         "n_boot_used": int(arr.size),
