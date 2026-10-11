@@ -23,13 +23,16 @@ export function initMap(containerId = 'map') {
   const map = L.map(containerId, { zoomControl: true, worldCopyJump: true, minZoom: 2 });
   map.setView([20, -50], 3);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors ' +
-      '&copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 18
-  }).addTo(map);
+  // Basemap: Esri World Dark Gray Base (key-free). CARTO basemaps started requiring an API key in 2026-09 and serve watermarked tiles without one.
+  L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    {
+      attribution:
+        'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin, ' +
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, and the GIS User Community',
+      maxZoom: 16
+    }
+  ).addTo(map);
 
   return map;
 }
