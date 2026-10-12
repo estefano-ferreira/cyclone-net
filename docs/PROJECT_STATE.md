@@ -61,8 +61,9 @@ same commit on `feature/tchp` as `cdb7895`):**
   `dist/cyclonenet-code-v3.0.2.zip`; manual by the author. (2) CFF
   version-DOI slot is committed (`f5bb1fb`) — done. (3) §6.4 MDE + H10
   still await v3.0.3 or the Data Descriptor — author's call on timing.
-  (4) `feature/tchp` carries 5 commits not yet in `main` (H10/MDE docs +
-  this state update); merge when the next paper version is cut.
+  (4) `feature/tchp` is 6 commits ahead of `main` by rev-list: H10/MDE
+  docs ×4, `cdb7895` (content-identical to the hotfix already in `main`)
+  and this state update; merge when the next paper version is cut.
 
 **SESSION 2026-07-24/25 — power analysis (MDE) + H10 basin ablation (both
 CLOSED; commits `eb3d3d5` → `45241ac` → results commit):**
