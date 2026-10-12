@@ -18,7 +18,11 @@ Rules for maintaining this file:
   not reflected here, fix it before trusting it.
 - At the START of each session: READ this file first to locate yourself.
 
-_Last updated: 2026-07-25 (second session: v3.0.2 tail VERIFIED AGAINST
+_Last updated: 2026-10-11 (platform hotfix: the public Event Explorer
+lost its basemap because CARTO started requiring an API key; swapped to
+the key-free Esri World Dark Gray Base, deployed to Pages from `main`
+`2e64615`, verified live. No data/science change. Previous update
+2026-07-25: v3.0.2 tail VERIFIED AGAINST
 THE APIs — Zenodo v3.0.2 was PUBLISHED 18/07 as record 21433809; the tail
 was already executed by the author on 18/07 except two leftovers (GitHub
 release missing, CFF version-DOI slot). NOTE: §6.4 MDE + H10 are NOT in
@@ -27,6 +31,38 @@ Earlier same day: MDE retrospective + H10 basin ablation CLOSED (NULL,
 tight scope); MDE now a REQUIRED registration field)._
 
 ## 1. IMMEDIATE RESUME (what to do NOW)
+
+**SESSION 2026-10-11 — platform basemap hotfix (CLOSED; `main` `2e64615`,
+same commit on `feature/tchp` as `cdb7895`):**
+- **Symptom:** the published Event Explorer rendered tracks over a blank
+  background stamped "API KEY REQUIRED". No console or loader error: the
+  integrity-checked data pipeline (manifest, events_index, GeoJSON) kept
+  loading; only the third-party tile layer was affected.
+- **Root cause (external dependency, not a CycloneNet defect):** CARTO
+  basemaps (`basemaps.cartocdn.com`) now require an API key (CARTO
+  Basemaps Terms, 2026-09-29). Without one the service still answers
+  HTTP 200 but with watermark tiles, which is why nothing failed loudly.
+- **Fix:** `platform/site/js/map.js` tile layer switched to Esri World
+  Dark Gray Base (key-free, dark style compatible with the marker
+  palette, own attribution line). Verified before and after deploy:
+  tiles 200, no console errors, track + markers render (TAMMY 2023).
+- **Decision recorded:** a CARTO key was NOT adopted — it would have to
+  live in the public client JS and in git, against the no-secrets-in-git
+  rule (§3). If Esri ever gates its legacy tiles the same way, the
+  alternatives are OpenStreetMap standard tiles (light style) or a
+  MapLibre + OpenFreeMap vector stack (larger change).
+- **Release path:** hotfix branch cut from `main` with only this commit,
+  fast-forwarded into `main`; Pages workflow + Secret Guard both green.
+  No dataset, label, split, or manuscript artifact touched; platform
+  `data/` and `manifest.json` unchanged (served build still `0309837+…`).
+- **NEXT STEP (unchanged since 25/07, re-verified 11/10 against the
+  GitHub API):** (1) GitHub release `v3.0.2` STILL does not exist
+  (releases list empty; only the tag) — create it on the tag and attach
+  `dist/cyclonenet-code-v3.0.2.zip`; manual by the author. (2) CFF
+  version-DOI slot is committed (`f5bb1fb`) — done. (3) §6.4 MDE + H10
+  still await v3.0.3 or the Data Descriptor — author's call on timing.
+  (4) `feature/tchp` carries 5 commits not yet in `main` (H10/MDE docs +
+  this state update); merge when the next paper version is cut.
 
 **SESSION 2026-07-24/25 — power analysis (MDE) + H10 basin ablation (both
 CLOSED; commits `eb3d3d5` → `45241ac` → results commit):**
@@ -601,6 +637,9 @@ record; not to be run.
 - Core-integrity audit 5/5 (post-backfill closes items 3 and 5, `ff223cd`).
 - PL census: gate PASS (14,101 dev events, 100% coverage).
 - Platform live with environmental panel + basin (`08ad031`).
+- **Platform basemap hotfix 11/10/2026** — CARTO tiles went key-gated;
+  Event Explorer now on key-free Esri World Dark Gray Base (`2e64615`,
+  live on Pages). Do not reintroduce a CARTO key in client code.
 - Relative path hygiene in manifests (`ee7dc7c`).
 - Ablation pre-registration locked in before any results (`eaa8ae8`).
 - Post-backfill re-test of RI precursors on frozen pairs: H1–H4
